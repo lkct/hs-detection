@@ -196,9 +196,7 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     setup_requires=['numpy >= 1.14', 'scipy'],
-    install_requires=['h5py', 'matplotlib >= 2.0',
-                      'pandas', 'scikit-learn >= 0.19.1',
-                      'joblib', 'six'],
+    install_requires=['matplotlib >= 2.0', 'pandas'],
     python_requires='>=3.6',
 
     # List additional groups of dependencies here (e.g. development
