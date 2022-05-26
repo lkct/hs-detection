@@ -34,7 +34,7 @@ try:
     USE_CYTHON = True
     print('Using Cython')
 except ImportError:
-    def cythonize(x): return x
+    def cythonize(x): return [x]
     USE_CYTHON = False
     print('Not using Cython')
 
