@@ -6,7 +6,6 @@ import os
 from scipy.spatial.distance import cdist
 import warnings
 
-this_file_path = os.path.dirname(os.path.abspath(__file__))
 
 DEFAULT_EVENT_LENGTH = 0.5
 DEFAULT_PEAK_JITTER = 0.2
@@ -28,19 +27,13 @@ def create_probe_files(pos_file, neighbor_file, radius, ch_positions):
             f.write("{},\n".format(str(list(neighbors))[1:-1]))
     f.close()
 
-def in_probes_dir(file):
-    probe_path1 = os.getenv('HS2_PROBE_PATH', this_file_path)    
-    probe_path = os.path.join(probe_path1, "probes")
+
+def in_probe_info_dir(file):
+    probe_path = '/tmp/tmp_probe_info'
     if not os.path.exists(probe_path):
         os.mkdir(probe_path)
     return os.path.join(probe_path, file)
 
-def in_probe_info_dir(file):
-    probe_path1 = os.getenv('HS2_PROBE_PATH', this_file_path)    
-    probe_path = os.path.join(probe_path1, "probe_info")
-    if not os.path.exists(probe_path):
-        os.mkdir(probe_path)
-    return os.path.join(probe_path, file)
 
 class NeuralProbe(object):
     def __init__(
