@@ -2,27 +2,33 @@ from setuptools import Extension, find_packages, setup
 import os
 import sys
 import platform
+import subprocess
 import numpy
 
 
 def get_version():
+    # ref https://packaging.python.org/guides/single-sourcing-package-version/ 3
     version = {}
-    version['__file__'] = __file__
-
-    # Because __init__.py in myherdingspikes loads packages we may not have installed yet, we need to parse version.py directly
-    # (see https://packaging.python.org/guides/single-sourcing-package-version/)
     with open('myherdingspikes/version.py', 'r') as f:
         exec(f.read(), version)
 
-    # Store the commit hash for when we don't have access to git
-    with open("myherdingspikes/.commit_version", 'w') as f:
-        f.write(version['__commit__'])
+    try:
+        commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'],
+                                         cwd=os.path.dirname(__file__)
+                                         ).decode('utf8').strip()
+    except:
+        commit = ''
 
-    # Public versions should not contain local identifiers (inspired from mypy)
-    if any(cmd in sys.argv[1:] for cmd in ('install', 'bdist_wheel', 'sdist')):
-        return version['base_version']
+    if any(cmd in sys.argv for cmd in ('sdist', 'bdist', 'bdist_wheel')):
+        # in dist, include commit hash as file but not in version
+        if commit:
+            with open('myherdingspikes/.commit_version', 'w') as f:
+                f.write(commit)
+        return version['version']
     else:
-        return version['__version__']
+        # in install, include commit hash in version if possible
+        commit = '+git.' + commit[:8] if commit else ''
+        return version['version'] + commit
 
 
 with open('README.md', 'r', encoding='utf-8') as f:
@@ -115,5 +121,13 @@ setup(
     },
 )
 
-
-os.remove("myherdingspikes/.commit_version")
+try:
+    subprocess.check_output(['git', 'rev-parse', 'HEAD'],
+                            cwd=os.path.dirname(__file__)
+                            )
+    # if git success: in git repo, remove file
+    os.remove('myherdingspikes/.commit_version')
+    # if not exist: still captured by try...except
+except:
+    # else: keep file
+    pass
