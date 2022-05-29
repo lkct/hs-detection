@@ -67,6 +67,15 @@ class RecordingExtractor(object):  # NeuralProbe
         if masked_channels is None:
             self.masked_channels = []
 
+    def Read(self, t0, t1):
+        return (
+            self.d.get_traces(
+                channel_ids=self.d.get_channel_ids(), start_frame=t0, end_frame=t1
+            )
+            .ravel()
+            .astype(ctypes.c_short)
+        )
+
     # Show visualization of probe
     def show(self, show_neighbors=[10], figwidth=3):
         xmax, ymax = self.positions.max(0)
@@ -85,15 +94,6 @@ class RecordingExtractor(object):  # NeuralProbe
         plt.scatter(*self.positions[self.masked_channels].T, c="r")
         for i, pos in enumerate(self.positions):
             plt.annotate(f'{i}', pos)
-
-    def Read(self, t0, t1):
-        return (
-            self.d.get_traces(
-                channel_ids=self.d.get_channel_ids(), start_frame=t0, end_frame=t1
-            )
-            .ravel()
-            .astype(ctypes.c_short)
-        )
 
     def getChannelsPositions(self, channels):
         channel_positions = []
