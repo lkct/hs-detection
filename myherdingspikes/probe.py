@@ -2,7 +2,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 import ctypes
 from scipy.spatial.distance import cdist
-import warnings
 
 
 DEFAULT_EVENT_LENGTH = 0.5
@@ -56,114 +55,7 @@ def create_probe_files(pos_file, neighbor_file, radius, ch_positions):
     f.close()
 
 
-class NeuralProbe(object):
-    def __init__(
-        self,
-        num_channels,
-        noise_amp_percent,
-        inner_radius,
-        fps,
-        positions_file_path,
-        neighbors_file_path,
-        neighbor_radius,
-        event_length,
-        peak_jitter,
-        masked_channels=[],
-        spike_peak_duration=None,
-        noise_duration=None,
-    ):
-        if neighbor_radius is not None:
-            createNeighborMatrix(
-                neighbors_file_path, positions_file_path, neighbor_radius
-            )
-        self.fps = fps
-        self.num_channels = num_channels
-        self.spike_peak_duration = self._deprecate_or_convert(
-            spike_peak_duration, event_length, "spike_peak_duration", "event_length"
-        )
-        self.noise_duration = self._deprecate_or_convert(
-            noise_duration, peak_jitter, "noise_duration", "peak_jitter"
-        )
-        self.noise_amp_percent = noise_amp_percent
-        self.positions_file_path = positions_file_path
-        self.neighbors_file_path = neighbors_file_path
-        self.masked_channels = masked_channels
-        self.inner_radius = inner_radius
-        if masked_channels is None:
-            self.masked_channels = []
-
-        self.loadPositions(positions_file_path)
-        self.loadNeighbors(neighbors_file_path)
-
-    # Load in neighbor and positions files
-    def loadNeighbors(self, neighbors_file_path):
-        neighbor_file = open(neighbors_file_path, "r")
-        neighbors = []
-        for neighbor in neighbor_file.readlines():
-            neighbors.append(np.array(neighbor[:-2].split(",")).astype(int))
-        neighbor_file.close()
-        # assert len(neighbors) == len(pos)
-        self.neighbors = neighbors
-        self.max_neighbors = max([len(n) for n in neighbors])
-
-    def loadPositions(self, positions_file_path):
-        position_file = open(positions_file_path, "r")
-        positions = []
-        for position in position_file.readlines():
-            positions.append(np.array(position[:-2].split(",")).astype(float))
-        self.positions = np.asarray(positions)
-        position_file.close()
-
-    def _deprecate_or_convert(self, old_var, new_var, old_name, new_name):
-        if old_var is not None:
-            warnings.warn(
-                "{} is deprecated and will be removed. ".format(old_name)
-                + "Set {} instead (in milliseconds). ".format(new_name)
-                + "{} takes priority over {}!".format(old_name, new_name),
-                DeprecationWarning,
-            )
-            return int(old_var)
-        else:
-            return int(new_var * self.fps / 1000)
-
-    # Show visualization of probe
-    def show(self, show_neighbors=[10], figwidth=3):
-        xmax, ymax = self.positions.max(0)
-        xmin, ymin = self.positions.min(0)
-        ratio = ymax / xmax
-        plt.figure(figsize=(figwidth, figwidth * ratio))
-        for ch in show_neighbors:
-            for neighbor in self.neighbors[ch]:
-                plt.plot(
-                    [self.positions[ch, 0], self.positions[neighbor, 0]],
-                    [self.positions[ch, 1], self.positions[neighbor, 1]],
-                    "--k",
-                    alpha=0.7,
-                )
-        plt.scatter(*self.positions.T)
-        plt.scatter(*self.positions[self.masked_channels].T, c="r")
-        for i, pos in enumerate(self.positions):
-            plt.annotate(f'{i}', pos)
-
-    def Read(self, t0, t1):
-        raise NotImplementedError(
-            "The Read function is not implemented for \
-            this probe"
-        )
-
-    def getChannelsPositions(self, channels):
-        channel_positions = []
-        for channel in channels:
-            if channel >= self.num_channels:
-                raise ValueError(
-                    "Channel index too large, maximum " + self.num_channels
-                )
-            else:
-                channel_positions.append(self.positions[channel])
-        return channel_positions
-
-
-class RecordingExtractor(NeuralProbe):
+class RecordingExtractor(object):  # NeuralProbe
     def __init__(
         self,
         re,
@@ -205,19 +97,62 @@ class RecordingExtractor(NeuralProbe):
             positions_file_path, neighbors_file_path, inner_radius, ch_positions
         )
 
-        NeuralProbe.__init__(
-            self,
-            num_channels=num_channels,
-            noise_amp_percent=noise_amp_percent,
-            fps=fps,
-            inner_radius=inner_radius,
-            positions_file_path=positions_file_path,
-            neighbors_file_path=neighbors_file_path,
-            masked_channels=masked_channels,
-            neighbor_radius=neighbor_radius,
-            event_length=event_length,
-            peak_jitter=peak_jitter,
-        )
+        if neighbor_radius is not None:
+            createNeighborMatrix(
+                neighbors_file_path, positions_file_path, neighbor_radius
+            )
+        self.fps = fps
+        self.num_channels = num_channels
+        self.spike_peak_duration = int(event_length * self.fps / 1000)
+        self.noise_duration = int(peak_jitter * self.fps / 1000)
+        self.noise_amp_percent = noise_amp_percent
+        self.positions_file_path = positions_file_path
+        self.neighbors_file_path = neighbors_file_path
+        self.masked_channels = masked_channels
+        self.inner_radius = inner_radius
+        if masked_channels is None:
+            self.masked_channels = []
+
+        self.loadPositions(positions_file_path)
+        self.loadNeighbors(neighbors_file_path)
+
+    # Load in neighbor and positions files
+    def loadNeighbors(self, neighbors_file_path):
+        neighbor_file = open(neighbors_file_path, "r")
+        neighbors = []
+        for neighbor in neighbor_file.readlines():
+            neighbors.append(np.array(neighbor[:-2].split(",")).astype(int))
+        neighbor_file.close()
+        # assert len(neighbors) == len(pos)
+        self.neighbors = neighbors
+        self.max_neighbors = max([len(n) for n in neighbors])
+
+    def loadPositions(self, positions_file_path):
+        position_file = open(positions_file_path, "r")
+        positions = []
+        for position in position_file.readlines():
+            positions.append(np.array(position[:-2].split(",")).astype(float))
+        self.positions = np.asarray(positions)
+        position_file.close()
+
+    # Show visualization of probe
+    def show(self, show_neighbors=[10], figwidth=3):
+        xmax, ymax = self.positions.max(0)
+        xmin, ymin = self.positions.min(0)
+        ratio = ymax / xmax
+        plt.figure(figsize=(figwidth, figwidth * ratio))
+        for ch in show_neighbors:
+            for neighbor in self.neighbors[ch]:
+                plt.plot(
+                    [self.positions[ch, 0], self.positions[neighbor, 0]],
+                    [self.positions[ch, 1], self.positions[neighbor, 1]],
+                    "--k",
+                    alpha=0.7,
+                )
+        plt.scatter(*self.positions.T)
+        plt.scatter(*self.positions[self.masked_channels].T, c="r")
+        for i, pos in enumerate(self.positions):
+            plt.annotate(f'{i}', pos)
 
     def Read(self, t0, t1):
         return (
@@ -227,3 +162,14 @@ class RecordingExtractor(NeuralProbe):
             .ravel()
             .astype(ctypes.c_short)
         )
+
+    def getChannelsPositions(self, channels):
+        channel_positions = []
+        for channel in channels:
+            if channel >= self.num_channels:
+                raise ValueError(
+                    "Channel index too large, maximum " + self.num_channels
+                )
+            else:
+                channel_positions.append(self.positions[channel])
+        return channel_positions
