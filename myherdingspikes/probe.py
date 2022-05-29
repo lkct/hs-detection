@@ -7,51 +7,17 @@ DEFAULT_EVENT_LENGTH = 0.5
 DEFAULT_PEAK_JITTER = 0.2
 
 
-def createNeighborMatrix(neighbor_matrix_name, positions_file_path, neighbor_radius):
-    position_file = open(positions_file_path, "r")
-    positions = []
-    for position in position_file.readlines():
-        positions.append(np.array(position[:-2].split(",")).astype(float))
-    channel_positions = np.asarray(positions)
-    NUM_CHANNELS = len(channel_positions)
-
-    neighbor_matrix = []
-    for channel in range(NUM_CHANNELS):
-        # Calculate distance from current channel to all other channels
-        curr_channel_distances = np.sqrt(
-            np.sum(
-                (channel_positions - channel_positions[channel]) ** 2, axis=1)
-        )
-
-        # Find all neighbors in given radius and add them to neighbors
-        neighbors = np.where(curr_channel_distances < neighbor_radius)[0]
-        neighbor_matrix.append(neighbors)
-    position_file.close()
-
-    neighbor_matrix_file = open(neighbor_matrix_name, "w")
-    for channel_number, neighbors in enumerate(neighbor_matrix):
-        for neighbor in neighbors:
-            neighbor_matrix_file.write(str(neighbor))
-            neighbor_matrix_file.write(str(","))
-        neighbor_matrix_file.write("\n")
-    neighbor_matrix_file.close()
-
-
 def create_probe_files(pos_file, neighbor_file, radius, ch_positions):
     n_channels = ch_positions.shape[0]
     # NB: Notice the column, row order in write
-    with open(pos_file, "w") as f:
-        for pos in ch_positions:
-            f.write("{},{},\n".format(pos[0], pos[1]))
-    f.close()
+    np.savetxt(pos_file, ch_positions, fmt='%.1f', delimiter=',', newline=',\n')
     # using Euclidean distance, also possible to use Manhattan
     distances = np.linalg.norm(
         ch_positions[:, None] - ch_positions[None, :], axis=2, ord=2)
-    indices = np.arange(n_channels)
     with open(neighbor_file, "w") as f:
         for dist_from_ch in distances:
-            neighbors = indices[dist_from_ch <= radius]
-            f.write("{},\n".format(str(list(neighbors))[1:-1]))
+            neighbors = np.nonzero(dist_from_ch < radius)[0]
+            f.write(','.join(map(str, list(neighbors))) + ',\n')
     f.close()
 
 
@@ -94,13 +60,9 @@ class RecordingExtractor(object):  # NeuralProbe
             ch_positions = ch_positions[:, xy]
         print("# Generating new position and neighbor files from data file")
         create_probe_files(
-            positions_file_path, neighbors_file_path, inner_radius, ch_positions
+            positions_file_path, neighbors_file_path, neighbor_radius, ch_positions
         )
 
-        if neighbor_radius is not None:
-            createNeighborMatrix(
-                neighbors_file_path, positions_file_path, neighbor_radius
-            )
         self.fps = fps
         self.num_channels = num_channels
         self.spike_peak_duration = int(event_length * self.fps / 1000)
