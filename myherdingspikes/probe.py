@@ -1,7 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import ctypes
-from scipy.spatial.distance import cdist
 
 
 DEFAULT_EVENT_LENGTH = 0.5
@@ -45,8 +44,9 @@ def create_probe_files(pos_file, neighbor_file, radius, ch_positions):
         for pos in ch_positions:
             f.write("{},{},\n".format(pos[0], pos[1]))
     f.close()
-    # # NB: it is also possible to use metric='cityblock' (Manhattan distance)
-    distances = cdist(ch_positions, ch_positions, metric="euclidean")
+    # using Euclidean distance, also possible to use Manhattan
+    distances = np.linalg.norm(
+        ch_positions[:, None] - ch_positions[None, :], axis=2, ord=2)
     indices = np.arange(n_channels)
     with open(neighbor_file, "w") as f:
         for dist_from_ch in distances:
