@@ -57,24 +57,21 @@ class RecordingExtractor(object):  # NeuralProbe
 
         self.fps = fps
         self.num_channels = num_channels
+        # to num frames
         self.spike_peak_duration = int(event_length * self.fps / 1000)
         self.noise_duration = int(peak_jitter * self.fps / 1000)
         self.noise_amp_percent = noise_amp_percent
-        self.positions_file_path = "/tmp/tmp_probe_info/positions_spikeextractor"
-        self.neighbors_file_path = "/tmp/tmp_probe_info/neighbormatrix_spikeextractor"
+        self.positions_file_path = ''
+        self.neighbors_file_path = ''
         self.masked_channels = masked_channels
         self.inner_radius = inner_radius
         if masked_channels is None:
             self.masked_channels = []
 
     def Read(self, t0, t1):
-        return (
-            self.d.get_traces(
-                channel_ids=self.d.get_channel_ids(), start_frame=t0, end_frame=t1
-            )
-            .ravel()
-            .astype(ctypes.c_short)
-        )
+        return self.d.get_traces(
+            channel_ids=self.d.get_channel_ids(), start_frame=t0, end_frame=t1
+        ).ravel().astype(ctypes.c_short)
 
     # Show visualization of probe
     def show(self, show_neighbors=[10], figwidth=3):
