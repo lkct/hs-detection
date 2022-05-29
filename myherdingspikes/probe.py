@@ -1,14 +1,42 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from .neighborMatrixUtils import createNeighborMatrix
 import ctypes
-import os
 from scipy.spatial.distance import cdist
 import warnings
 
 
 DEFAULT_EVENT_LENGTH = 0.5
 DEFAULT_PEAK_JITTER = 0.2
+
+
+def createNeighborMatrix(neighbor_matrix_name, positions_file_path, neighbor_radius):
+    position_file = open(positions_file_path, "r")
+    positions = []
+    for position in position_file.readlines():
+        positions.append(np.array(position[:-2].split(",")).astype(float))
+    channel_positions = np.asarray(positions)
+    NUM_CHANNELS = len(channel_positions)
+
+    neighbor_matrix = []
+    for channel in range(NUM_CHANNELS):
+        # Calculate distance from current channel to all other channels
+        curr_channel_distances = np.sqrt(
+            np.sum(
+                (channel_positions - channel_positions[channel]) ** 2, axis=1)
+        )
+
+        # Find all neighbors in given radius and add them to neighbors
+        neighbors = np.where(curr_channel_distances < neighbor_radius)[0]
+        neighbor_matrix.append(neighbors)
+    position_file.close()
+
+    neighbor_matrix_file = open(neighbor_matrix_name, "w")
+    for channel_number, neighbors in enumerate(neighbor_matrix):
+        for neighbor in neighbors:
+            neighbor_matrix_file.write(str(neighbor))
+            neighbor_matrix_file.write(str(","))
+        neighbor_matrix_file.write("\n")
+    neighbor_matrix_file.close()
 
 
 def create_probe_files(pos_file, neighbor_file, radius, ch_positions):
@@ -26,13 +54,6 @@ def create_probe_files(pos_file, neighbor_file, radius, ch_positions):
             neighbors = indices[dist_from_ch <= radius]
             f.write("{},\n".format(str(list(neighbors))[1:-1]))
     f.close()
-
-
-def in_probe_info_dir(file):
-    probe_path = '/tmp/tmp_probe_info'
-    if not os.path.exists(probe_path):
-        os.mkdir(probe_path)
-    return os.path.join(probe_path, file)
 
 
 class NeuralProbe(object):
@@ -155,8 +176,8 @@ class RecordingExtractor(NeuralProbe):
         peak_jitter=DEFAULT_PEAK_JITTER,
     ):
         self.d = re
-        positions_file_path = in_probe_info_dir("positions_spikeextractor")
-        neighbors_file_path = in_probe_info_dir("neighbormatrix_spikeextractor")
+        positions_file_path = "/tmp/tmp_probe_info/positions_spikeextractor"
+        neighbors_file_path = "/tmp/tmp_probe_info/neighbormatrix_spikeextractor"
         try:
             self.nFrames = re.get_num_frames()
         except:
