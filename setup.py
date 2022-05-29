@@ -45,17 +45,17 @@ except ImportError:
     print('Not using Cython')
 
 ext_folder = 'myherdingspikes/detection_localisation/'
-sources = ["SpkDonline.cpp",
-           "SpikeHandler.cpp",
-           "ProcessSpikes.cpp",
-           "FilterSpikes.cpp",
-           "LocalizeSpikes.cpp"]
+sources = ['SpkDonline.cpp',
+           'SpikeHandler.cpp',
+           'ProcessSpikes.cpp',
+           'FilterSpikes.cpp',
+           'LocalizeSpikes.cpp']
 # if Cython available, compile from pyx -> cpp
 # otherwise, compile from cpp
 if USE_CYTHON:
-    sources.append("detect.pyx")
+    sources.append('detect.pyx')
 else:
-    sources.append("detect.cpp")
+    sources.append('detect.cpp')
 sources = [ext_folder + fn for fn in sources]
 
 extra_compile_args = ['-std=c++11', '-O3']
@@ -63,13 +63,13 @@ link_extra_args = []
 # OS X support
 if platform.system() == 'Darwin':
     extra_compile_args += ['-mmacosx-version-min=10.9', '-F.']
-    link_extra_args = ["-stdlib=libc++", "-mmacosx-version-min=10.9"]
+    link_extra_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']
 
 # compile with/without Cython
 detect_ext = cythonize(
-    Extension(name="myherdingspikes.detection_localisation.detect",
+    Extension(name='myherdingspikes.detection_localisation.detect',
               sources=sources,
-              language="c++",
+              language='c++',
               extra_compile_args=extra_compile_args,
               extra_link_args=link_extra_args,
               include_dirs=[numpy.get_include(), ext_folder]))
