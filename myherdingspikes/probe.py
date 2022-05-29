@@ -7,20 +7,6 @@ DEFAULT_EVENT_LENGTH = 0.5
 DEFAULT_PEAK_JITTER = 0.2
 
 
-def create_probe_files(pos_file, neighbor_file, radius, ch_positions):
-    n_channels = ch_positions.shape[0]
-    # NB: Notice the column, row order in write
-    np.savetxt(pos_file, ch_positions, fmt='%.1f', delimiter=',', newline=',\n')
-    # using Euclidean distance, also possible to use Manhattan
-    distances = np.linalg.norm(
-        ch_positions[:, None] - ch_positions[None, :], axis=2, ord=2)
-    with open(neighbor_file, "w") as f:
-        for dist_from_ch in distances:
-            neighbors = np.nonzero(dist_from_ch < radius)[0]
-            f.write(','.join(map(str, list(neighbors))) + ',\n')
-    f.close()
-
-
 class RecordingExtractor(object):  # NeuralProbe
     def __init__(
         self,
@@ -34,8 +20,6 @@ class RecordingExtractor(object):  # NeuralProbe
         peak_jitter=DEFAULT_PEAK_JITTER,
     ):
         self.d = re
-        positions_file_path = "/tmp/tmp_probe_info/positions_spikeextractor"
-        neighbors_file_path = "/tmp/tmp_probe_info/neighbormatrix_spikeextractor"
         try:
             self.nFrames = re.get_num_frames()
         except:
@@ -58,44 +42,30 @@ class RecordingExtractor(object):  # NeuralProbe
                 print("#          using the last two.")
                 xy = (ch_positions.shape[1] - 2, ch_positions.shape[1] - 1)
             ch_positions = ch_positions[:, xy]
-        print("# Generating new position and neighbor files from data file")
-        create_probe_files(
-            positions_file_path, neighbors_file_path, neighbor_radius, ch_positions
-        )
+
+        self.positions = ch_positions
+
+        # using Euclidean distance, also possible to use Manhattan
+        distances = np.linalg.norm(
+            ch_positions[:, None] - ch_positions[None, :], axis=2, ord=2)
+
+        self.neighbors = []
+        for dist_from_ch in distances:
+            self.neighbors.append(np.nonzero(
+                dist_from_ch < neighbor_radius)[0])
+        self.max_neighbors = max([len(n) for n in self.neighbors])
 
         self.fps = fps
         self.num_channels = num_channels
         self.spike_peak_duration = int(event_length * self.fps / 1000)
         self.noise_duration = int(peak_jitter * self.fps / 1000)
         self.noise_amp_percent = noise_amp_percent
-        self.positions_file_path = positions_file_path
-        self.neighbors_file_path = neighbors_file_path
+        self.positions_file_path = "/tmp/tmp_probe_info/positions_spikeextractor"
+        self.neighbors_file_path = "/tmp/tmp_probe_info/neighbormatrix_spikeextractor"
         self.masked_channels = masked_channels
         self.inner_radius = inner_radius
         if masked_channels is None:
             self.masked_channels = []
-
-        self.loadPositions(positions_file_path)
-        self.loadNeighbors(neighbors_file_path)
-
-    # Load in neighbor and positions files
-    def loadNeighbors(self, neighbors_file_path):
-        neighbor_file = open(neighbors_file_path, "r")
-        neighbors = []
-        for neighbor in neighbor_file.readlines():
-            neighbors.append(np.array(neighbor[:-2].split(",")).astype(int))
-        neighbor_file.close()
-        # assert len(neighbors) == len(pos)
-        self.neighbors = neighbors
-        self.max_neighbors = max([len(n) for n in neighbors])
-
-    def loadPositions(self, positions_file_path):
-        position_file = open(positions_file_path, "r")
-        positions = []
-        for position in position_file.readlines():
-            positions.append(np.array(position[:-2].split(",")).astype(float))
-        self.positions = np.asarray(positions)
-        position_file.close()
 
     # Show visualization of probe
     def show(self, show_neighbors=[10], figwidth=3):
