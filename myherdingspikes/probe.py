@@ -49,11 +49,11 @@ class RecordingExtractor(object):  # NeuralProbe
         distances = np.linalg.norm(
             ch_positions[:, None] - ch_positions[None, :], axis=2, ord=2)
 
-        self.neighbors = []
+        neighbors = []
         for dist_from_ch in distances:
-            self.neighbors.append(np.nonzero(
-                dist_from_ch < neighbor_radius)[0])
-        self.max_neighbors = max([len(n) for n in self.neighbors])
+            neighbors.append(np.nonzero(dist_from_ch < neighbor_radius)[0])
+        self.neighbors = neighbors
+        self.max_neighbors = max([len(n) for n in neighbors])
 
         self.fps = fps
         self.num_channels = num_channels
