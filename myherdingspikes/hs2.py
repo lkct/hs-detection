@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import os
 from .detection_localisation.detect import detectData
@@ -96,7 +95,7 @@ class HSDetection(object):
         self.decay_filtering = decay_filtering
         self.num_com_centers = num_com_centers
         self.sp_flat = None
-        self.spikes = pd.DataFrame()
+        self.spikes = {}
 
         # Make directory for results if it doesn't exist
         os.makedirs(file_directory_name, exist_ok=True)
@@ -155,19 +154,16 @@ class HSDetection(object):
                 "spike data has wrong dimensions"  # ???
             shapecache = self.sp_flat.reshape((-1, self.cutout_length + 5))
 
-        self.spikes = pd.DataFrame(
-            {
+        self.spikes = {
                 "ch": shapecache[:, 0],
                 "t": shapecache[:, 1],
                 "Amplitude": shapecache[:, 2],
                 "x": shapecache[:, 3] / 1000,
                 "y": shapecache[:, 4] / 1000,
                 "Shape": list(shapecache[:, 5:]),
-            },
-            copy=False,
-        )
+            }
         self.IsClustered = False
-        print("Loaded " + str(self.spikes.shape[0]) + " spikes.")
+        print("Loaded " + str(self.spikes['ch'].shape[0]) + " spikes.")
 
     def DetectFromRaw(
         self, load=False, nFrames=None, tInc=50000, recording_duration=None
