@@ -1,13 +1,35 @@
-from setuptools import Extension, find_packages, setup
 import os
-import sys
 import platform
 import subprocess
-import numpy
+import sys
+
+from setuptools import Extension, find_packages, setup
+
+try:
+    # at the second run for install we already have numpy installed as denpendency
+    from numpy import get_include
+    numpy_include = get_include()
+    del get_include
+except:
+    # the first run for egg_info does not use numpy
+    numpy_include = ''
+    print('WARNING no NumPy found, not for build')
+
+try:
+    # if have cython, use pyx
+    from Cython.Build import cythonize
+    ext_src = 'detect.pyx'
+    print('Using Cython')
+except ImportError:
+    # no Cython, use compiled cpp
+    def cythonize(x): return [x]
+    ext_src = 'detect.cpp'
+    print('Not using Cython')
 
 
-def get_version():
-    # ref https://packaging.python.org/guides/single-sourcing-package-version/ 3
+def get_version() -> str:
+    # ref https://packaging.python.org/guides/single-sourcing-package-version/
+    # solution 3
     version = {}
     with open('myherdingspikes/version.py', 'r') as f:
         exec(f.read(), version)
@@ -35,32 +57,18 @@ with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 
-try:
-    from Cython.Build import cythonize
-    USE_CYTHON = True
-    print('Using Cython')
-except ImportError:
-    def cythonize(x): return [x]
-    USE_CYTHON = False
-    print('Not using Cython')
-
 ext_folder = 'myherdingspikes/detection_localisation/'
 sources = ['SpkDonline.cpp',
            'SpikeHandler.cpp',
            'ProcessSpikes.cpp',
            'FilterSpikes.cpp',
-           'LocalizeSpikes.cpp']
-# if Cython available, compile from pyx -> cpp
-# otherwise, compile from cpp
-if USE_CYTHON:
-    sources.append('detect.pyx')
-else:
-    sources.append('detect.cpp')
+           'LocalizeSpikes.cpp',
+           ext_src]
 sources = [ext_folder + fn for fn in sources]
 
 extra_compile_args = ['-std=c++11', '-O3']
 link_extra_args = []
-# OS X support
+# OS X support  # TODO:???
 if platform.system() == 'Darwin':
     extra_compile_args += ['-mmacosx-version-min=10.9', '-F.']
     link_extra_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']
@@ -69,10 +77,10 @@ if platform.system() == 'Darwin':
 detect_ext = cythonize(
     Extension(name='myherdingspikes.detection_localisation.detect',
               sources=sources,
-              language='c++',
+              include_dirs=[numpy_include],
               extra_compile_args=extra_compile_args,
               extra_link_args=link_extra_args,
-              include_dirs=[numpy.get_include(), ext_folder]))
+              language='c++'))
 
 
 setup(
@@ -96,7 +104,7 @@ setup(
         'Programming Language :: Python :: 3 :: Only'
     ],
     keywords='spikes sorting electrophysiology detection',
-    packages=find_packages(exclude=['tests']),  # TODO:???
+    packages=find_packages(),
     python_requires='>=3.9',  # TODO: maybe compatible to older?
     install_requires=[
         'numpy==1.21'
@@ -112,16 +120,16 @@ setup(
     zip_safe=False,
     project_urls={
         'Source': 'https://github.com/lkct/hs2-detection'
-    },
+    }
 )
+
 
 try:
     subprocess.check_output(['git', 'rev-parse', 'HEAD'],
-                            cwd=os.path.dirname(__file__)
-                            )
+                            cwd=os.path.dirname(__file__))
     # if git success: in git repo, remove file
     os.remove('myherdingspikes/.commit_version')
-    # if not exist: still captured by try...except
+    # if file to remove not exist: still captured by try...except
 except:
-    # else: keep file
+    # else: keep file, or file not exist
     pass
