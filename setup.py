@@ -91,16 +91,13 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Cython',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3 :: Only'
     ],
     keywords='spikes sorting electrophysiology detection',
     packages=find_packages(exclude=['tests']),  # TODO:???
-    python_requires='>=3.6',  # TODO:???
+    python_requires='>=3.9',  # TODO: maybe compatible to older?
     install_requires=[
         'numpy==1.21'
     ],
