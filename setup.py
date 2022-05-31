@@ -103,7 +103,6 @@ setup(
     python_requires='>=3.6',  # TODO:???
     install_requires=[
         'numpy >= 1.14',
-        'matplotlib >= 2.0',
         'pandas'
     ],
     package_data={

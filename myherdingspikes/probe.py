@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib import pyplot as plt
 import ctypes
 
 
@@ -72,25 +71,6 @@ class RecordingExtractor(object):  # NeuralProbe
         return self.d.get_traces(
             channel_ids=self.d.get_channel_ids(), start_frame=t0, end_frame=t1
         ).ravel().astype(ctypes.c_short)
-
-    # Show visualization of probe
-    def show(self, show_neighbors=[10], figwidth=3):
-        xmax, ymax = self.positions.max(0)
-        xmin, ymin = self.positions.min(0)
-        ratio = ymax / xmax
-        plt.figure(figsize=(figwidth, figwidth * ratio))
-        for ch in show_neighbors:
-            for neighbor in self.neighbors[ch]:
-                plt.plot(
-                    [self.positions[ch, 0], self.positions[neighbor, 0]],
-                    [self.positions[ch, 1], self.positions[neighbor, 1]],
-                    "--k",
-                    alpha=0.7,
-                )
-        plt.scatter(*self.positions.T)
-        plt.scatter(*self.positions[self.masked_channels].T, c="r")
-        for i, pos in enumerate(self.positions):
-            plt.annotate(f'{i}', pos)
 
     def getChannelsPositions(self, channels):
         channel_positions = []
