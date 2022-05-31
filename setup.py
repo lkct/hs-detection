@@ -102,7 +102,7 @@ setup(
     packages=find_packages(exclude=['tests']),  # TODO:???
     python_requires='>=3.6',  # TODO:???
     install_requires=[
-        'numpy >= 1.14',
+        'numpy==1.21',
         'pandas'
     ],
     package_data={
