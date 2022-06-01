@@ -1,3 +1,4 @@
+from math import ceil
 from pathlib import Path
 from typing import Union
 
@@ -9,38 +10,40 @@ from spikeinterface.extractors import (MdaRecordingExtractor,
 data_cache = Path(__file__).parent / 'data'
 
 
-def _str2Path(path_like: Union[str, Path]) -> Path:
+def str2Path(path_like: Union[str, Path]) -> Path:
     if isinstance(path_like, str):
-        return Path(path_like)
+        return data_cache / path_like
     else:
         return path_like
 
 
 def _convert(nwb_file: Union[str, Path], mda_folder: Union[str, Path]):
-    nwb_file = _str2Path(nwb_file)
+    nwb_file = str2Path(nwb_file)
     assert nwb_file.is_file()
-    mda_folder = _str2Path(mda_folder)
+    mda_folder = str2Path(mda_folder)
     mda_folder.mkdir(parents=True, exist_ok=True)
     assert mda_folder.is_dir()
 
     recording = NwbRecordingExtractor(nwb_file)
     MdaRecordingExtractor.write_recording(
-        recording, mda_folder, total_memory='100M', n_jobs=1, progress_bar=True)
+        recording, mda_folder, chunk_size=4096, n_jobs=4, progress_bar=True)
 
 
-def _download(url: str, save_path: Path, chunk_size=2**20):
+def _download(url: str, save_path: Path, chunk_size: int = 2**20):
     """By default streaming in 1MB chunk. Handle redirects automatically.
     """
     r = requests.get(url, stream=True)
-    chunks = (int(r.headers['Content-Length']) + chunk_size - 1) // chunk_size
+    chunks = ceil(int(r.headers['Content-Length']) / chunk_size)
     with save_path.open('wb') as f:
-        for chunk in tqdm.tqdm(r.iter_content(chunk_size=chunk_size), total=chunks):
+        chunk_iter = tqdm.tqdm(r.iter_content(chunk_size=chunk_size),
+                               total=chunks, desc=save_path.name)
+        for chunk in chunk_iter:
             f.write(chunk)
 
 
 def download_small(save_fn: str = 'mearec_test_10s.h5') -> None:
+    save_path = str2Path(save_fn)
     url = 'https://gin.g-node.org/NeuralEnsemble/ephy_testing_data/raw/master/mearec/mearec_test_10s.h5'
-    save_path = data_cache / save_fn
 
     if not save_path.exists():
         print('Downloading data')
@@ -49,9 +52,9 @@ def download_small(save_fn: str = 'mearec_test_10s.h5') -> None:
 
 def download_large(orig_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.nwb',
                    cvrt_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'):
+    orig_path = str2Path(orig_fn)
+    cvrt_path = str2Path(cvrt_fn)
     url = 'https://api.dandiarchive.org/api/assets/6d94dcf4-0b38-4323-8250-04fdc7039a66/download/'
-    orig_path = data_cache / orig_fn
-    cvrt_path = data_cache / cvrt_fn
 
     if not (cvrt_path / 'raw.mda').exists():
         if not orig_path.exists():
