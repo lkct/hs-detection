@@ -109,6 +109,13 @@ setup(
     install_requires=[
         'numpy==1.21'
     ],
+    extras_require={
+        'test': [
+            'spikeinterface>=0.94',
+            'requests',
+            'tqdm'
+        ]
+    },
     package_data={
         'myherdingspikes': [
             '.commit_version',
