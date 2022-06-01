@@ -4,7 +4,7 @@ from .detection_localisation.detect import detectData
 import warnings
 
 
-class HSDetection(object):
+class HS2Detection(object):
     """ This class provides a simple interface to the detection, localisation of
     spike data from dense multielectrode arrays according to the methods
     described in the following papers:
