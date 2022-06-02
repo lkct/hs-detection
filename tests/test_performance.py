@@ -1,13 +1,13 @@
+import shutil
+import sys
+import timeit
+
+import spikeinterface.sorters as ss
 from spikeinterface.extractors import MdaRecordingExtractor
+from spikeinterface.sortingcomponents.peak_detection import detect_peaks
 
 from data_utils import download_large, str2Path
 from run_hs2 import run_hs2
-import spikeinterface.sorters as ss
-
-from spikeinterface.sortingcomponents.peak_detection import detect_peaks
-
-import timeit
-import sys
 
 
 def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -> None:
@@ -24,6 +24,15 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
 
     sihs_path = str2Path('results_HS')
     hs2det_path = str2Path('result_HS2')
+
+    sihs_path.mkdir(parents=True, exist_ok=True)
+    if str((sihs_path / 'HS2_detected.bin').resolve()) != '/dev/null':
+        (sihs_path / 'HS2_detected.bin').unlink(missing_ok=True)
+        (sihs_path / 'HS2_detected.bin').symlink_to('/dev/null')
+    hs2det_path.mkdir(parents=True, exist_ok=True)
+    if str((hs2det_path / 'HS2_detected.bin').resolve()) != '/dev/null':
+        (hs2det_path / 'HS2_detected.bin').unlink(missing_ok=True)
+        (hs2det_path / 'HS2_detected.bin').symlink_to('/dev/null')
 
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
@@ -53,6 +62,9 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
     print(t_hs2det)
     print(t_peak)
     print(t_peakloc)
+
+    # shutil.rmtree(str(sihs_path))
+    # shutil.rmtree(str(hs2det_path))
 
 
 if __name__ == '__main__':
