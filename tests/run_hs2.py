@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import Union
+
 import spikeinterface.toolkit as st
 from myherdingspikes import HS2Detection, RecordingExtractor
 
@@ -49,7 +52,8 @@ default_kwargs = {  # TODO:???
 }
 
 
-def run_hs2(recording, output_folder: str = 'result_HS2', **kwargs):  # TODO:??? anno
+# TODO:??? anno
+def run_hs2(recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs) -> None:
     params = default_kwargs.copy()
     params.update(kwargs)
 

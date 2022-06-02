@@ -17,7 +17,7 @@ def str2Path(path_like: Union[str, Path]) -> Path:
         return path_like
 
 
-def _convert(nwb_file: Union[str, Path], mda_folder: Union[str, Path]):
+def _convert(nwb_file: Union[str, Path], mda_folder: Union[str, Path]) -> None:
     nwb_file = str2Path(nwb_file)
     assert nwb_file.is_file()
     mda_folder = str2Path(mda_folder)
@@ -29,7 +29,7 @@ def _convert(nwb_file: Union[str, Path], mda_folder: Union[str, Path]):
         recording, mda_folder, chunk_size=4096, n_jobs=4, progress_bar=True)
 
 
-def _download(url: str, save_path: Path, chunk_size: int = 2**20):
+def _download(url: str, save_path: Path, chunk_size: int = 2**20) -> None:
     """By default streaming in 1MB chunk. Handle redirects automatically.
     """
     r = requests.get(url, stream=True)
@@ -51,7 +51,8 @@ def download_small(save_fn: str = 'mearec_test_10s.h5') -> None:
 
 
 def download_large(orig_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.nwb',
-                   cvrt_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'):
+                   cvrt_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
+                   ) -> None:
     orig_path = str2Path(orig_fn)
     cvrt_path = str2Path(cvrt_fn)
     url = 'https://api.dandiarchive.org/api/assets/6d94dcf4-0b38-4323-8250-04fdc7039a66/download/'
