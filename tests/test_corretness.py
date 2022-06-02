@@ -2,6 +2,7 @@ import filecmp
 import shutil
 import sys
 
+import numpy as np
 import spikeinterface.sorters as ss
 from spikeinterface.extractors import MEArecRecordingExtractor
 
@@ -15,10 +16,27 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
         download_small(data_fn)
 
     recording = MEArecRecordingExtractor(data_path)
-    # TODO: test contents of metadata
+
+    assert [recording.is_writable, recording.is_filtered(),
+            recording.check_if_dumpable(), recording.has_scaled_traces(),
+            recording.has_3d_locations(), recording.has_time_vector(),
+            recording.get_dtype(), str(recording.get_probe()),
+            recording.get_num_channels(), recording.get_sampling_frequency(),
+            recording.get_num_segments(), recording.get_num_samples()
+            ] == [False, True,
+                  True, True,
+                  False, False,
+                  np.float32, 'Probe - 32ch - 1shanks',
+                  32, 32000.0,
+                  1, 320000]
 
     sihs_path = str2Path('results_HS')
     hs2det_path = str2Path('result_HS2')
+
+    if str((sihs_path / 'HS2_detected.bin').resolve()) == '/dev/null':
+        (sihs_path / 'HS2_detected.bin').unlink(missing_ok=True)
+    if str((hs2det_path / 'HS2_detected.bin').resolve()) == '/dev/null':
+        (hs2det_path / 'HS2_detected.bin').unlink(missing_ok=True)
 
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
@@ -35,8 +53,8 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
     assert filecmp.cmp(str(sihs_path / 'HS2_detected.bin'),
                        str(hs2det_path / 'HS2_detected.bin'))
 
-    shutil.rmtree(str(sihs_path))
-    shutil.rmtree(str(hs2det_path))
+    # shutil.rmtree(str(sihs_path))
+    # shutil.rmtree(str(hs2det_path))
 
 
 if __name__ == '__main__':
