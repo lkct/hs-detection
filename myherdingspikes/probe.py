@@ -1,6 +1,8 @@
-import numpy as np
 import ctypes
 
+import numpy as np
+
+from .recording import Recording
 
 DEFAULT_EVENT_LENGTH = 0.5
 DEFAULT_PEAK_JITTER = 0.2
@@ -9,7 +11,7 @@ DEFAULT_PEAK_JITTER = 0.2
 class RecordingExtractor(object):  # NeuralProbe
     def __init__(
         self,
-        recording,
+        recording: Recording,
         noise_amp_percent=1,
         inner_radius=60,
         neighbor_radius=60,
@@ -20,9 +22,9 @@ class RecordingExtractor(object):  # NeuralProbe
     ):
         self.recording = recording
         try:
-            self.nFrames = recording.get_num_frames()
+            self.nFrames = recording.get_num_samples()
         except:
-            self.nFrames = recording.get_num_frames(0)
+            self.nFrames = recording.get_num_samples(0)
         num_channels = recording.get_num_channels()
         fps = recording.get_sampling_frequency()
         ch_positions = np.array(
