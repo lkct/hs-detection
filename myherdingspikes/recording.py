@@ -1,6 +1,7 @@
 from typing import (Any, Iterable, Literal, Optional, Protocol,
                     runtime_checkable)
 
+import numpy as np
 from numpy.typing import NDArray
 
 
@@ -12,7 +13,7 @@ class Recording(Protocol):
 
     def get_num_channels(self) -> int: ...
 
-    def get_channel_ids(self) -> NDArray[Any]: ...
+    def get_channel_ids(self) -> NDArray[np.generic]: ...
 
     def get_channel_property(self, channel_id: Any, key: Any) -> Any: ...
 
@@ -29,4 +30,4 @@ class Recording(Protocol):
                    channel_ids: Optional[Iterable[Any]] = None,
                    order: Optional[Literal['C', 'F']] = None,
                    return_scaled: bool = False
-                   ) -> NDArray[Any]: ...
+                   ) -> NDArray[np.number]: ...
