@@ -36,6 +36,8 @@ class HS2Detection(object):
                  ) -> None:
         self.recording = recording
         self.nFrames = recording.get_num_samples(0)  # TODO: segment proc
+        self.fps = recording.get_sampling_frequency()
+        self.num_channels = recording.get_num_channels()
 
         positions: NDArray[np.float64] = np.array([
             recording.get_channel_property(ch, 'location') for ch in recording.get_channel_ids()])
@@ -51,11 +53,12 @@ class HS2Detection(object):
 
         neighbors: list[NDArray[np.int64]] = [
             np.nonzero(dist_from_ch < neighbor_radius)[0] for dist_from_ch in distances]
-        self.neighbors = neighbors
         self.max_neighbors = max([n.shape[0] for n in neighbors])
+        self.neighbors = np.array([
+            np.pad(n, (0, self.max_neighbors - n.shape[0]),
+                   mode='constant', constant_values=-1)
+            for n in neighbors])
 
-        self.fps = recording.get_sampling_frequency()
-        self.num_channels = recording.get_num_channels()
         self.spike_peak_duration = int(event_length * self.fps / 1000)  # frame
         self.noise_duration = int(peak_jitter * self.fps / 1000)  # frame
         self.noise_amp_percent = noise_amp_percent

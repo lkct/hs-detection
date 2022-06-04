@@ -83,9 +83,9 @@ def detectData(probe, file_name, to_localize, sf, thres,
       position_matrix[i,0] = p[0]
       position_matrix[i,1] = p[1]
     cdef np.ndarray[int, ndim=2, mode = "c"] neighbor_matrix = np.zeros((
-        nRecCh,np.max([len(p) for p in probe.neighbors])), dtype=ctypes.c_int)-1
+        nRecCh,max_neighbors), dtype=ctypes.c_int)
     for i,p in enumerate(probe.neighbors):
-      neighbor_matrix[i,:len(p)] = p
+      neighbor_matrix[i] = p
 
     det.SetInitialParams(&position_matrix[0,0], &neighbor_matrix[0,0], num_channels,
                          spike_peak_duration, file_name, noise_duration,
