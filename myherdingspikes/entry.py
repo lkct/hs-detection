@@ -21,13 +21,13 @@ def DetectFromRaw(det: HS2Detection, tInc: int = 50000, recording_duration: Opti
     if recording_duration is not None:
         nFrames = int(recording_duration * det.fps)
     else:
-        nFrames = None
+        nFrames = det.nFrames
 
     detectData(
         probe=det,
         file_name=str.encode(det.out_file_name[:-4]),
         to_localize=det.to_localize,
-        sf=det.fps,
+        sf=int(det.fps),
         thres=det.threshold,
         cutout_start=det.cutout_start,
         cutout_end=det.cutout_end,

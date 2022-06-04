@@ -92,10 +92,27 @@ class HS2Detection(object):
         self.save_all = save_all
 
     def get_traces(self, start_frame: int, end_frame: int) -> NDArray[np.short]:
+        if start_frame < 0:
+            lpad = -start_frame * self.num_channels
+            start_frame = 0
+        else:
+            lpad = 0
+        if end_frame > self.nFrames:
+            rpad = (end_frame - self.nFrames) * self.num_channels
+            end_frame = self.nFrames
+        else:
+            rpad = 0
+
         # astype cannot convert type annotation
-        return self.recording.get_traces(
+        traces: NDArray[np.short] = self.recording.get_traces(
             start_frame=start_frame, end_frame=end_frame
         ).astype(np.short, copy=False).reshape(-1)  # type: ignore
+
+        if lpad + rpad > 0:
+            traces = np.pad(traces, (lpad, rpad),
+                            mode='constant', constant_values=0)
+
+        return traces
 
         # self.sp_flat = np.memmap(file_name, dtype=np.int32, mode="r")
         # shapecache = self.sp_flat.reshape((-1, self.cutout_length + 5))

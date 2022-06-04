@@ -16,9 +16,9 @@ except:
     print('WARNING no NumPy found, not for build')
 
 try:
-    # if have cython, use pyx
+    # if have cython, use augmented py
     from Cython.Build import cythonize
-    ext_src = 'detect.pyx'
+    ext_src = 'detect.py'
     print('Using Cython')
 except ImportError:
     # no Cython, use compiled cpp
