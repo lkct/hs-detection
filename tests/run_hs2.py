@@ -89,4 +89,4 @@ def run_hs2(recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs)
         spk_evaluation_time=params['spk_evaluation_time']
     )
 
-    H.DetectFromRaw(load=True, tInc=int(params['t_inc']))
+    H.DetectFromRaw(tInc=int(params['t_inc']))

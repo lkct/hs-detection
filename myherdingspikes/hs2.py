@@ -1,7 +1,6 @@
-import numpy as np
 import os
+
 from .detection_localisation.detect import detectData
-import warnings
 
 
 class HS2Detection(object):
@@ -96,45 +95,7 @@ class HS2Detection(object):
             self.out_file_name = file_path + ".bin"
         self.save_all = save_all
 
-    def LoadDetected(self, file_name=None):
-        """
-        Reads a binary file with spikes detected with the DetectFromRaw()
-        method.
-
-        Arguments:
-        file_name -- The name of the .bin file. Defaults to self.out_file_name.
-        """
-        if file_name is None:
-            file_name = self.out_file_name
-
-        if os.stat(file_name).st_size == 0:
-            shapecache = np.asarray([]).reshape(0, 5)
-            warnings.warn(
-                "Loading an empty file {} . This usually happens when no spikes were"
-                "detected due to the detection parameters being set too "
-                "strictly".format(file_name)
-            )
-        else:
-            self.sp_flat = np.memmap(file_name, dtype=np.int32, mode="r")
-            assert self.sp_flat.shape[0] // self.cutout_length + 5 is \
-                not self.sp_flat.shape[0] / self.cutout_length + 5, \
-                "spike data has wrong dimensions"  # ???
-            shapecache = self.sp_flat.reshape((-1, self.cutout_length + 5))
-
-        self.spikes = {
-                "ch": shapecache[:, 0],
-                "t": shapecache[:, 1],
-                "Amplitude": shapecache[:, 2],
-                "x": shapecache[:, 3] / 1000,
-                "y": shapecache[:, 4] / 1000,
-                "Shape": list(shapecache[:, 5:]),
-            }
-        self.IsClustered = False
-        print("Loaded " + str(self.spikes['ch'].shape[0]) + " spikes.")
-
-    def DetectFromRaw(
-        self, load=False, nFrames=None, tInc=50000, recording_duration=None
-    ):
+    def DetectFromRaw(self, tInc=50000, recording_duration=None):
         """
         This function is a wrapper of the C function `detectData`. It takes
         the raw data file, performs detection and localisation, saves the result
@@ -149,14 +110,10 @@ class HS2Detection(object):
         ignored)
         """
 
-        if nFrames is not None:
-            warnings.warn(
-                "nFrames is deprecated and will be removed. Leave "
-                "this out if you want to read the whole recording, "
-                "or set max_duration to set the limit (in seconds)."
-            )
-        elif recording_duration is not None:
+        if recording_duration is not None:
             nFrames = int(recording_duration * self.probe.fps)
+        else:
+            nFrames = None
 
         detectData(
             probe=self.probe,
@@ -177,6 +134,13 @@ class HS2Detection(object):
             tInc=tInc,
         )
 
-        if load:
-            # reload data into memory (detect saves it on disk)
-            self.LoadDetected()
+        # self.sp_flat = np.memmap(file_name, dtype=np.int32, mode="r")
+        # shapecache = self.sp_flat.reshape((-1, self.cutout_length + 5))
+        # self.spikes = {
+        #         "ch": shapecache[:, 0],
+        #         "t": shapecache[:, 1],
+        #         "Amplitude": shapecache[:, 2],
+        #         "x": shapecache[:, 3] / 1000,
+        #         "y": shapecache[:, 4] / 1000,
+        #         "Shape": list(shapecache[:, 5:]),
+        #     }
