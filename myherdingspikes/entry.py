@@ -3,7 +3,7 @@ from .detection_localisation.detect import detectData
 from .hs2 import HS2Detection
 
 
-def DetectFromRaw(det: HS2Detection, tInc: int = 50000, recording_duration: Optional[float] = None):
+def DetectFromRaw(det: HS2Detection, t_inc: int = 50000, recording_duration: Optional[float] = None):
     """
     This function is a wrapper of the C function `detectData`. It takes
     the raw data file, performs detection and localisation, saves the result
@@ -19,9 +19,9 @@ def DetectFromRaw(det: HS2Detection, tInc: int = 50000, recording_duration: Opti
     """
 
     if recording_duration is not None:
-        nFrames = int(recording_duration * det.fps)
+        num_frames = int(recording_duration * det.fps)
     else:
-        nFrames = det.nFrames
+        num_frames = det.num_frames
 
     detectData(
         probe=det,
@@ -38,6 +38,6 @@ def DetectFromRaw(det: HS2Detection, tInc: int = 50000, recording_duration: Opti
         num_com_centers=det.num_com_centers,
         decay_filtering=det.decay_filtering,
         verbose=det.save_all,
-        nFrames=nFrames,
-        tInc=tInc,
+        num_frames=num_frames,
+        t_inc=t_inc,
     )

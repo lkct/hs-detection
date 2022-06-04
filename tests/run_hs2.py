@@ -87,4 +87,4 @@ def run_hs2(recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs)
         spk_evaluation_time=params['spk_evaluation_time']
     )
 
-    DetectFromRaw(H, tInc=int(params['t_inc']))
+    DetectFromRaw(H, t_inc=int(params['t_inc']))

@@ -35,7 +35,7 @@ class HS2Detection(object):
                  spk_evaluation_time: float = 1.7,
                  ) -> None:
         self.recording = recording
-        self.nFrames = recording.get_num_samples(0)  # TODO: segment proc
+        self.num_frames = recording.get_num_samples(0)  # TODO: segment proc
         self.fps = recording.get_sampling_frequency()
         self.num_channels = recording.get_num_channels()
 
@@ -97,9 +97,9 @@ class HS2Detection(object):
             start_frame = 0
         else:
             lpad = 0
-        if end_frame > self.nFrames:
-            rpad = (end_frame - self.nFrames) * self.num_channels
-            end_frame = self.nFrames
+        if end_frame > self.num_frames:
+            rpad = (end_frame - self.num_frames) * self.num_channels
+            end_frame = self.num_frames
         else:
             rpad = 0
 

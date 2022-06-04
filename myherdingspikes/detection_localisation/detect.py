@@ -22,8 +22,8 @@ def detectData(probe: HS2Detection,
                num_com_centers: int,
                decay_filtering: bool,
                verbose: bool,
-               nFrames: int,
-               tInc: int
+               num_frames: int,
+               t_inc: int
                ) -> None:
 
     # READ PROBE PARAMETERS
@@ -34,9 +34,6 @@ def detectData(probe: HS2Detection,
     noise_amp_percent = float(probe.noise_amp_percent)
     max_neighbors = int(probe.max_neighbors)
     inner_radius = float(probe.inner_radius)
-
-    # READ DETECTION PARAMETERS AND SET DEFAULTS
-    nRecCh = num_channels  # TODO:?
 
     masked_channel_list = probe.masked_channels
     masked_channels: cython.int[:] = np.ones(num_channels, dtype=np.intc)
@@ -59,28 +56,27 @@ def detectData(probe: HS2Detection,
     print(f'# Number of recorded channels: {num_channels}')
     if num_channels < 20:
         print('# Few recording channels: not subtracing mean from activity')
-    print(f'# Analysing frames: {nFrames}; Seconds: {nFrames/ sf}')
+    print(f'# Analysing frames: {num_frames}; Seconds: {num_frames / sf}')
     print(f'# Frames before spike in cutout: {cutout_start}')
     print(f'# Frames after spike in cutout: {cutout_end}')
 
     det: cython.pointer(Detection) = new Detection()
 
     # set tCut, tCut2 and tInc
-    tCut = cutout_start + maxsl  # TODO:?
-    tCut2 = cutout_end + maxsl  # TODO:?
-    print(f'# tcuts: {tCut} {tCut2}')
+    t_cut_l = cutout_start + maxsl 
+    t_cnt_r = cutout_end + maxsl 
+    print(f'# tcuts: {t_cut_l} {t_cnt_r}')
 
     # cap at specified number of frames
-    tInc = min(nFrames - tCut - tCut2, tInc)  # TODO:?
-    maxFramesProcessed = tInc  # TODO:?
-    print(f'# tInc: {tInc}')
+    t_inc = min(num_frames - t_cut_l - t_cnt_r, t_inc)
+    print(f'# tInc: {t_inc}')
     # ! To be consistent, X and Y have to be swappped
-    Indices: cython.long[:] = np.arange(nRecCh, dtype=np.int_)  # TODO:?
+    ch_indices: cython.long[:] = np.arange(num_channels, dtype=np.int_)
     vm: cython.short[:] = np.zeros(
-        nRecCh * (tInc + tCut + tCut2), dtype=np.short)
+        num_channels * (t_inc + t_cut_l + t_cnt_r), dtype=np.short)
 
     # initialise detection algorithm
-    det.InitDetection(nFrames, sf, nRecCh, tInc, cython.address(Indices[0]), 0)
+    det.InitDetection(num_frames, sf, num_channels, t_inc, cython.address(ch_indices[0]), 0)
 
     position_matrix: cython.int[:, :] = np.ascontiguousarray(probe.positions, dtype=np.intc)
     neighbor_matrix: cython.int[:, :] = np.ascontiguousarray(probe.neighbors, dtype=np.intc)
@@ -95,23 +91,24 @@ def detectData(probe: HS2Detection,
 
     startTime = datetime.now()
     t0 = 0
-    while t0 + tInc + tCut2 <= nFrames:
-        t1 = t0 + tInc
+    max_frames_processed = t_inc
+    while t0 + t_inc + t_cnt_r <= num_frames:
+        t1 = t0 + t_inc
         if verbose:
-            print(f'# Analysing frames from {t0- tCut} to {t1 +tCut2} '
-                  f' ({100 *t0/ nFrames:.1f}%)')
+            print(f'# Analysing frames from {t0 - t_cut_l} to {t1 + t_cnt_r} '
+                  f' ({100 * t0 / num_frames:.1f}%)')
 
-        vm = probe.get_traces(t0 - tCut, t1 + tCut2)
+        vm = probe.get_traces(t0 - t_cut_l, t1 + t_cnt_r)
 
         # detect spikes
         if num_channels >= 20:
-            det.MeanVoltage(cython.address(vm[0]), tInc, tCut)
+            det.MeanVoltage(cython.address(vm[0]), t_inc, t_cut_l)
         det.Iterate(cython.address(vm[0]), t0,
-                    tInc, tCut, tCut2, maxFramesProcessed)
+                    t_inc, t_cut_l, t_cnt_r, max_frames_processed)
 
-        t0 += tInc
-        if t0 < nFrames - tCut2:
-            tInc = min(tInc, nFrames - tCut2 - t0)
+        t0 += t_inc
+        if t0 < num_frames - t_cnt_r:
+            t_inc = min(t_inc, num_frames - t_cnt_r - t0)
 
     now = datetime.now()
     # Save state of detection
@@ -134,5 +131,5 @@ def detectData(probe: HS2Detection,
 
     t = datetime.now() - startTime
     print(f'# Detection completed, time taken: {t}')
-    print(f'# Time per frame: {1000 * t / nFrames}')
-    print(f'# Time per sample: {1000 * t / (nRecCh * nFrames)}')
+    print(f'# Time per frame: {1000 * t / num_frames}')
+    print(f'# Time per sample: {1000 * t / (num_channels * num_frames)}')
