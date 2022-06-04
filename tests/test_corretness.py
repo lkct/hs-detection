@@ -50,6 +50,7 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
     else:
         sys.stdout, sys.stderr = stdout, stderr
 
+    assert (hs2det_path / 'HS2_detected.bin').stat().st_size > 0
     assert filecmp.cmp(str(sihs_path / 'HS2_detected.bin'),
                        str(hs2det_path / 'HS2_detected.bin'))
 
