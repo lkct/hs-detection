@@ -52,9 +52,6 @@ def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2'
         recording = st.bandpass_filter(
             recording, freq_min=params['freq_min'], freq_max=params['freq_max'])
 
-    if params['pre_scale']:
-        recording = ScaleRecording(recording, scale=params['pre_scale_value'])
-
     H = HS2Detection(
         recording,
         masked_channels=params['probe_masked_channels'],
@@ -75,7 +72,9 @@ def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2'
         save_all=params['save_all'],
         amp_evaluation_time=params['amp_evaluation_time'],
         spk_evaluation_time=params['spk_evaluation_time'],
-        t_inc=params['t_inc']
+        t_inc=params['t_inc'],
+        pre_scale=params['pre_scale'],
+        pre_scale_value=params['pre_scale_value']
     )
 
     H.detect()

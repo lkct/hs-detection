@@ -11,6 +11,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..recording import Recording
+from ..utils import ScaleRecording
 
 
 class HS2Detection(object):
@@ -37,8 +38,14 @@ class HS2Detection(object):
                  right_cutout_time: float = 1.8,
                  amp_evaluation_time: float = 0.4,
                  spk_evaluation_time: float = 1.0,
-                 t_inc: int = 100000
+                 t_inc: int = 100000,
+                 pre_scale: bool = True,
+                 pre_scale_value: float = 20.0
                  ) -> None:
+
+        if pre_scale:
+            recording = ScaleRecording(recording, scale=pre_scale_value)
+
         self.recording = recording
         self.num_frames = recording.get_num_samples(0)  # TODO: segment proc
         self.fps = recording.get_sampling_frequency()
