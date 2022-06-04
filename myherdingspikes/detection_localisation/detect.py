@@ -25,21 +25,21 @@ class HS2Detection(object):
                  inner_radius: float = 70.0,
                  neighbor_radius: float = 90.0,
                  masked_channels: Optional[Iterable[int]] = None,  # indices
-                 # xy: Optional[Union[tuple[int, int], slice]] = None,
                  event_length: float = 0.26,
                  peak_jitter: float = 0.2,
                  to_localize: bool = True,
                  num_com_centers: int = 1,
                  threshold: int = 20,
-                 maa: int = 0,
-                 ahpthr: int = 0,
+                 maa: int = 12,
+                 ahpthr: int = 11,
                  out_file: Union[str, Path] = 'HS2_detected',
                  decay_filtering: bool = False,
                  save_all: bool = False,
-                 left_cutout_time: float = 1.0,
-                 right_cutout_time: float = 2.2,
+                 left_cutout_time: float = 0.3,
+                 right_cutout_time: float = 1.8,
                  amp_evaluation_time: float = 0.4,
-                 spk_evaluation_time: float = 1.7,
+                 spk_evaluation_time: float = 1.0,
+                 t_inc: int = 100000
                  ) -> None:
         self.recording = recording
         self.num_frames = recording.get_num_samples(0)  # TODO: segment proc
@@ -97,6 +97,7 @@ class HS2Detection(object):
         self.out_file_name = str(out_file)
 
         self.save_all = save_all
+        self.t_inc = t_inc
 
     def get_traces(self, start_frame: int, end_frame: int) -> NDArray[np.short]:
         if start_frame < 0:
@@ -121,14 +122,11 @@ class HS2Detection(object):
 
         return traces
 
-    def detect(self, t_inc: int = 50000, recording_duration: Optional[float] = None) -> None:
-        if recording_duration is not None:
-            num_frames = int(recording_duration * self.fps)
-        else:
-            num_frames = self.num_frames
+    def detect(self) -> None:
 
         # READ PROBE PARAMETERS
-        sf = int(self.fps)  # ensure sampling rate is integer, assumed to be in Hertz
+        # ensure sampling rate is integer, assumed to be in Hertz
+        sf = int(self.fps)
         num_channels = int(self.num_channels)
         spike_peak_duration = int(self.spike_peak_duration)
         noise_duration = int(self.noise_duration)
@@ -157,7 +155,8 @@ class HS2Detection(object):
         print(f'# Number of recorded channels: {num_channels}')
         if num_channels < 20:
             print('# Few recording channels: not subtracing mean from activity')
-        print(f'# Analysing frames: {num_frames}; Seconds: {num_frames / sf}')
+        print(f'# Analysing frames: {self.num_frames}; '
+              f'Seconds: {self.num_frames / sf}')
         print(f'# Frames before spike in cutout: {self.cutout_start}')
         print(f'# Frames after spike in cutout: {self.cutout_end}')
 
@@ -169,7 +168,7 @@ class HS2Detection(object):
         print(f'# tcuts: {t_cut_l} {t_cnt_r}')
 
         # cap at specified number of frames
-        t_inc = min(num_frames - t_cut_l - t_cnt_r, t_inc)
+        t_inc = min(self.num_frames - t_cut_l - t_cnt_r, self.t_inc)
         print(f'# tInc: {t_inc}')
         # ! To be consistent, X and Y have to be swappped
         ch_indices: cython.long[:] = np.arange(num_channels, dtype=np.int_)
@@ -177,7 +176,7 @@ class HS2Detection(object):
             num_channels * (t_inc + t_cut_l + t_cnt_r), dtype=np.short)
 
         # initialise detection algorithm
-        det.InitDetection(num_frames, sf, num_channels, t_inc,
+        det.InitDetection(self.num_frames, sf, num_channels, t_inc,
                           cython.address(ch_indices[0]), 0)
 
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
@@ -186,8 +185,9 @@ class HS2Detection(object):
             self.neighbors, dtype=np.intc)
 
         det.SetInitialParams(cython.address(position_matrix[0, 0]), cython.address(neighbor_matrix[0, 0]), num_channels,
-                             spike_peak_duration, self.out_file_name[:-4].encode(), noise_duration,
-                             noise_amp_percent, inner_radius, cython.address(
+                             spike_peak_duration, self.out_file_name[:-4].encode(
+        ), noise_duration,
+            noise_amp_percent, inner_radius, cython.address(
             masked_channels[0]),
             max_neighbors, self.num_com_centers, self.to_localize,
             self.threshold, self.cutout_start, self.cutout_end, self.maa, self.ahpthr, self.maxsl,
@@ -196,11 +196,11 @@ class HS2Detection(object):
         startTime = datetime.now()
         t0 = 0
         max_frames_processed = t_inc
-        while t0 + t_inc + t_cnt_r <= num_frames:
+        while t0 + t_inc + t_cnt_r <= self.num_frames:
             t1 = t0 + t_inc
             if self.save_all:
                 print(f'# Analysing frames from {t0 - t_cut_l} to {t1 + t_cnt_r} '
-                      f' ({100 * t0 / num_frames:.1f}%)')
+                      f' ({100 * t0 / self.num_frames:.1f}%)')
 
             vm = self.get_traces(t0 - t_cut_l, t1 + t_cnt_r)
 
@@ -211,8 +211,8 @@ class HS2Detection(object):
                         t_inc, t_cut_l, t_cnt_r, max_frames_processed)
 
             t0 += t_inc
-            if t0 < num_frames - t_cnt_r:
-                t_inc = min(t_inc, num_frames - t_cnt_r - t0)
+            if t0 < self.num_frames - t_cnt_r:
+                t_inc = min(t_inc, self.num_frames - t_cnt_r - t0)
 
         now = datetime.now()
         # Save state of detection
@@ -234,6 +234,7 @@ class HS2Detection(object):
         det.FinishDetection()
 
         t = datetime.now() - startTime
+        speed = 1000 * t / self.num_frames
         print(f'# Detection completed, time taken: {t}')
-        print(f'# Time per frame: {1000 * t / num_frames}')
-        print(f'# Time per sample: {1000 * t / (num_channels * num_frames)}')
+        print(f'# Time per frame: {speed}')
+        print(f'# Time per sample: {speed / num_channels}')
