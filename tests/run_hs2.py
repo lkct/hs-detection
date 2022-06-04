@@ -4,6 +4,7 @@ from typing import Union
 import spikeinterface.toolkit as st
 from myherdingspikes import HS2Detection
 from myherdingspikes.recording import Recording
+from myherdingspikes.utils import ScaleRecording
 
 default_kwargs = {
     # core params
@@ -52,8 +53,7 @@ def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2'
             recording, freq_min=params['freq_min'], freq_max=params['freq_max'])
 
     if params['pre_scale']:
-        recording = st.normalize_by_quantile(
-            recording, scale=params['pre_scale_value'], median=0.0, q1=0.05, q2=0.95)
+        recording = ScaleRecording(recording, scale=params['pre_scale_value'])
 
     H = HS2Detection(
         recording,
