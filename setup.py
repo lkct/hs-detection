@@ -22,7 +22,7 @@ try:
     print('Using Cython')
 except ImportError:
     # no Cython, use compiled cpp
-    def cythonize(x): return [x]
+    def cythonize(x, **kwargs): return [x]
     ext_src = 'detect.cpp'
     print('Not using Cython')
 
@@ -80,7 +80,8 @@ detect_ext = cythonize(
               include_dirs=[numpy_include],
               extra_compile_args=extra_compile_args,
               extra_link_args=link_extra_args,
-              language='c++'))
+              language='c++'),
+    compiler_directives={'language_level': '3'})
 
 
 setup(

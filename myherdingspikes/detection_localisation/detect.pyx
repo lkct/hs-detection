@@ -1,11 +1,10 @@
 # distutils: language=c++
+# cython: language_level=3
 
 import numpy as np
-cimport numpy as np
 import ctypes
 from datetime import datetime
 import pprint
-from SpkDonline cimport Detection
 
 
 def detectData(probe, file_name, to_localize, sf, thres,
