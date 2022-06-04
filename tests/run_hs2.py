@@ -3,7 +3,6 @@ from typing import Union
 
 import spikeinterface.toolkit as st
 from myherdingspikes import HS2Detection
-from myherdingspikes.entry import DetectFromRaw
 
 default_kwargs = {  # TODO:???
     # core params
@@ -87,4 +86,4 @@ def run_hs2(recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs)
         spk_evaluation_time=params['spk_evaluation_time']
     )
 
-    DetectFromRaw(H, t_inc=int(params['t_inc']))
+    H.detect(t_inc=int(params['t_inc']))
