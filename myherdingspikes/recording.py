@@ -1,4 +1,4 @@
-from typing import (Any, Iterable, Literal, Optional, Protocol,
+from typing import (Any, Iterable, Literal, Optional, Protocol, Union,
                     runtime_checkable)
 
 import numpy as np
@@ -30,4 +30,4 @@ class Recording(Protocol):
                    channel_ids: Optional[Iterable[Any]] = None,
                    order: Optional[Literal['C', 'F']] = None,
                    return_scaled: bool = False
-                   ) -> NDArray[np.number]: ...
+                   ) -> Union[NDArray[np.integer], NDArray[np.floating]]: ...
