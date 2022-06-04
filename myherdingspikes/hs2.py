@@ -1,7 +1,5 @@
 import os
 
-from .detection_localisation.detect import detectData
-
 
 class HS2Detection(object):
     """ This class provides a simple interface to the detection, localisation of
@@ -94,45 +92,6 @@ class HS2Detection(object):
             file_path = os.path.join(file_directory_name, out_file_name)
             self.out_file_name = file_path + ".bin"
         self.save_all = save_all
-
-    def DetectFromRaw(self, tInc=50000, recording_duration=None):
-        """
-        This function is a wrapper of the C function `detectData`. It takes
-        the raw data file, performs detection and localisation, saves the result
-        to HSDetection.out_file_name and loads the latter into memory by calling
-        LoadDetected if load=True.
-
-        Arguments:
-        load -- bool: load the detected spikes when finished?
-        nFrames -- deprecated, frame-based version of recording_duration
-        tInc -- size of chunks to be read
-        recording_duration -- maximum time limit of recording (the rest will be
-        ignored)
-        """
-
-        if recording_duration is not None:
-            nFrames = int(recording_duration * self.probe.fps)
-        else:
-            nFrames = None
-
-        detectData(
-            probe=self.probe,
-            file_name=str.encode(self.out_file_name[:-4]),
-            to_localize=self.to_localize,
-            sf=self.probe.fps,
-            thres=self.threshold,
-            cutout_start=self.cutout_start,
-            cutout_end=self.cutout_end,
-            maa=self.maa,
-            maxsl=self.maxsl,
-            minsl=self.minsl,
-            ahpthr=self.ahpthr,
-            num_com_centers=self.num_com_centers,
-            decay_filtering=self.decay_filtering,
-            verbose=self.save_all,
-            nFrames=nFrames,
-            tInc=tInc,
-        )
 
         # self.sp_flat = np.memmap(file_name, dtype=np.int32, mode="r")
         # shapecache = self.sp_flat.reshape((-1, self.cutout_length + 5))
