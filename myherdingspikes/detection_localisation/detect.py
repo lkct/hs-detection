@@ -11,7 +11,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..recording import Recording
-from ..utils import ScaleRecording
+from ..utils import get_scaling_param
 
 
 class HS2Detection(object):
@@ -43,8 +43,13 @@ class HS2Detection(object):
                  pre_scale_value: float = 20.0
                  ) -> None:
 
+        self.pre_scale = pre_scale
         if pre_scale:
-            recording = ScaleRecording(recording, scale=pre_scale_value)
+            self.scale, self.offset = get_scaling_param(
+                recording, scale=pre_scale_value)
+        else:
+            self.scale: NDArray[np.float32] = np.array(0, dtype=np.float32)
+            self.offset: NDArray[np.float32] = np.array(0, dtype=np.float32)
 
         self.recording = recording
         self.num_frames = recording.get_num_samples(0)  # TODO: segment proc
@@ -117,16 +122,22 @@ class HS2Detection(object):
         else:
             rpad = 0
 
+        traces: NDArray[np.number] = self.recording.get_traces(
+            start_frame=start_frame, end_frame=end_frame)
+
+        if self.pre_scale:
+            traces = traces.astype(np.float32, copy=False) * \
+                self.scale + self.offset
+
         # astype cannot convert type annotation
-        traces: NDArray[np.short] = self.recording.get_traces(
-            start_frame=start_frame, end_frame=end_frame
-        ).astype(np.short, copy=False).reshape(-1)  # type: ignore
+        traces_int: NDArray[np.short] = traces.astype(
+            np.short, copy=False).reshape(-1)  # type: ignore
 
         if lpad + rpad > 0:
-            traces = np.pad(traces, (lpad, rpad),
-                            mode='constant', constant_values=0)
+            traces_int = np.pad(traces_int, (lpad, rpad),
+                                mode='constant', constant_values=0)
 
-        return traces
+        return traces_int
 
     def detect(self) -> None:
 

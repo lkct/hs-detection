@@ -47,53 +47,20 @@ def get_random_data_chunks(recording: Recording,
     return np.concatenate(chunk_list, axis=0, dtype=np.float32)
 
 
-class ScaleRecording(Recording):
-    def __init__(self,
-                 recording: Recording,
-                 scale: float = 20.0,
-                 offset: float = 0.0,
-                 quantile: float = 0.05) -> None:
-        super().__init__()
-        self.recording = recording
+def get_scaling_param(recording: Recording,
+                      scale: float = 20.0,
+                      offset: float = 0.0,
+                      quantile: float = 0.05
+                      ) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
+    random_data = get_random_data_chunks(recording)
 
-        random_data = get_random_data_chunks(recording)
+    l, m, r = np.quantile(
+        random_data, q=[quantile, 0.5, 1 - quantile], axis=0, keepdims=True)
+    l: NDArray[np.float32] = l.astype(np.float32)
+    m: NDArray[np.float32] = m.astype(np.float32)
+    r: NDArray[np.float32] = r.astype(np.float32)
 
-        l, m, r = np.quantile(
-            random_data, q=[quantile, 0.5, 1 - quantile], axis=0, keepdims=True)
-        l: NDArray[np.float32] = l.astype(np.float32)
-        m: NDArray[np.float32] = m.astype(np.float32)
-        r: NDArray[np.float32] = r.astype(np.float32)
+    scale_param: NDArray[np.float32] = scale / (r - l)
+    offset_param: NDArray[np.float32] = offset - m * scale_param
 
-        self.scale: NDArray[np.float32] = scale / (r - l)
-        self.offset: NDArray[np.float32] = offset - m * self.scale
-
-    def get_num_channels(self) -> int:
-        return self.recording.get_num_channels()
-
-    def get_channel_ids(self) -> NDArray[np.generic]:
-        return self.recording.get_channel_ids()
-
-    def get_channel_property(self, channel_id: Any, key: Any) -> Any:
-        return self.recording.get_channel_property(channel_id, key)
-
-    def get_sampling_frequency(self) -> float:
-        return self.recording.get_sampling_frequency()
-
-    def get_num_segments(self) -> int:
-        return self.recording.get_num_segments()
-
-    def get_num_samples(self, segment_index: Optional[int] = None) -> int:
-        return self.recording.get_num_samples(segment_index)
-
-    def get_traces(self,
-                   segment_index: Optional[int] = None,
-                   start_frame: Optional[int] = None,
-                   end_frame: Optional[int] = None,
-                   channel_ids: Optional[Iterable[Any]] = None,
-                   order: Optional[Literal['C', 'F']] = None,
-                   return_scaled: bool = False
-                   ) -> NDArray[np.float32]:
-        # TODO: channel_ids
-        trace = self.recording.get_traces(segment_index, start_frame, end_frame,
-                                          channel_ids, order, return_scaled)
-        return trace.astype(np.float32) * self.scale + self.offset
+    return scale_param, offset_param

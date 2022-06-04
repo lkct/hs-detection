@@ -4,7 +4,6 @@ from typing import Union
 import spikeinterface.toolkit as st
 from myherdingspikes import HS2Detection
 from myherdingspikes.recording import Recording
-from myherdingspikes.utils import ScaleRecording
 
 default_kwargs = {
     # core params
