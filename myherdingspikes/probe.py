@@ -73,14 +73,3 @@ class RecordingExtractor(object):  # NeuralProbe
         return self.recording.get_traces(
             channel_ids=self.recording.get_channel_ids(), start_frame=t0, end_frame=t1
         ).ravel().astype(ctypes.c_short)
-
-    def getChannelsPositions(self, channels):
-        channel_positions = []
-        for channel in channels:
-            if channel >= self.num_channels:
-                raise ValueError(
-                    "Channel index too large, maximum " + self.num_channels
-                )
-            else:
-                channel_positions.append(self.positions[channel])
-        return channel_positions

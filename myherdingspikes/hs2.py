@@ -31,12 +31,8 @@ class HS2Detection(object):
         probe,
         to_localize=True,
         num_com_centers=1,
-        cutout_start=None,
-        cutout_end=None,
         threshold=20,
         maa=0,
-        maxsl=None,
-        minsl=None,
         ahpthr=0,
         out_file_name="ProcessedSpikes",
         file_directory_name="",
@@ -74,18 +70,10 @@ class HS2Detection(object):
         """
         self.probe = probe
 
-        self.cutout_start = self._deprecate_or_convert(
-            cutout_start, left_cutout_time, "cutout_start", "left_cutout_time"
-        )
-        self.cutout_end = self._deprecate_or_convert(
-            cutout_end, right_cutout_time, "cutout_end", "right_cutout_time"
-        )
-        self.minsl = self._deprecate_or_convert(
-            minsl, amp_evaluation_time, "minsl", "amp_evaluation_time"
-        )
-        self.maxsl = self._deprecate_or_convert(
-            maxsl, spk_evaluation_time, "maxsl", "spk_evaluation_time"
-        )
+        self.cutout_start = int(left_cutout_time * self.probe.fps / 1000 + 0.5)
+        self.cutout_end = int(right_cutout_time * self.probe.fps / 1000 + 0.5)
+        self.minsl = int(amp_evaluation_time * self.probe.fps / 1000 + 0.5)
+        self.maxsl = int(spk_evaluation_time * self.probe.fps / 1000 + 0.5)
 
         self.to_localize = to_localize
         self.cutout_length = self.cutout_start + self.cutout_end + 1
@@ -107,27 +95,6 @@ class HS2Detection(object):
             file_path = os.path.join(file_directory_name, out_file_name)
             self.out_file_name = file_path + ".bin"
         self.save_all = save_all
-
-    def _deprecate_or_convert(self, old_var, new_var, old_name, new_name):
-        if old_var is not None:
-            msg = (
-                "{} is deprecated and will be removed. Set {} instead "
-                "(in milliseconds). {} takes priority over {}!"
-            )
-            warnings.warn(msg.format(old_name, new_name, old_name, new_name))
-            return int(old_var)
-        else:
-            return int(new_var * self.probe.fps / 1000 + 0.5)
-
-    def SetAddParameters(self, dict_of_new_parameters):
-        """
-         Adds and merges dict_of_new_parameters with the current fields of the
-         object. Uses the PEP448 convention to group two dics together.
-
-         Arguments:
-         dict_of_new_parameters -- the dictionary of parameters to be updated.
-        """
-        self.__dict__.update(dict_of_new_parameters)
 
     def LoadDetected(self, file_name=None):
         """
