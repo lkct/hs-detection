@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Union
 
 import spikeinterface.toolkit as st
-from myherdingspikes import HS2Detection, RecordingExtractor
+from myherdingspikes import HS2Detection
 from myherdingspikes.entry import DetectFromRaw
 
 default_kwargs = {  # TODO:???
@@ -66,16 +66,13 @@ def run_hs2(recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs)
         recording = st.normalize_by_quantile(
             recording, scale=params['pre_scale_value'], median=0.0, q1=0.05, q2=0.95)
 
-    probe = RecordingExtractor(recording,
-                               masked_channels=params['probe_masked_channels'],
-                               inner_radius=params['probe_inner_radius'],
-                               neighbor_radius=params['probe_neighbor_radius'],
-                               event_length=params['probe_event_length'],
-                               peak_jitter=params['probe_peak_jitter'])
-
     H = HS2Detection(
-        probe,
-        file_directory_name=str(output_folder),
+        recording,
+        masked_channels=params['probe_masked_channels'],
+        inner_radius=params['probe_inner_radius'],
+        neighbor_radius=params['probe_neighbor_radius'],
+        event_length=params['probe_event_length'],
+        peak_jitter=params['probe_peak_jitter'],
         left_cutout_time=params['left_cutout_time'],
         right_cutout_time=params['right_cutout_time'],
         threshold=params['detect_threshold'],
@@ -83,7 +80,7 @@ def run_hs2(recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs)
         num_com_centers=params['num_com_centers'],
         maa=params['maa'],
         ahpthr=params['ahpthr'],
-        out_file_name=params['out_file_name'],
+        out_file=Path(output_folder) / params['out_file_name'],
         decay_filtering=params['decay_filtering'],
         save_all=params['save_all'],
         amp_evaluation_time=params['amp_evaluation_time'],
