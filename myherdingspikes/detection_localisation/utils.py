@@ -1,9 +1,7 @@
-from typing import Any, Iterable, Literal, Optional
-
 import numpy as np
 from numpy.typing import NDArray
 
-from .recording import Recording
+from ..recording import Recording
 
 
 def get_random_data_chunks(recording: Recording,

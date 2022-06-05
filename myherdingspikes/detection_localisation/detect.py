@@ -11,7 +11,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..recording import Recording
-from ..utils import get_scaling_param
+from .utils import get_scaling_param
 
 
 class HS2Detection(object):

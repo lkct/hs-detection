@@ -1,7 +1,8 @@
 import sys
 
 import line_profiler
-from myherdingspikes import HS2Detection, utils
+from myherdingspikes import HS2Detection
+from myherdingspikes.detection_localisation import utils
 from spikeinterface.extractors import MdaRecordingExtractor
 
 from data_utils import download_large, str2Path
