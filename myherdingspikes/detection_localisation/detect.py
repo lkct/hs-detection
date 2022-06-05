@@ -105,7 +105,7 @@ class HS2Detection(object):
 
         if out_file.suffix != '.bin':
             out_file = out_file.with_suffix('.bin')
-        self.out_file_name = str(out_file)
+        self.out_file = out_file
 
         self.save_all = save_all
         self.t_inc = t_inc
@@ -191,7 +191,7 @@ class HS2Detection(object):
             self.masked_channels, dtype=np.intc)
 
         det.SetInitialParams(cython.address(position_matrix[0, 0]), cython.address(neighbor_matrix[0, 0]), self.num_channels,
-                             self.spike_peak_duration, self.out_file_name[:-4].encode(
+                             self.spike_peak_duration, str(self.out_file.with_suffix('')).encode(
         ), self.noise_duration,
             self.noise_amp_percent, self.inner_radius, cython.address(
             masked_channels[0]),
