@@ -1,5 +1,4 @@
 import filecmp
-import shutil
 import sys
 
 import numpy as np
@@ -53,9 +52,6 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
     assert (hs2det_path / 'HS2_detected.bin').stat().st_size > 0
     assert filecmp.cmp(str(sihs_path / 'HS2_detected.bin'),
                        str(hs2det_path / 'HS2_detected.bin'))
-
-    # shutil.rmtree(str(sihs_path))
-    # shutil.rmtree(str(hs2det_path))
 
 
 if __name__ == '__main__':

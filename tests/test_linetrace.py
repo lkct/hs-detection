@@ -25,6 +25,8 @@ def test_linetrace(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
         (hs2det_path / 'HS2_detected.bin').unlink(missing_ok=True)
         (hs2det_path / 'HS2_detected.bin').symlink_to('/dev/null')
 
+    prof_path = str2Path('prof/hs2')
+
     prof = line_profiler.LineProfiler()
     prof(run_hs2)
     prof(HS2Detection.__init__)
@@ -45,9 +47,9 @@ def test_linetrace(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
     else:
         sys.stdout, sys.stderr = stdout, stderr
     finally:
-        prof.dump_stats('hs2.lprof')
+        prof.dump_stats(str(prof_path.with_suffix('.lprof')))
 
-    with open('hs2.txt', 'w') as f:
+    with prof_path.with_suffix('.lprof.txt').open('w') as f:
         prof.print_stats(f, output_unit=1.0)
 
 

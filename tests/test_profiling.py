@@ -24,6 +24,8 @@ def test_profiling(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
         (hs2det_path / 'HS2_detected.bin').unlink(missing_ok=True)
         (hs2det_path / 'HS2_detected.bin').symlink_to('/dev/null')
 
+    prof_path = str2Path('prof/hs2')
+
     prof = cProfile.Profile()
 
     stdout, stderr = sys.stdout, sys.stderr
@@ -38,17 +40,18 @@ def test_profiling(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
     else:
         sys.stdout, sys.stderr = stdout, stderr
     finally:
-        prof.dump_stats('hs2.prof')
+        prof.dump_stats(str(prof_path.with_suffix('.prof')))
 
-    with open('hs2.txt', 'w') as f:
+    with prof_path.with_suffix('.prof.txt').open('w') as f:
         sys.stdout = f
-        pstats.Stats(
-            'hs2.prof').strip_dirs().sort_stats('cumtime').print_callers()
+        pstats.Stats(str(prof_path.with_suffix('.prof'))
+                     ).strip_dirs().sort_stats('cumtime').print_callers()
         sys.stdout = stdout
 
     os.system('gprof2dot --node-label self-time --node-label self-time-percentage '
               '--node-label total-time --node-label total-time-percentage '
-              '-f pstats hs2.prof -n 0.1 -e 0.01 | dot -T png -o ~/Desktop/output.png')
+              f'-f pstats -n 0.1 -e 0.01 {str(prof_path.with_suffix(".prof"))} | '
+              f'dot -T png -o {str(prof_path.with_suffix(".png"))}')
 
 
 if __name__ == '__main__':

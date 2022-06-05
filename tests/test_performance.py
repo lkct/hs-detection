@@ -1,4 +1,3 @@
-import shutil
 import sys
 import timeit
 
@@ -62,9 +61,6 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
     print(t_hs2det)
     print(t_peak)
     print(t_peakloc)
-
-    # shutil.rmtree(str(sihs_path))
-    # shutil.rmtree(str(hs2det_path))
 
 
 if __name__ == '__main__':
