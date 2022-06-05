@@ -27,6 +27,9 @@ except ImportError:
     print('Not using Cython')
 
 
+PROFILE = True
+
+
 def get_version() -> str:
     # ref https://packaging.python.org/guides/single-sourcing-package-version/
     # solution 3
@@ -81,7 +84,7 @@ detect_ext = cythonize(
               extra_compile_args=extra_compile_args,
               extra_link_args=link_extra_args,
               language='c++'),
-    compiler_directives={'language_level': '3'})
+    compiler_directives={'language_level': '3', 'profile': PROFILE})
 
 
 setup(
