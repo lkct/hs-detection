@@ -4,7 +4,7 @@
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Optional, Union
+from typing import Iterable, Mapping, Optional, Union
 
 import cython
 import numpy as np
@@ -139,7 +139,7 @@ class HS2Detection(object):
 
         return traces_int
 
-    def detect(self) -> None:
+    def detect(self) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
 
         if self.masked_channels.all():
             print('# Not Masking any Channels')
@@ -227,3 +227,16 @@ class HS2Detection(object):
         print(f'# Detection completed, time taken: {t}')
         print(f'# Time per frame: {speed}')
         print(f'# Time per sample: {speed / self.num_channels}')
+
+        if self.out_file.stat().st_size == 0:
+            spikes = np.empty((0, 5 + self.cutout_length), dtype=np.intc)
+        else:
+            spikes = np.memmap(str(self.out_file), dtype=np.intc, mode='r'
+                               ).reshape(-1, 5 + self.cutout_length)
+
+        return {'ch': spikes[:, 0],
+                't': spikes[:, 1],
+                'Amplitude': spikes[:, 2],
+                'x': spikes[:, 3] / 1000,
+                'y': spikes[:, 4] / 1000,
+                'Shape': spikes[:, 5:]}
