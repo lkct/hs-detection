@@ -76,8 +76,8 @@ class HS2Detection(object):
                    mode='constant', constant_values=-1)
             for n in neighbors])
 
-        self.spike_peak_duration = int(event_length * self.fps / 1000)  # frame
-        self.noise_duration = int(peak_jitter * self.fps / 1000)  # frame
+        self.spike_peak_duration = int(event_length * self.fps / 1000)
+        self.noise_duration = int(peak_jitter * self.fps / 1000)
         self.noise_amp_percent = noise_amp_percent
         self.inner_radius = inner_radius
 
