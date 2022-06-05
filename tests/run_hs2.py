@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Mapping, Union
 
 import numpy as np
+import spikeinterface.sorters as ss
 import spikeinterface.toolkit as st
 from myherdingspikes import HS2Detection
 from myherdingspikes.recording import Recording
@@ -80,3 +81,29 @@ def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2'
     )
 
     return H.detect()
+
+
+def run_herdingspikes(recording: Recording, output_folder: Union[str, Path] = 'results_HS', filter: bool = True
+                      ) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
+    ss.run_herdingspikes(recording, output_folder=output_folder, filter=filter,
+                         remove_existing_folder=False, with_output=False)
+
+    fps = recording.get_sampling_frequency()
+    cutout_start = int(default_kwargs['left_cutout_time'] * fps / 1000 + 0.5)
+    cutout_end = int(default_kwargs['right_cutout_time'] * fps / 1000 + 0.5)
+    cutout_length = cutout_start + cutout_end + 1
+
+    out_file = Path(output_folder) / str(default_kwargs['out_file_name'])
+    out_file = out_file.with_suffix('.bin')
+    if out_file.stat().st_size == 0:
+        spikes = np.empty((0, 5 + cutout_length), dtype=np.intc)
+    else:
+        spikes = np.memmap(str(out_file), dtype=np.intc, mode='r'
+                           ).reshape(-1, 5 + cutout_length)
+
+    return {'ch': spikes[:, 0],
+            't': spikes[:, 1],
+            'Amplitude': spikes[:, 2],
+            'x': spikes[:, 3] / 1000,
+            'y': spikes[:, 4] / 1000,
+            'Shape': spikes[:, 5:]}

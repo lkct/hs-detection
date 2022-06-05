@@ -1,12 +1,11 @@
 import sys
 import timeit
 
-import spikeinterface.sorters as ss
 from spikeinterface.extractors import MdaRecordingExtractor
 from spikeinterface.sortingcomponents.peak_detection import detect_peaks
 
 from data_utils import download_large, str2Path
-from run_hs2 import run_hs2
+from run_hs2 import run_herdingspikes, run_hs2
 
 
 def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -> None:
@@ -36,8 +35,8 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
-        t_sihs = timeit1(lambda: ss.run_herdingspikes(
-            recording, filter=False, output_folder=sihs_path, remove_existing_folder=False, with_output=False))
+        t_sihs = timeit1(lambda: run_herdingspikes(
+            recording, filter=False, output_folder=sihs_path))
         t_hs2det = timeit1(lambda: run_hs2(
             recording, filter=False, output_folder=hs2det_path))
 

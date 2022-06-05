@@ -1,12 +1,10 @@
-import filecmp
 import sys
 
 import numpy as np
-import spikeinterface.sorters as ss
 from spikeinterface.extractors import MEArecRecordingExtractor
 
 from data_utils import download_small, str2Path
-from run_hs2 import run_hs2
+from run_hs2 import run_herdingspikes, run_hs2
 
 
 def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
@@ -40,18 +38,16 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
-        ss.run_herdingspikes(recording, output_folder=sihs_path,
-                             remove_existing_folder=False, with_output=False)
-        run_hs2(recording, output_folder=hs2det_path)
+        sihs = run_herdingspikes(recording, output_folder=sihs_path)
+        hs2det = run_hs2(recording, output_folder=hs2det_path)
     except Exception as e:
         sys.stdout, sys.stderr = stdout, stderr
         raise e
     else:
         sys.stdout, sys.stderr = stdout, stderr
 
-    assert (hs2det_path / 'HS2_detected.bin').stat().st_size > 0
-    assert filecmp.cmp(str(sihs_path / 'HS2_detected.bin'),
-                       str(hs2det_path / 'HS2_detected.bin'))
+    assert hs2det['ch'].shape[0] > 0
+    assert all(np.all(sihs[k] == hs2det[k]) for k in hs2det.keys())
 
 
 if __name__ == '__main__':
