@@ -27,7 +27,7 @@ except ImportError:
     print('Not using Cython')
 
 
-PROFILE = True
+PROFILE = 2
 
 
 def get_version() -> str:
@@ -81,10 +81,12 @@ detect_ext = cythonize(
     Extension(name='myherdingspikes.detection_localisation.detect',
               sources=sources,
               include_dirs=[numpy_include],
+              define_macros=[('CYTHON_TRACE_NOGIL', '1')
+                             ] if PROFILE >= 2 else [],
               extra_compile_args=extra_compile_args,
               extra_link_args=link_extra_args,
               language='c++'),
-    compiler_directives={'language_level': '3', 'profile': PROFILE})
+    compiler_directives={'language_level': '3', 'profile': PROFILE >= 1, 'linetrace': PROFILE >= 2})
 
 
 setup(
