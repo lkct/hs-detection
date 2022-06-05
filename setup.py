@@ -18,12 +18,12 @@ except:
 try:
     # if have cython, use augmented py
     from Cython.Build import cythonize
-    ext_src = 'detect.py'
+    ext_src = ['detect.py']
     print('Using Cython')
 except ImportError:
     # no Cython, use compiled cpp
     def cythonize(x, **kwargs): return [x]
-    ext_src = 'detect.cpp'
+    ext_src = ['detect.cpp']
     print('Not using Cython')
 
 
@@ -66,7 +66,7 @@ sources = ['SpkDonline.cpp',
            'ProcessSpikes.cpp',
            'FilterSpikes.cpp',
            'LocalizeSpikes.cpp',
-           ext_src]
+           *ext_src]
 sources = [ext_folder + fn for fn in sources]
 
 extra_compile_args = ['-std=c++11', '-O3']
