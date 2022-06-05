@@ -1,9 +1,11 @@
 from pathlib import Path
-from typing import Union
+from typing import Mapping, Union
 
+import numpy as np
 import spikeinterface.toolkit as st
 from myherdingspikes import HS2Detection
 from myherdingspikes.recording import Recording
+from numpy.typing import NDArray
 
 default_kwargs = {
     # core params
@@ -42,7 +44,8 @@ default_kwargs = {
 }
 
 
-def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs) -> None:
+def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs
+            ) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
     params = default_kwargs.copy()
     params.update(kwargs)
     params['out_file_name'] = Path(output_folder) / params['out_file_name']
@@ -76,4 +79,4 @@ def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2'
         pre_scale_value=params['pre_scale_value']
     )
 
-    H.detect()
+    return H.detect()
