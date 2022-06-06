@@ -23,16 +23,17 @@ default_kwargs = {
     'noise_amp_percent': 1.0,
 
     # extra detection params
-    't_inc': 100000,
+    'chunk_size': 100000,
     'num_com_centers': 1,
     'maa': 12,
     'ahpthr': 11,
     'out_file': 'HS2_detected',
     'decay_filtering': False,
-    'save_all': False,
     'amp_evaluation_time': 0.4,
     'spk_evaluation_time': 1.0,
-    'to_localize': True,
+    'localize': True,
+    'save_shape': True,
+    'save_all': False,
 
     # bandpass filter
     'freq_min': 300.0,
@@ -40,8 +41,8 @@ default_kwargs = {
     'filter': True,
 
     # rescale traces
-    'pre_scale': True,
-    'pre_scale_value': 20.0,
+    'rescale': True,
+    'rescale_value': 20.0,
 }
 
 

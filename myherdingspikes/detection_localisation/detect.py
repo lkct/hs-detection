@@ -19,10 +19,10 @@ class HS2Detection(object):
     """
 
     def __init__(self, recording: Recording, params: Mapping[str, Any]) -> None:
-        self.pre_scale: bool = params['pre_scale']
-        if self.pre_scale:
+        self.rescale: bool = params['rescale']
+        if self.rescale:
             self.scale, self.offset = get_scaling_param(
-                recording, scale=params['pre_scale_value'])
+                recording, scale=params['rescale_value'])
         else:
             self.scale: NDArray[np.float32] = np.array(0, dtype=np.float32)
             self.offset: NDArray[np.float32] = np.array(0, dtype=np.float32)
@@ -71,7 +71,7 @@ class HS2Detection(object):
         self.minsl = int(params['amp_evaluation_time'] * self.fps / 1000 + 0.5)
         self.maxsl = int(params['spk_evaluation_time'] * self.fps / 1000 + 0.5)
 
-        self.to_localize: bool = params['to_localize']
+        self.localize: bool = params['localize']
         self.cutout_length = self.cutout_start + self.cutout_end + 1
         self.threshold: int = params['threshold']
         self.maa: int = params['maa']
@@ -89,7 +89,8 @@ class HS2Detection(object):
         self.out_file = out_file
 
         self.save_all: bool = params['save_all']
-        self.t_inc: int = params['t_inc']
+        self.save_shape: bool = params['save_shape']  # TODO: add functionality
+        self.chunk_size: int = params['chunk_size']
 
     def get_traces(self, start_frame: int, end_frame: int) -> NDArray[np.short]:
         if start_frame < 0:
@@ -106,7 +107,7 @@ class HS2Detection(object):
         traces: NDArray[np.number] = self.recording.get_traces(
             start_frame=start_frame, end_frame=end_frame)
 
-        if self.pre_scale:
+        if self.rescale:
             traces = traces.astype(np.float32, copy=False) * \
                 self.scale + self.offset
 
@@ -129,7 +130,7 @@ class HS2Detection(object):
                   f'{(1 - self.masked_channels).nonzero()[0]}')
 
         print(f'# Sampling rate: {self.fps}')
-        if self.to_localize:
+        if self.localize:
             print('# Localization On')
         else:
             print('# Localization Off')
@@ -151,7 +152,7 @@ class HS2Detection(object):
         print(f'# tcuts: {t_cut_l} {t_cut_r}')
 
         # cap at specified number of frames
-        t_inc = min(self.num_frames - t_cut_l - t_cut_r, self.t_inc)
+        t_inc = min(self.num_frames - t_cut_l - t_cut_r, self.chunk_size)
         print(f'# tInc: {t_inc}')
         # ! To be consistent, X and Y have to be swappped
         ch_indices: cython.long[:] = np.arange(
@@ -176,7 +177,7 @@ class HS2Detection(object):
         ), self.noise_duration,
             self.noise_amp_percent, self.inner_radius, cython.address(
             masked_channels[0]),
-            self.max_neighbors, self.num_com_centers, self.to_localize,
+            self.max_neighbors, self.num_com_centers, self.localize,
             self.threshold, self.cutout_start, self.cutout_end, self.maa, self.ahpthr, self.maxsl,
             self.minsl, self.decay_filtering, self.save_all)
 
