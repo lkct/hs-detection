@@ -202,6 +202,7 @@ class HS2Detection(object):
                 t_inc = min(t_inc, self.num_frames - t_cut_r - t0)
 
         det.FinishDetection()
+        del det
 
         t = datetime.now() - startTime
         speed = 1000 * t / self.num_frames

@@ -3,6 +3,7 @@
 
 namespace SpkDonline {
 Detection::Detection() {}
+Detection::~Detection() {}
 
 void Detection::InitDetection(long nFrames, int sf, int NCh,
                               long ti, long *Indices, int agl) {
