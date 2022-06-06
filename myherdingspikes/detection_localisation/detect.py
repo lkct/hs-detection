@@ -166,17 +166,17 @@ class HS2Detection(object):
 
         # set tCut, tCut2 and tInc
         t_cut_l = self.cutout_start + self.maxsl
-        t_cnt_r = self.cutout_end + self.maxsl
-        print(f'# tcuts: {t_cut_l} {t_cnt_r}')
+        t_cut_r = self.cutout_end + self.maxsl
+        print(f'# tcuts: {t_cut_l} {t_cut_r}')
 
         # cap at specified number of frames
-        t_inc = min(self.num_frames - t_cut_l - t_cnt_r, self.t_inc)
+        t_inc = min(self.num_frames - t_cut_l - t_cut_r, self.t_inc)
         print(f'# tInc: {t_inc}')
         # ! To be consistent, X and Y have to be swappped
         ch_indices: cython.long[:] = np.arange(
             self.num_channels, dtype=np.int_)
         vm: cython.short[:] = np.zeros(
-            self.num_channels * (t_inc + t_cut_l + t_cnt_r), dtype=np.short)
+            self.num_channels * (t_inc + t_cut_l + t_cut_r), dtype=np.short)
 
         # initialise detection algorithm
         # ensure sampling rate is integer, assumed to be in Hertz
@@ -202,23 +202,23 @@ class HS2Detection(object):
         startTime = datetime.now()
         t0 = 0
         max_frames_processed = t_inc
-        while t0 + t_inc + t_cnt_r <= self.num_frames:
+        while t0 + t_inc + t_cut_r <= self.num_frames:
             t1 = t0 + t_inc
             if self.save_all:
-                print(f'# Analysing frames from {t0 - t_cut_l} to {t1 + t_cnt_r} '
+                print(f'# Analysing frames from {t0 - t_cut_l} to {t1 + t_cut_r} '
                       f' ({100 * t0 / self.num_frames:.1f}%)')
 
-            vm = self.get_traces(t0 - t_cut_l, t1 + t_cnt_r)
+            vm = self.get_traces(t0 - t_cut_l, t1 + t_cut_r)
 
             # detect spikes
             if self.num_channels >= 20:
                 det.MeanVoltage(cython.address(vm[0]), t_inc, t_cut_l)
             det.Iterate(cython.address(vm[0]), t0,
-                        t_inc, t_cut_l, t_cnt_r, max_frames_processed)
+                        t_inc, t_cut_l, t_cut_r, max_frames_processed)
 
             t0 += t_inc
-            if t0 < self.num_frames - t_cnt_r:
-                t_inc = min(t_inc, self.num_frames - t_cnt_r - t0)
+            if t0 < self.num_frames - t_cut_r:
+                t_inc = min(t_inc, self.num_frames - t_cut_r - t0)
 
         det.FinishDetection()
 
