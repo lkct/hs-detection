@@ -5,8 +5,8 @@ from typing import Mapping, Sequence, Union
 import numpy as np
 import spikeinterface.sorters as ss
 import spikeinterface.toolkit as st
-from myherdingspikes import HSDetection
-from myherdingspikes.recording import Recording
+from hs_detection import HSDetection
+from hs_detection.recording import Recording
 from numpy.typing import NDArray
 from spikeinterface import BaseRecording
 

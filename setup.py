@@ -34,7 +34,7 @@ def get_version() -> str:
     # ref https://packaging.python.org/guides/single-sourcing-package-version/
     # solution 3
     version = {}
-    with open('myherdingspikes/version.py', 'r') as f:
+    with open('hs_detection/version.py', 'r') as f:
         exec(f.read(), version)
 
     try:
@@ -47,7 +47,7 @@ def get_version() -> str:
     if any(cmd in sys.argv for cmd in ('sdist', 'bdist', 'bdist_wheel')):
         # in dist, include commit hash as file but not in version
         if commit:
-            with open('myherdingspikes/.commit_version', 'w') as f:
+            with open('hs_detection/.commit_version', 'w') as f:
                 f.write(commit)
         return version['version']
     else:
@@ -60,7 +60,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 
-ext_folder = 'myherdingspikes/detection_localisation/'
+ext_folder = 'hs_detection/detect/'
 sources = ['SpkDonline.cpp',
            'SpikeHandler.cpp',
            'ProcessSpikes.cpp',
@@ -78,7 +78,7 @@ if platform.system() == 'Darwin':
 
 # compile with/without Cython
 detect_ext = cythonize(
-    Extension(name='myherdingspikes.detection_localisation.detect',
+    Extension(name='hs_detection.detect.detect',
               sources=sources,
               include_dirs=[numpy_include],
               define_macros=[('CYTHON_TRACE_NOGIL', '1')
@@ -90,7 +90,7 @@ detect_ext = cythonize(
 
 
 setup(
-    name='myherdingspikes',  # TODO:???
+    name='hs-detection',
     version=get_version(),
     description='Spike detection from HS2, used for integration in SpikeInterface',
     long_description=long_description,
@@ -123,10 +123,10 @@ setup(
         ]
     },
     package_data={
-        'myherdingspikes': [
+        'hs_detection': [
             '.commit_version',
             '../README.md',
-            'detection_localisation/*'
+            'detect/*'
         ]
     },
     ext_modules=detect_ext,
@@ -141,7 +141,7 @@ try:
     subprocess.check_output(['git', 'rev-parse', 'HEAD'],
                             cwd=os.path.dirname(__file__))
     # if git success: in git repo, remove file
-    os.remove('myherdingspikes/.commit_version')
+    os.remove('hs_detection/.commit_version')
     # if file to remove not exist: still captured by try...except
 except:
     # else: keep file, or file not exist
