@@ -3,7 +3,7 @@
 
 import warnings
 from pathlib import Path
-from typing import Any, Mapping, Union
+from typing import Any, Mapping, Sequence, Union
 
 import cython
 import numpy as np
@@ -117,7 +117,7 @@ class HS2Detection(object):
 
         return traces_int
 
-    def detect(self) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
+    def detect(self) -> Sequence[Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]]:
 
         det: cython.pointer(Detection) = new Detection()
 
@@ -183,9 +183,8 @@ class HS2Detection(object):
             spikes = np.memmap(str(self.out_file), dtype=np.intc, mode='r'
                                ).reshape(-1, 5 + self.cutout_length)
 
-        return {'ch': spikes[:, 0],
-                't': spikes[:, 1],
-                'Amplitude': spikes[:, 2],
-                'x': spikes[:, 3] / 1000,
-                'y': spikes[:, 4] / 1000,
-                'Shape': spikes[:, 5:]}
+        return [{'channel_ind': spikes[:, 0],
+                 'sample_ind': spikes[:, 1],
+                 'amplitude': spikes[:, 2],
+                 'location': spikes[:, 3:5] / 1000,
+                 'spike_shape': spikes[:, 5:]}]

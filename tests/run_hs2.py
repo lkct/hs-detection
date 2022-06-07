@@ -1,6 +1,6 @@
 import warnings
 from pathlib import Path
-from typing import Mapping, Union
+from typing import Mapping, Sequence, Union
 
 import numpy as np
 import spikeinterface.sorters as ss
@@ -62,7 +62,7 @@ deprecation = {
 
 
 def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs
-            ) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
+            ) -> Sequence[Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]]:
     params = default_kwargs.copy()
     for k, v in kwargs.values():
         if k in deprecation:
@@ -83,7 +83,7 @@ def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2'
 
 
 def run_herdingspikes(recording: Recording, output_folder: Union[str, Path] = 'results_HS', filter: bool = True
-                      ) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
+                      ) -> Sequence[Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]]:
     ss.run_herdingspikes(recording, output_folder=output_folder, filter=filter,
                          remove_existing_folder=False, with_output=False)
 
@@ -100,9 +100,8 @@ def run_herdingspikes(recording: Recording, output_folder: Union[str, Path] = 'r
         spikes = np.memmap(str(out_file), dtype=np.intc, mode='r'
                            ).reshape(-1, 5 + cutout_length)
 
-    return {'ch': spikes[:, 0],
-            't': spikes[:, 1],
-            'Amplitude': spikes[:, 2],
-            'x': spikes[:, 3] / 1000,
-            'y': spikes[:, 4] / 1000,
-            'Shape': spikes[:, 5:]}
+    return [{'channel_ind': spikes[:, 0],
+             'sample_ind': spikes[:, 1],
+             'amplitude': spikes[:, 2],
+             'location': spikes[:, 3:5] / 1000,
+             'spike_shape': spikes[:, 5:]}]
