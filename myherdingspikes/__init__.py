@@ -1,4 +1,4 @@
-from .detection_localisation.detect import HS2Detection
+from .detection_localisation.detect import HSDetection
 from .version import version as __version__
 
-__all__ = ['HS2Detection', '__version__']
+__all__ = ['HSDetection', '__version__']

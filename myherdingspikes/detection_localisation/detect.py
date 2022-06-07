@@ -13,7 +13,7 @@ from ..recording import Recording
 from .utils import get_scaling_param
 
 
-class HS2Detection(object):
+class HSDetection(object):
     """TODO:
     """
 

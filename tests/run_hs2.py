@@ -5,7 +5,7 @@ from typing import Mapping, Sequence, Union
 import numpy as np
 import spikeinterface.sorters as ss
 import spikeinterface.toolkit as st
-from myherdingspikes import HS2Detection
+from myherdingspikes import HSDetection
 from myherdingspikes.recording import Recording
 from numpy.typing import NDArray
 
@@ -77,7 +77,7 @@ def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2'
         recording = st.bandpass_filter(
             recording, freq_min=params['freq_min'], freq_max=params['freq_max'])
 
-    H = HS2Detection(recording, params)
+    H = HSDetection(recording, params)
 
     return H.detect()
 

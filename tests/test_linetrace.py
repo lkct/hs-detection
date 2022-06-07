@@ -1,7 +1,7 @@
 import sys
 
 import line_profiler
-from myherdingspikes import HS2Detection
+from myherdingspikes import HSDetection
 from myherdingspikes.detection_localisation import utils
 from spikeinterface.extractors import MdaRecordingExtractor
 
@@ -29,9 +29,9 @@ def test_linetrace(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
 
     prof = line_profiler.LineProfiler()
     prof(run_hs2)
-    prof(HS2Detection.__init__)
-    prof(HS2Detection.get_traces)
-    prof(HS2Detection.detect)
+    prof(HSDetection.__init__)
+    prof(HSDetection.get_traces)
+    prof(HSDetection.detect)
     prof(utils.get_random_data_chunks)
     prof(utils.get_scaling_param)
 
