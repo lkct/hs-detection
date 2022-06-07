@@ -27,7 +27,9 @@ class HSDetection(object):
             self.offset: NDArray[np.float32] = np.array(0, dtype=np.float32)
 
         self.recording = recording
-        self.num_frames = recording.get_num_samples(0)  # TODO: segment proc
+        self.num_segments = recording.get_num_segments()
+        self.num_frames = [recording.get_num_samples(seg)
+                           for seg in range(self.num_segments)]
         self.fps = recording.get_sampling_frequency()
         self.num_channels = recording.get_num_channels()
 
@@ -88,20 +90,21 @@ class HSDetection(object):
         self.save_shape: bool = params['save_shape']
         self.chunk_size: int = params['chunk_size']
 
-    def get_traces(self, start_frame: int, end_frame: int) -> NDArray[np.short]:
+    def get_traces(self, segment_index: int, start_frame: int, end_frame: int) -> NDArray[np.short]:
         if start_frame < 0:
             lpad = -start_frame * self.num_channels
             start_frame = 0
         else:
             lpad = 0
-        if end_frame > self.num_frames:
-            rpad = (end_frame - self.num_frames) * self.num_channels
-            end_frame = self.num_frames
+        if end_frame > self.num_frames[segment_index]:
+            rpad = (
+                end_frame - self.num_frames[segment_index]) * self.num_channels
+            end_frame = self.num_frames[segment_index]
         else:
             rpad = 0
 
         traces: NDArray[np.number] = self.recording.get_traces(
-            start_frame=start_frame, end_frame=end_frame)
+            segment_index=segment_index, start_frame=start_frame, end_frame=end_frame)
 
         if self.rescale:
             traces = traces.astype(np.float32, copy=False) * \
@@ -118,6 +121,12 @@ class HSDetection(object):
         return traces_int
 
     def detect(self) -> Sequence[Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]]:
+        result = []
+        for seg in range(self.num_segments):
+            result.append(self.detect_seg(seg))
+        return result
+
+    def detect_seg(self, segment_index: int) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
 
         det: cython.pointer(Detection) = new Detection()
 
@@ -126,7 +135,8 @@ class HSDetection(object):
         t_cut_r = self.cutout_end + self.maxsl
 
         # cap at specified number of frames
-        t_inc = min(self.num_frames - t_cut_l - t_cut_r, self.chunk_size)
+        t_inc = min(self.num_frames[segment_index] - t_cut_l - t_cut_r,
+                    self.chunk_size)
         # ! To be consistent, X and Y have to be swappped
         ch_indices: cython.long[:] = np.arange(
             self.num_channels, dtype=np.int_)
@@ -135,7 +145,7 @@ class HSDetection(object):
 
         # initialise detection algorithm
         # ensure sampling rate is integer, assumed to be in Hertz
-        det.InitDetection(self.num_frames, int(self.fps), self.num_channels, t_inc,
+        det.InitDetection(self.num_frames[segment_index], int(self.fps), self.num_channels, t_inc,
                           cython.address(ch_indices[0]), 0)
 
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
@@ -145,8 +155,11 @@ class HSDetection(object):
         masked_channels: cython.int[:] = np.ascontiguousarray(
             self.masked_channels, dtype=np.intc)
 
+        out_file = self.out_file.with_stem(
+            self.out_file.stem + f'-{segment_index}')
+
         det.SetInitialParams(cython.address(position_matrix[0, 0]), cython.address(neighbor_matrix[0, 0]), self.num_channels,
-                             self.spike_peak_duration, str(self.out_file.with_suffix('')).encode(
+                             self.spike_peak_duration, str(out_file.with_suffix('')).encode(
         ), self.noise_duration,
             self.noise_amp_percent, self.inner_radius, cython.address(
             masked_channels[0]),
@@ -156,13 +169,13 @@ class HSDetection(object):
 
         t0 = 0
         max_frames_processed = t_inc
-        while t0 + t_inc + t_cut_r <= self.num_frames:
+        while t0 + t_inc + t_cut_r <= self.num_frames[segment_index]:
             t1 = t0 + t_inc
             if self.verbose:
                 print(f'# Analysing frames from {t0 - t_cut_l} to {t1 + t_cut_r} '
-                      f' ({100 * t0 / self.num_frames:.1f}%)')
+                      f' ({100 * t0 / self.num_frames[segment_index]:.1f}%)')
 
-            vm = self.get_traces(t0 - t_cut_l, t1 + t_cut_r)
+            vm = self.get_traces(segment_index, t0 - t_cut_l, t1 + t_cut_r)
 
             # detect spikes
             if self.num_channels >= 20:
@@ -171,16 +184,17 @@ class HSDetection(object):
                         t_inc, t_cut_l, t_cut_r, max_frames_processed)
 
             t0 += t_inc
-            if t0 < self.num_frames - t_cut_r:
-                t_inc = min(t_inc, self.num_frames - t_cut_r - t0)
+            if t0 < self.num_frames[segment_index] - t_cut_r:
+                t_inc = min(
+                    t_inc, self.num_frames[segment_index] - t_cut_r - t0)
 
         det.FinishDetection()
         del det
 
-        if self.out_file.stat().st_size == 0:
+        if out_file.stat().st_size == 0:
             spikes = np.empty((0, 5 + self.cutout_length), dtype=np.intc)
         else:
-            spikes = np.memmap(str(self.out_file), dtype=np.intc, mode='r'
+            spikes = np.memmap(str(out_file), dtype=np.intc, mode='r'
                                ).reshape(-1, 5 + self.cutout_length)
 
         result = {'channel_ind': spikes[:, 0],
@@ -191,4 +205,4 @@ class HSDetection(object):
         if self.save_shape:
             result |= {'spike_shape': spikes[:, 5:]}
 
-        return [result]
+        return result

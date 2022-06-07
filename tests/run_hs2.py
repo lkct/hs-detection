@@ -8,6 +8,7 @@ import spikeinterface.toolkit as st
 from myherdingspikes import HSDetection
 from myherdingspikes.recording import Recording
 from numpy.typing import NDArray
+from spikeinterface import BaseRecording
 
 default_kwargs = {
     # core params
@@ -82,26 +83,39 @@ def run_hs(recording: Recording, output_folder: Union[str, Path] = 'result_HS', 
     return H.detect()
 
 
-def run_herdingspikes(recording: Recording, output_folder: Union[str, Path] = 'results_HS', filter: bool = True
+def run_herdingspikes(recording: BaseRecording, output_folder: Union[str, Path] = 'results_HS', filter: bool = True
                       ) -> Sequence[Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]]:
-    ss.run_herdingspikes(recording, output_folder=output_folder, filter=filter,
-                         remove_existing_folder=False, with_output=False)
+    out_file = Path(output_folder) / str(default_kwargs['out_file'])
+    out_file = out_file.with_suffix('.bin')
 
     fps = recording.get_sampling_frequency()
     cutout_start = int(default_kwargs['left_cutout_time'] * fps / 1000 + 0.5)
     cutout_end = int(default_kwargs['right_cutout_time'] * fps / 1000 + 0.5)
     cutout_length = cutout_start + cutout_end + 1
 
-    out_file = Path(output_folder) / str(default_kwargs['out_file'])
-    out_file = out_file.with_suffix('.bin')
-    if out_file.stat().st_size == 0:
-        spikes = np.empty((0, 5 + cutout_length), dtype=np.intc)
-    else:
-        spikes = np.memmap(str(out_file), dtype=np.intc, mode='r'
-                           ).reshape(-1, 5 + cutout_length)
+    segments = recording._recording_segments
+    result = []
 
-    return [{'channel_ind': spikes[:, 0],
-             'sample_ind': spikes[:, 1],
-             'amplitude': spikes[:, 2],
-             'location': spikes[:, 3:5] / 1000,
-             'spike_shape': spikes[:, 5:]}]
+    for seg in range(recording.get_num_segments()):
+        recording._recording_segments = [segments[seg]]
+
+        ss.run_herdingspikes(recording, output_folder=output_folder, filter=filter,
+                             out_file_name=default_kwargs['out_file'] +
+                             f'-{seg}',
+                             remove_existing_folder=False, with_output=False)
+
+        if out_file.with_stem(out_file.stem + f'-{seg}').stat().st_size == 0:
+            spikes = np.empty((0, 5 + cutout_length), dtype=np.intc)
+        else:
+            spikes = np.memmap(str(out_file.with_stem(out_file.stem + f'-{seg}')),
+                               dtype=np.intc, mode='r').reshape(-1, 5 + cutout_length)
+
+        result.append({'channel_ind': spikes[:, 0],
+                       'sample_ind': spikes[:, 1],
+                       'amplitude': spikes[:, 2],
+                       'location': spikes[:, 3:5] / 1000,
+                       'spike_shape': spikes[:, 5:]})
+
+    recording._recording_segments = segments
+
+    return result
