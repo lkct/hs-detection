@@ -85,7 +85,7 @@ class HSDetection(object):
         self.out_file = out_file
 
         self.verbose: bool = params['verbose']
-        self.save_shape: bool = params['save_shape']  # TODO: add functionality
+        self.save_shape: bool = params['save_shape']
         self.chunk_size: int = params['chunk_size']
 
     def get_traces(self, start_frame: int, end_frame: int) -> NDArray[np.short]:
@@ -183,8 +183,12 @@ class HSDetection(object):
             spikes = np.memmap(str(self.out_file), dtype=np.intc, mode='r'
                                ).reshape(-1, 5 + self.cutout_length)
 
-        return [{'channel_ind': spikes[:, 0],
-                 'sample_ind': spikes[:, 1],
-                 'amplitude': spikes[:, 2],
-                 'location': spikes[:, 3:5] / 1000,
-                 'spike_shape': spikes[:, 5:]}]
+        result = {'channel_ind': spikes[:, 0],
+                  'sample_ind': spikes[:, 1],
+                  'amplitude': spikes[:, 2]}
+        if self.localize:
+            result |= {'location': spikes[:, 3:5] / 1000}
+        if self.save_shape:
+            result |= {'spike_shape': spikes[:, 5:]}
+
+        return [result]
