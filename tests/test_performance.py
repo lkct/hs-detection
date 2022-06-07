@@ -5,7 +5,7 @@ from spikeinterface.extractors import MdaRecordingExtractor
 from spikeinterface.sortingcomponents.peak_detection import detect_peaks
 
 from data_utils import download_large, str2Path
-from run_hs2 import run_herdingspikes, run_hs2
+from run_hs2 import run_herdingspikes, run_hs
 
 
 def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -> None:
@@ -21,24 +21,24 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
     def timeit1(stmt): return timeit.timeit(stmt, number=1)
 
     sihs_path = str2Path('results_HS')
-    hs2det_path = str2Path('result_HS2')
+    hsdet_path = str2Path('result_HS')
 
     sihs_path.mkdir(parents=True, exist_ok=True)
     if str((sihs_path / 'HS2_detected.bin').resolve()) != '/dev/null':
         (sihs_path / 'HS2_detected.bin').unlink(missing_ok=True)
         (sihs_path / 'HS2_detected.bin').symlink_to('/dev/null')
-    hs2det_path.mkdir(parents=True, exist_ok=True)
-    if str((hs2det_path / 'HS2_detected.bin').resolve()) != '/dev/null':
-        (hs2det_path / 'HS2_detected.bin').unlink(missing_ok=True)
-        (hs2det_path / 'HS2_detected.bin').symlink_to('/dev/null')
+    hsdet_path.mkdir(parents=True, exist_ok=True)
+    if str((hsdet_path / 'HS2_detected.bin').resolve()) != '/dev/null':
+        (hsdet_path / 'HS2_detected.bin').unlink(missing_ok=True)
+        (hsdet_path / 'HS2_detected.bin').symlink_to('/dev/null')
 
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
         t_sihs = timeit1(lambda: run_herdingspikes(
             recording, filter=False, output_folder=sihs_path))
-        t_hs2det = timeit1(lambda: run_hs2(
-            recording, filter=False, output_folder=hs2det_path))
+        t_hsdet = timeit1(lambda: run_hs(
+            recording, filter=False, output_folder=hsdet_path))
 
         t_peak = timeit1(lambda: detect_peaks(
             recording, method='by_channel',
@@ -57,7 +57,7 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
         sys.stdout, sys.stderr = stdout, stderr
 
     print(t_sihs)
-    print(t_hs2det)
+    print(t_hsdet)
     print(t_peak)
     print(t_peakloc)
 

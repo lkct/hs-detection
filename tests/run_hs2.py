@@ -61,8 +61,8 @@ deprecation = {
 }
 
 
-def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs
-            ) -> Sequence[Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]]:
+def run_hs(recording: Recording, output_folder: Union[str, Path] = 'result_HS', **kwargs
+           ) -> Sequence[Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]]:
     params = default_kwargs.copy()
     for k, v in kwargs.values():
         if k in deprecation:

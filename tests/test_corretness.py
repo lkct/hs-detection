@@ -5,7 +5,7 @@ import numpy as np
 from spikeinterface.extractors import MEArecRecordingExtractor
 
 from data_utils import download_small, str2Path
-from run_hs2 import run_herdingspikes, run_hs2
+from run_hs2 import run_herdingspikes, run_hs
 
 
 def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
@@ -29,27 +29,27 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
                   1, 320000]
 
     sihs_path = str2Path('results_HS')
-    hs2det_path = str2Path('result_HS2')
+    hsdet_path = str2Path('result_HS')
 
     if str((sihs_path / 'HS2_detected.bin').resolve()) == '/dev/null':
         (sihs_path / 'HS2_detected.bin').unlink(missing_ok=True)
-    if str((hs2det_path / 'HS2_detected.bin').resolve()) == '/dev/null':
-        (hs2det_path / 'HS2_detected.bin').unlink(missing_ok=True)
+    if str((hsdet_path / 'HS2_detected.bin').resolve()) == '/dev/null':
+        (hsdet_path / 'HS2_detected.bin').unlink(missing_ok=True)
 
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
         run_herdingspikes(recording, output_folder=sihs_path)
-        run_hs2(recording, output_folder=hs2det_path)
+        run_hs(recording, output_folder=hsdet_path)
     except Exception as e:
         sys.stdout, sys.stderr = stdout, stderr
         raise e
     else:
         sys.stdout, sys.stderr = stdout, stderr
 
-    assert (hs2det_path / 'HS2_detected.bin').stat().st_size > 0
+    assert (hsdet_path / 'HS2_detected.bin').stat().st_size > 0
     assert filecmp.cmp(str(sihs_path / 'HS2_detected.bin'),
-                       str(hs2det_path / 'HS2_detected.bin'))
+                       str(hsdet_path / 'HS2_detected.bin'))
 
 
 if __name__ == '__main__':
