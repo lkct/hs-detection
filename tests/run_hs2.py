@@ -65,7 +65,7 @@ deprecation = {
 def run_hs(recording: Recording, output_folder: Union[str, Path] = 'result_HS', **kwargs
            ) -> Sequence[Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]]:
     params = default_kwargs.copy()
-    for k, v in kwargs.values():
+    for k, v in kwargs.items():
         if k in deprecation:
             warnings.warn(
                 f'HS Detection params: {k} deprecated, use {deprecation[k]} instead.')
