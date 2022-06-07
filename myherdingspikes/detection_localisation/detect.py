@@ -2,7 +2,6 @@
 # cython: language_level=3
 
 import warnings
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Union
 
@@ -123,35 +122,14 @@ class HS2Detection(object):
 
     def detect(self) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
 
-        if self.masked_channels.all():
-            print('# Not Masking any Channels')
-        else:
-            print('# Masking Channels: '
-                  f'{(1 - self.masked_channels).nonzero()[0]}')
-
-        print(f'# Sampling rate: {self.fps}')
-        if self.localize:
-            print('# Localization On')
-        else:
-            print('# Localization Off')
-        print(f'# Number of recorded channels: {self.num_channels}')
-        if self.num_channels < 20:
-            print('# Few recording channels: not subtracing mean from activity')
-        print(f'# Analysing frames: {self.num_frames}; '
-              f'Seconds: {self.num_frames / self.fps}')
-        print(f'# Frames before spike in cutout: {self.cutout_start}')
-        print(f'# Frames after spike in cutout: {self.cutout_end}')
-
         det: cython.pointer(Detection) = new Detection()
 
         # set tCut, tCut2 and tInc
         t_cut_l = self.cutout_start + self.maxsl
         t_cut_r = self.cutout_end + self.maxsl
-        print(f'# tcuts: {t_cut_l} {t_cut_r}')
 
         # cap at specified number of frames
         t_inc = min(self.num_frames - t_cut_l - t_cut_r, self.chunk_size)
-        print(f'# tInc: {t_inc}')
         # ! To be consistent, X and Y have to be swappped
         ch_indices: cython.long[:] = np.arange(
             self.num_channels, dtype=np.int_)
@@ -179,7 +157,6 @@ class HS2Detection(object):
             self.threshold, self.cutout_start, self.cutout_end, self.maa, self.ahpthr, self.maxsl,
             self.minsl, self.decay_filtering, False)
 
-        startTime = datetime.now()
         t0 = 0
         max_frames_processed = t_inc
         while t0 + t_inc + t_cut_r <= self.num_frames:
@@ -202,12 +179,6 @@ class HS2Detection(object):
 
         det.FinishDetection()
         del det
-
-        t = datetime.now() - startTime
-        speed = 1000 * t / self.num_frames
-        print(f'# Detection completed, time taken: {t}')
-        print(f'# Time per frame: {speed}')
-        print(f'# Time per sample: {speed / self.num_channels}')
 
         if self.out_file.stat().st_size == 0:
             spikes = np.empty((0, 5 + self.cutout_length), dtype=np.intc)
