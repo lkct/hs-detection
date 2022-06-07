@@ -71,7 +71,7 @@ sources = [ext_folder + fn for fn in sources]
 
 extra_compile_args = ['-std=c++11', '-O3']
 link_extra_args = []
-# OS X support  # TODO:???
+# OS X support  # TODO: test on mac
 if platform.system() == 'Darwin':
     extra_compile_args += ['-mmacosx-version-min=10.9', '-F.']
     link_extra_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']
@@ -97,7 +97,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/lkct/hs2-detection',
     author='Rickey K. Liang @ Matthias Hennig Lab, University of Edinburgh',
-    author_email='liangkct@yahoo.com,m.hennig@ed.ac.uk',  # TODO:???
+    author_email='liangkct@yahoo.com',
     license='GPLv3',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -111,7 +111,7 @@ setup(
     ],
     keywords='spikes sorting electrophysiology detection',
     packages=find_packages(),
-    python_requires='>=3.9',  # TODO: maybe compatible to older?
+    python_requires='>=3.9',
     install_requires=[
         'numpy==1.21'
     ],
