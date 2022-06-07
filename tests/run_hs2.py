@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 from typing import Mapping, Union
 
@@ -46,10 +47,31 @@ default_kwargs = {
 }
 
 
+deprecation = {
+    'detect_threshold': 'threshold',
+    'probe_masked_channels': 'masked_channels',
+    'probe_inner_radius': 'inner_radius',
+    'probe_neighbor_radius': 'neighbor_radius',
+    'probe_event_length': 'event_length',
+    'probe_peak_jitter': 'peak_jitter',
+    't_inc': 'chunk_size',
+    'out_file_name': 'out_file',
+    'pre_scale': 'rescale',
+    'pre_scale_value': 'rescale_value',
+    'save_all': 'None'  # not supported anymore
+}
+
+
 def run_hs2(recording: Recording, output_folder: Union[str, Path] = 'result_HS2', **kwargs
             ) -> Mapping[str, Union[NDArray[np.integer], NDArray[np.floating]]]:
     params = default_kwargs.copy()
-    params.update(kwargs)
+    for k, v in kwargs.values():
+        if k in deprecation:
+            warnings.warn(
+                f'HS Detection params: {k} deprecated, use {deprecation[k]} instead.')
+            params[deprecation[k]] = v
+        else:
+            params[k] = v
     params['out_file'] = Path(output_folder) / params['out_file']
 
     if params['filter'] and params['freq_min'] is not None and params['freq_max'] is not None:
