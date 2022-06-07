@@ -88,7 +88,7 @@ class HS2Detection(object):
             out_file = out_file.with_suffix('.bin')
         self.out_file = out_file
 
-        self.save_all: bool = params['save_all']
+        self.verbose: bool = params['verbose']
         self.save_shape: bool = params['save_shape']  # TODO: add functionality
         self.chunk_size: int = params['chunk_size']
 
@@ -134,8 +134,6 @@ class HS2Detection(object):
             print('# Localization On')
         else:
             print('# Localization Off')
-        if self.save_all:
-            print('# Writing out extended detection info')
         print(f'# Number of recorded channels: {self.num_channels}')
         if self.num_channels < 20:
             print('# Few recording channels: not subtracing mean from activity')
@@ -179,14 +177,14 @@ class HS2Detection(object):
             masked_channels[0]),
             self.max_neighbors, self.num_com_centers, self.localize,
             self.threshold, self.cutout_start, self.cutout_end, self.maa, self.ahpthr, self.maxsl,
-            self.minsl, self.decay_filtering, self.save_all)
+            self.minsl, self.decay_filtering, False)
 
         startTime = datetime.now()
         t0 = 0
         max_frames_processed = t_inc
         while t0 + t_inc + t_cut_r <= self.num_frames:
             t1 = t0 + t_inc
-            if self.save_all:
+            if self.verbose:
                 print(f'# Analysing frames from {t0 - t_cut_l} to {t1 + t_cut_r} '
                       f' ({100 * t0 / self.num_frames:.1f}%)')
 

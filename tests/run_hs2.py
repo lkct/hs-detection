@@ -33,7 +33,7 @@ default_kwargs = {
     'spk_evaluation_time': 1.0,
     'localize': True,
     'save_shape': True,
-    'save_all': False,
+    'verbose': False,
 
     # bandpass filter
     'freq_min': 300.0,
