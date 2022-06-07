@@ -3,7 +3,7 @@
 
 import warnings
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Optional, Union
+from typing import Any, Mapping, Union
 
 import cython
 import numpy as np
@@ -59,9 +59,6 @@ class HS2Detection(object):
 
         self.masked_channels: NDArray[np.int64] = np.ones(
             self.num_channels, dtype=np.int64)
-        masked_channels: Optional[Iterable[int]] = params['masked_channels']
-        if masked_channels is not None:
-            self.masked_channels[list(masked_channels)] = 0
 
         self.cutout_start = int(
             params['left_cutout_time'] * self.fps / 1000 + 0.5)

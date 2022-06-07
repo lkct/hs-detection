@@ -16,7 +16,6 @@ default_kwargs = {
     'threshold': 20,
 
     # extra probe params
-    'masked_channels': None,
     'inner_radius': 70.0,
     'neighbor_radius': 90.0,
     'event_length': 0.26,
@@ -49,7 +48,6 @@ default_kwargs = {
 
 deprecation = {
     'detect_threshold': 'threshold',
-    'probe_masked_channels': 'masked_channels',
     'probe_inner_radius': 'inner_radius',
     'probe_neighbor_radius': 'neighbor_radius',
     'probe_event_length': 'event_length',
@@ -58,7 +56,8 @@ deprecation = {
     'out_file_name': 'out_file',
     'pre_scale': 'rescale',
     'pre_scale_value': 'rescale_value',
-    'save_all': 'None'  # not supported anymore
+    'probe_masked_channels': 'None',  # not supported anymore
+    'save_all': 'None'
 }
 
 
