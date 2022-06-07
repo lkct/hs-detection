@@ -1,4 +1,3 @@
-import filecmp
 import sys
 
 import numpy as np
@@ -39,17 +38,18 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
-        run_herdingspikes(recording, output_folder=sihs_path)
-        run_hs(recording, output_folder=hsdet_path)
+        sihs = run_herdingspikes(recording, output_folder=sihs_path)
+        hsdet = run_hs(recording, output_folder=hsdet_path)
     except Exception as e:
         sys.stdout, sys.stderr = stdout, stderr
         raise e
     else:
         sys.stdout, sys.stderr = stdout, stderr
 
-    assert (hsdet_path / 'HS2_detected.bin').stat().st_size > 0
-    assert filecmp.cmp(str(sihs_path / 'HS2_detected.bin'),
-                       str(hsdet_path / 'HS2_detected.bin'))
+    assert hsdet[0]['channel_ind'].shape[0] == 713
+    for seg in range(recording.get_num_segments()):
+        for k in hsdet[seg].keys():
+            assert np.all(sihs[seg][k] == hsdet[seg][k])
 
 
 if __name__ == '__main__':
