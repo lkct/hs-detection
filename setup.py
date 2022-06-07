@@ -4,8 +4,6 @@ import io
 from shutil import copyfile
 import platform
 import numpy
-from distutils.version import LooseVersion
-
 import sys
 
 FOLDER = "herdingspikes/detection_localisation/"
@@ -32,7 +30,7 @@ def get_pkg_version():
 use_cython = True
 # do not use it if cython is not installed
 try:
-    from Cython.Build import cythonize
+    import Cython.Build
     print('Using Cython')
 except ImportError:
     use_cython = False
@@ -76,6 +74,7 @@ detect_ext = Extension(name="herdingspikes.detection_localisation.detect",
                        extra_link_args=link_extra_args,
                        include_dirs=[numpy.get_include(), FOLDER])
 if use_cython:
+    from Cython.Build import cythonize
     detect_ext_ready = cythonize(detect_ext)
 else:
     detect_ext_ready = [detect_ext]

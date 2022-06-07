@@ -1,15 +1,8 @@
-from __future__ import division
 import numpy as np
-import json
 from matplotlib import pyplot as plt
-from .probe_functions.readUtils import read_flat
-from .probe_functions.readUtils import openHDF5file, getHDF5params
-from .probe_functions.readUtils import readHDF5t_100, readHDF5t_101
-from .probe_functions.readUtils import readHDF5t_100_i, readHDF5t_101_i
 from .neighborMatrixUtils import createNeighborMatrix
-import h5py
 import ctypes
-import os.path
+import os
 from scipy.spatial.distance import cdist
 import warnings
 
@@ -136,7 +129,7 @@ class NeuralProbe(object):
         plt.scatter(*self.positions.T)
         plt.scatter(*self.positions[self.masked_channels].T, c="r")
         for i, pos in enumerate(self.positions):
-            plt.annotate(i, pos)
+            plt.annotate(f'{i}', pos)
 
     def Read(self, t0, t1):
         raise NotImplementedError(
@@ -155,107 +148,6 @@ class NeuralProbe(object):
                 channel_positions.append(self.positions[channel])
         return channel_positions
 
-class BioCam(NeuralProbe):
-    def __init__(
-        self,
-        data_file_path=None,
-        num_channels=4096,
-        fps=0,
-        noise_amp_percent=1,
-        inner_radius=1.75,
-        neighbor_radius=None,
-        masked_channels=[0],
-        event_length=DEFAULT_EVENT_LENGTH,
-        peak_jitter=DEFAULT_PEAK_JITTER,
-    ):
-        self.data_file = data_file_path
-        if data_file_path is not None:
-            self.d = openHDF5file(data_file_path)
-            params = getHDF5params(self.d)
-            self.nFrames, sfd, self.num_channels, chIndices, file_format, inversion = (
-                params
-            )
-            print(
-                "# Signal inversion looks like",
-                inversion,
-                ", guessing the "
-                "right method for data access.\n# If your detection results "
-                "look strange, signal polarity is wrong.\n",
-            )
-            if file_format == 100:
-                if inversion == -1:
-                    self.read_function = readHDF5t_100
-                else:
-                    self.read_function = readHDF5t_100_i
-            else:
-                if inversion == -1:
-                    self.read_function = readHDF5t_101_i
-                else:
-                    self.read_function = readHDF5t_101
-        else:
-            print("# Note: data file not specified, setting some defaults")
-            self.num_channels = 4096
-            sfd = fps
-        if self.num_channels < 4096:
-            print(
-                "# Note: only",
-                self.num_channels,
-                "channels recorded, fixing positions/neighbors",
-            )
-            print("# This may break - known to work only for rectangular sections!")
-            recorded_channels = self.d["3BRecInfo"]["3BMeaStreams"]["Raw"]["Chs"]
-        else:
-            recorded_channels = None
-
-        positions_file_path = in_probe_info_dir("positions_biocam")
-        neighbors_file_path = in_probe_info_dir("neighbormatrix_biocam")
-
-        NeuralProbe.__init__(
-            self,
-            num_channels=self.num_channels,
-            noise_amp_percent=noise_amp_percent,
-            fps=sfd,
-            inner_radius=inner_radius,  # 1.75,
-            positions_file_path=positions_file_path,
-            neighbors_file_path=neighbors_file_path,
-            neighbor_radius=neighbor_radius,
-            masked_channels=masked_channels,
-            event_length=event_length,
-            peak_jitter=peak_jitter,
-        )
-
-        # if a probe only records a subset of channels, filter out unused ones
-        # this may happen in Biocam recordings
-        # note this uses positions to identify recorded channels
-        # requires channels are an ordered list
-        if recorded_channels is not None:
-            inds = np.zeros(self.num_channels, dtype=int)
-            for i, c in enumerate(recorded_channels):
-                inds[i] = np.where(
-                    np.all(
-                        (self.positions - np.array([c[1] - 1, c[0] - 1])) == 0, axis=1
-                    )
-                )[0]
-            self.positions = self.positions[inds].astype(int)
-            x0 = np.min([p[0] for p in self.positions])
-            y0 = np.min([p[1] for p in self.positions])
-            x1 = np.max([p[0] for p in self.positions])
-            y1 = np.max([p[1] for p in self.positions])
-            print("# Array boundaries (x):", x0, x1)
-            print("# Array boundaries (y):", y0, y1)
-            print("# Array width and height:", x1 - x0 + 1, y1 - y0 + 1)
-            print("# Number of channels:", self.num_channels)
-            lm = np.zeros((64, 64), dtype=int) - 1
-            # oddness because x/y are transposed in brw
-            lm[y0 : y1 + 1, x0 : x1 + 1] = np.arange(self.num_channels).T.reshape(
-                y1 - y0 + 1, x1 - x0 + 1
-            )
-            self.neighbors = [lm.flatten()[self.neighbors[i]] for i in inds]
-            self.neighbors = [n[(n >= 0)] for n in self.neighbors]
-            self.positions = self.positions - np.min(self.positions, axis=0)
-
-    def Read(self, t0, t1):
-        return self.read_function(self.d, t0, t1, self.num_channels)
 
 class RecordingExtractor(NeuralProbe):
     def __init__(
