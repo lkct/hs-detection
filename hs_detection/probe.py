@@ -1,7 +1,10 @@
-import numpy as np
-from .neighborMatrixUtils import createNeighborMatrix
 import ctypes
 import os
+
+import numpy as np
+
+from .neighborMatrixUtils import createNeighborMatrix
+from .recording import Recording
 
 this_file_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -102,7 +105,7 @@ class NeuralProbe(object):
 class RecordingExtractor(NeuralProbe):
     def __init__(
         self,
-        re,
+        recording: Recording,
         noise_amp_percent=1,
         inner_radius=60,
         neighbor_radius=60,
@@ -111,19 +114,19 @@ class RecordingExtractor(NeuralProbe):
         event_length=DEFAULT_EVENT_LENGTH,
         peak_jitter=DEFAULT_PEAK_JITTER,
     ):
-        self.d = re
+        self.recording = recording
         positions_file_path = in_probe_info_dir("positions_spikeextractor")
         neighbors_file_path = in_probe_info_dir("neighbormatrix_spikeextractor")
         try:
-            self.nFrames = re.get_num_frames()
+            self.nFrames = recording.get_num_samples()
         except:
-            self.nFrames = re.get_num_frames(0)
-        num_channels = re.get_num_channels()
-        fps = re.get_sampling_frequency()
+            self.nFrames = recording.get_num_samples(0)
+        num_channels = recording.get_num_channels()
+        fps = recording.get_sampling_frequency()
         ch_positions = np.array(
             [
-                np.array(re.get_channel_property(ch, "location"))
-                for ch in re.get_channel_ids()
+                np.array(recording.get_channel_property(ch, "location"))
+                for ch in recording.get_channel_ids()
             ]
         )
         if ch_positions.shape[1] > 2:
@@ -156,10 +159,6 @@ class RecordingExtractor(NeuralProbe):
         )
 
     def Read(self, t0, t1):
-        return (
-            self.d.get_traces(
-                channel_ids=self.d.get_channel_ids(), start_frame=t0, end_frame=t1
-            )
-            .ravel()
-            .astype(ctypes.c_short)
-        )
+        return self.recording.get_traces(
+            channel_ids=self.recording.get_channel_ids(), start_frame=t0, end_frame=t1
+        ).ravel().astype(ctypes.c_short)
