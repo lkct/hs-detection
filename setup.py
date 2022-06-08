@@ -114,6 +114,13 @@ setup(
     install_requires=[
         'numpy>=1.21,<1.22'
     ],
+    extras_require={
+        'tests': [
+            'spikeinterface>=0.94',
+            'requests',
+            'tqdm'
+        ]
+    },
     packages=find_packages(),
     package_data={
         'hs_detection': [
