@@ -9,47 +9,7 @@ DEFAULT_EVENT_LENGTH = 0.5
 DEFAULT_PEAK_JITTER = 0.2
 
 
-class NeuralProbe(object):
-    def __init__(
-        self,
-        num_channels,
-        noise_amp_percent,
-        inner_radius,
-        fps,
-        ch_positions,
-        neighbor_radius,
-        event_length,
-        peak_jitter,
-        masked_channels=[],
-    ):
-        self.positions = ch_positions
-
-        # using Euclidean distance, also possible to use Manhattan (ord=1)
-        distances: NDArray[np.float64] = np.linalg.norm(
-            ch_positions[:, None] - ch_positions[None, :], axis=2, ord=2)
-
-        self.neighbors: list[NDArray[np.int64]] = [
-            np.nonzero(dist < neighbor_radius)[0] for dist in distances]
-        self.max_neighbors = max([n.shape[0] for n in self.neighbors])
-
-        self.fps = fps
-        self.num_channels = num_channels
-        self.spike_peak_duration = int(event_length * self.fps / 1000)
-        self.noise_duration = int(peak_jitter * self.fps / 1000)
-        self.noise_amp_percent = noise_amp_percent
-        self.masked_channels = masked_channels
-        self.inner_radius = inner_radius
-        if masked_channels is None:
-            self.masked_channels = []
-
-    def Read(self, t0, t1):
-        raise NotImplementedError(
-            "The Read function is not implemented for \
-            this probe"
-        )
-
-
-class RecordingExtractor(NeuralProbe):
+class RecordingExtractor(object):
     def __init__(
         self,
         recording: Recording,
@@ -85,18 +45,25 @@ class RecordingExtractor(NeuralProbe):
                 xy = (ch_positions.shape[1] - 2, ch_positions.shape[1] - 1)
             ch_positions = ch_positions[:, xy]
 
-        NeuralProbe.__init__(
-            self,
-            num_channels=num_channels,
-            noise_amp_percent=noise_amp_percent,
-            fps=fps,
-            inner_radius=inner_radius,
-            ch_positions=ch_positions,
-            masked_channels=masked_channels,
-            neighbor_radius=neighbor_radius,
-            event_length=event_length,
-            peak_jitter=peak_jitter,
-        )
+        self.positions = ch_positions
+
+        # using Euclidean distance, also possible to use Manhattan (ord=1)
+        distances: NDArray[np.float64] = np.linalg.norm(
+            ch_positions[:, None] - ch_positions[None, :], axis=2, ord=2)
+
+        self.neighbors: list[NDArray[np.int64]] = [
+            np.nonzero(dist < neighbor_radius)[0] for dist in distances]
+        self.max_neighbors = max([n.shape[0] for n in self.neighbors])
+
+        self.fps = fps
+        self.num_channels = num_channels
+        self.spike_peak_duration = int(event_length * self.fps / 1000)
+        self.noise_duration = int(peak_jitter * self.fps / 1000)
+        self.noise_amp_percent = noise_amp_percent
+        self.masked_channels = masked_channels
+        self.inner_radius = inner_radius
+        if masked_channels is None:
+            self.masked_channels = []
 
     def Read(self, t0, t1):
         return self.recording.get_traces(
