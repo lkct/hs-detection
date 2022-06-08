@@ -158,6 +158,7 @@ def detectData(probe, file_name, to_localize, sf, thres,
     target.close()
 
     det.FinishDetection()
+    del det
     endTime=datetime.now()
     print('# Detection completed, time taken: ' + str(endTime - startTime))
     print('# Time per frame: ' + str(1000 * (endTime - startTime) / (nFrames)))
