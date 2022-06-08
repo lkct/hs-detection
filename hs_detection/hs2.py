@@ -1,78 +1,75 @@
+import warnings
+from pathlib import Path
+from typing import Union
+
 import numpy as np
-import os
-from .detect.detect import detectData
+from numpy.typing import NDArray
+
+from .recording import Recording
 
 
 class HSDetection(object):
-    """ This class provides a simple interface to the detection, localisation of
-    spike data from dense multielectrode arrays according to the methods
-    described in the following papers:
-
-    Muthmann, J. O., Amin, H., Sernagor, E., Maccione, A., Panas, D.,
-    Berdondini, L., ... & Hennig, M. H. (2015). Spike detection for large neural
-    populations using high density multielectrode arrays. Frontiers in
-    neuroinformatics, 9.
-
-    Hilgen, G., Sorbaro, M., Pirmoradian, S., Muthmann, J. O., Kepiro, I. E.,
-    Ullo, S., ... & Hennig, M. H. (2017). Unsupervised spike sorting for
-    large-scale, high-density multielectrode arrays. Cell reports, 18(10),
-    2521-2532.
-
-    Usage:
-        1. Create a HSDetection object by calling its constructor with a
-    Probe object and all the detection parameters (see documentation there).
-        2. Call DetectFromRaw.
-        3. Save the result, or create a HSClustering object.
+    """TODO:
     """
 
-    def __init__(
-        self,
-        probe,
-        to_localize=True,
-        num_com_centers=1,
-        threshold=20,
-        maa=0,
-        ahpthr=0,
-        out_file_name="ProcessedSpikes",
-        file_directory_name="",
-        decay_filtering=False,
-        save_all=False,
-        left_cutout_time=1.0,
-        right_cutout_time=2.2,
-        amp_evaluation_time=0.4,  # former minsl
-        spk_evaluation_time=1.7,
-    ):  # former maxsl
-        """
-        Arguments:
-        probe -- probe object, with a link to raw data
-        to_localize -- set to False if spikes should only be detected, not
-            localised (will break sorting)
-        cutout_start -- deprecated, frame-based version of left_cutout_ms
-        cutout_end -- deprecated, frame-based version of right_cutout_ms
-        threshold -- detection threshold
-        maa -- minimum average amplitude
-        maxsl -- deprecated, frame-based version of spk_evaluation_time
-        minsl -- deprecated, frame-based version of amp_evaluation_time
-        ahpthr --
-        out_file_name -- base file name (without extension) for the output files
-        file_directory_name -- directory where output is saved
-        save_all --
-        left_cutout_ms -- the number of milliseconds, before the spike,
-        to be included in the spike shape
-        right_cutout_ms -- the number of milliseconds, after the spike,
-        to be included in the spike shape
-        amp_evaluation_time -- the number of milliseconds during which the trace
-        is integrated, for the purposed of evaluating amplitude, used for later
-        comparison with 'maa'
-        spk_evaluation_time -- dead time in ms after spike peak, used for
-        further triaging of spike shape
-        """
-        self.probe = probe
+    def __init__(self,
+                 recording: Recording,
+                 noise_amp_percent: float = 1.0,
+                 inner_radius: float = 70.0,
+                 neighbor_radius: float = 90.0,
+                 event_length: float = 0.26,
+                 peak_jitter: float = 0.2,
+                 to_localize: bool = True,
+                 num_com_centers: int = 1,
+                 threshold: int = 20,
+                 maa: int = 12,
+                 ahpthr: int = 11,
+                 out_file: Union[str, Path] = 'HS2_detected',
+                 decay_filtering: bool = False,
+                 save_all: bool = False,
+                 left_cutout_time: float = 0.3,
+                 right_cutout_time: float = 1.8,
+                 amp_evaluation_time: float = 0.4,
+                 spk_evaluation_time: float = 1.0
+                 ) -> None:
+        self.recording = recording
+        self.num_segments = recording.get_num_segments()  # TODO: seg proc
+        self.num_frames = [recording.get_num_samples(seg)
+                           for seg in range(self.num_segments)]
+        self.fps = recording.get_sampling_frequency()
+        self.num_channels = recording.get_num_channels()
 
-        self.cutout_start = int(left_cutout_time * self.probe.fps / 1000 + 0.5)
-        self.cutout_end = int(right_cutout_time * self.probe.fps / 1000 + 0.5)
-        self.minsl = int(amp_evaluation_time * self.probe.fps / 1000 + 0.5)
-        self.maxsl = int(spk_evaluation_time * self.probe.fps / 1000 + 0.5)
+        positions: NDArray[np.float64] = np.array([
+            recording.get_channel_property(ch, 'location')
+            for ch in recording.get_channel_ids()])
+        if positions.shape[1] > 2:
+            warnings.warn(f'Channel locations have {positions.shape[1]} dimensions, '
+                          'using the last two.')
+            positions = positions[:, -2:]
+
+        self.positions = positions
+
+        # using Euclidean distance, also possible to use Manhattan (ord=1)
+        distances: NDArray[np.float64] = np.linalg.norm(
+            positions[:, None] - positions[None, :], axis=2, ord=2)
+
+        neighbors: list[NDArray[np.int64]] = [
+            np.nonzero(dist < neighbor_radius)[0] for dist in distances]
+        self.max_neighbors = max([n.shape[0] for n in neighbors])
+        self.neighbors: NDArray[np.int64] = np.full(
+            (self.num_channels, self.max_neighbors), -1, dtype=np.int64)
+        for i, n in enumerate(neighbors):
+            self.neighbors[i, :n.shape[0]] = n
+
+        self.spike_peak_duration = int(event_length * self.fps / 1000)
+        self.noise_duration = int(peak_jitter * self.fps / 1000)
+        self.noise_amp_percent = noise_amp_percent
+        self.inner_radius = inner_radius
+
+        self.cutout_start = int(left_cutout_time * self.fps / 1000 + 0.5)
+        self.cutout_end = int(right_cutout_time * self.fps / 1000 + 0.5)
+        self.minsl = int(amp_evaluation_time * self.fps / 1000 + 0.5)
+        self.maxsl = int(spk_evaluation_time * self.fps / 1000 + 0.5)
 
         self.to_localize = to_localize
         self.cutout_length = self.cutout_start + self.cutout_end + 1
@@ -82,59 +79,35 @@ class HSDetection(object):
         self.decay_filtering = decay_filtering
         self.num_com_centers = num_com_centers
 
-        # Make directory for results if it doesn't exist
-        os.makedirs(file_directory_name, exist_ok=True)
+        if isinstance(out_file, str):
+            out_file = Path(out_file)
+        out_file.parent.mkdir(parents=True, exist_ok=True)
 
-        if out_file_name[-4:] == ".bin":
-            file_path = file_directory_name + out_file_name
-            self.out_file_name = file_path
-        else:
-            file_path = os.path.join(file_directory_name, out_file_name)
-            self.out_file_name = file_path + ".bin"
+        if out_file.suffix != '.bin':
+            out_file = out_file.with_suffix('.bin')
+        self.out_file_name = str(out_file)
+
         self.save_all = save_all
 
-    def DetectFromRaw(self, tInc=50000):
-        """
-        This function is a wrapper of the C function `detectData`. It takes
-        the raw data file, performs detection and localisation, saves the result
-        to HSDetection.out_file_name and loads the latter into memory by calling
-        LoadDetected if load=True.
-
-        Arguments:
-        load -- bool: load the detected spikes when finished?
-        nFrames -- deprecated, frame-based version of recording_duration
-        tInc -- size of chunks to be read
-        recording_duration -- maximum time limit of recording (the rest will be
-        ignored)
-        """
-
-        detectData(
-            probe=self.probe,
-            file_name=str.encode(self.out_file_name[:-4]),
-            to_localize=self.to_localize,
-            sf=self.probe.fps,
-            thres=self.threshold,
-            cutout_start=self.cutout_start,
-            cutout_end=self.cutout_end,
-            maa=self.maa,
-            maxsl=self.maxsl,
-            minsl=self.minsl,
-            ahpthr=self.ahpthr,
-            num_com_centers=self.num_com_centers,
-            decay_filtering=self.decay_filtering,
-            verbose=self.save_all,
-            nFrames=None,
-            tInc=tInc,
-        )
-
-        if os.stat(self.out_file_name).st_size == 0:
-            shapecache = np.empty((0, 5 + self.cutout_length), dtype=np.int32)
+    def get_traces(self, segment_index: int, start_frame: int, end_frame: int) -> NDArray[np.int16]:
+        if start_frame < 0:
+            lpad = -start_frame * self.num_channels
+            start_frame = 0
         else:
-            sp_flat = np.memmap(self.out_file_name, dtype=np.int32, mode='r')
-            shapecache = sp_flat.reshape((-1, 5 + self.cutout_length))
+            lpad = 0
+        if end_frame > self.num_frames[segment_index]:
+            rpad = (
+                end_frame - self.num_frames[segment_index]) * self.num_channels
+            end_frame = self.num_frames[segment_index]
+        else:
+            rpad = 0
 
-        return [{'channel_ind': shapecache[:, 0],
-                 'sample_ind': shapecache[:, 1],
-                 'amplitude': shapecache[:, 2],
-                 'location': shapecache[:, 3:5] / 1000,
-                 'spike_shape': shapecache[:, 5:]}]
+        traces: NDArray[np.int16] = self.recording.get_traces(
+            segment_index=segment_index, start_frame=start_frame, end_frame=end_frame
+        ).astype(np.int16, copy=False).reshape(-1)
+
+        if lpad or rpad:
+            traces = np.pad(traces, (lpad, rpad),
+                            mode='constant', constant_values=0)
+
+        return traces

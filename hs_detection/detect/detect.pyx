@@ -45,7 +45,7 @@ def detectData(probe, file_name, to_localize, sf, thres,
     inner_radius = float(probe.inner_radius)
 
     if nFrames is None:
-        nFrames = probe.nFrames
+        nFrames = probe.num_frames[0]
 
     # READ DETECTION PARAMETERS AND SET DEFAULTS
     nRecCh = num_channels
@@ -54,15 +54,8 @@ def detectData(probe, file_name, to_localize, sf, thres,
     if not minsl:
         minsl = int(sf*0.3/1000 + 0.5)
 
-    masked_channel_list = probe.masked_channels
     cdef np.ndarray[int, mode="c"] masked_channels = np.ones(num_channels, dtype=ctypes.c_int)
-    if masked_channel_list == []:
-        print("# Not Masking any Channels")
-        masked_channel_list = None
-    if masked_channel_list is not None:
-        print("# Masking Channels: " +str(masked_channel_list))
-        for channel in masked_channel_list:
-            masked_channels[channel] = 0
+    print("# Not Masking any Channels")
 
     print("# Sampling rate: " + str(sf))
     if to_localize:
@@ -103,9 +96,9 @@ def detectData(probe, file_name, to_localize, sf, thres,
       position_matrix[i,0] = p[0]
       position_matrix[i,1] = p[1]
     cdef np.ndarray[int, ndim=2, mode = "c"] neighbor_matrix = np.zeros((
-        nRecCh,np.max([len(p) for p in probe.neighbors])), dtype=ctypes.c_int)-1
+        nRecCh, max_neighbors), dtype=ctypes.c_int)
     for i,p in enumerate(probe.neighbors):
-      neighbor_matrix[i,:len(p)] = p
+      neighbor_matrix[i] = p
 
     det.SetInitialParams(&position_matrix[0,0], &neighbor_matrix[0,0], num_channels,
                          spike_peak_duration, file_name, noise_duration,
@@ -123,10 +116,7 @@ def detectData(probe, file_name, to_localize, sf, thres,
               '  ({:.1f}%)'.format(100*t0/nFrames))
         #sys.stdout.flush()
         # slice data
-        if t0 == 0:
-            vm = np.hstack((np.zeros(nRecCh * tCut, dtype=ctypes.c_short), probe.Read(0, t1+tCut2))).astype(ctypes.c_short)
-        else:
-            vm = probe.Read(t0-tCut, t1+tCut2)
+        vm = probe.get_traces(segment_index=0, start_frame=t0-tCut, end_frame=t1+tCut2)
         # detect spikes
         if num_channels>=20:
             det.MeanVoltage( &vm[0], tInc, tCut)
@@ -143,7 +133,6 @@ def detectData(probe, file_name, to_localize, sf, thres,
             'Date and Time Detection': str(now),
             'Threshold': thres,
             'Localization': to_localize,
-            'Masked Channels': masked_channel_list,
             'Associated Results File': file_name,
             'Cutout Length': cutout_start + cutout_end,
             'Advice': 'For more information about detection, load and look at the parameters of the probe object',

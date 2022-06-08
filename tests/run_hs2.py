@@ -5,7 +5,7 @@ import numpy as np
 import spikeinterface.sorters as ss
 import spikeinterface.toolkit as st
 from hs_detection import HSDetection
-from hs_detection.probe import RecordingExtractor
+from hs_detection.entry import DetectFromRaw
 from hs_detection.recording import RealArray, Recording
 
 default_kwargs = {
@@ -15,7 +15,6 @@ default_kwargs = {
     'detect_threshold': 20,
 
     # extra probe params
-    'probe_masked_channels': [],
     'probe_inner_radius': 70,
     'probe_neighbor_radius': 90,
     'probe_event_length': 0.26,
@@ -58,16 +57,12 @@ def run_hsdet(recording: Recording,
         recording = st.normalize_by_quantile(
             recording, scale=params['pre_scale_value'], median=0.0, q1=0.05, q2=0.95)
 
-    probe = RecordingExtractor(recording,
-                               masked_channels=params['probe_masked_channels'],
-                               inner_radius=params['probe_inner_radius'],
-                               neighbor_radius=params['probe_neighbor_radius'],
-                               event_length=params['probe_event_length'],
-                               peak_jitter=params['probe_peak_jitter'])
-
     det = HSDetection(
-        probe,
-        file_directory_name=str(output_folder),
+        recording,
+        inner_radius=params['probe_inner_radius'],
+        neighbor_radius=params['probe_neighbor_radius'],
+        event_length=params['probe_event_length'],
+        peak_jitter=params['probe_peak_jitter'],
         left_cutout_time=params['left_cutout_time'],
         right_cutout_time=params['right_cutout_time'],
         threshold=params['detect_threshold'],
@@ -75,14 +70,14 @@ def run_hsdet(recording: Recording,
         num_com_centers=params['num_com_centers'],
         maa=params['maa'],
         ahpthr=params['ahpthr'],
-        out_file_name=params['out_file_name'],
+        out_file=Path(output_folder) / params['out_file_name'],
         decay_filtering=params['decay_filtering'],
         save_all=params['save_all'],
         amp_evaluation_time=params['amp_evaluation_time'],
         spk_evaluation_time=params['spk_evaluation_time']
     )
 
-    return det.DetectFromRaw(tInc=int(params['t_inc']))
+    return DetectFromRaw(det, tInc=int(params['t_inc']))
 
 
 def run_herdingspikes(recording: Recording,
