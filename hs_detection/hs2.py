@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from .detection_localisation.detect import detectData
+from .detect.detect import detectData
 import warnings
 
 
