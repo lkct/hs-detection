@@ -2,7 +2,6 @@ import numpy as np
 from .neighborMatrixUtils import createNeighborMatrix
 import ctypes
 import os
-import warnings
 
 this_file_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -54,8 +53,6 @@ class NeuralProbe(object):
         event_length,
         peak_jitter,
         masked_channels=[],
-        spike_peak_duration=None,
-        noise_duration=None,
     ):
         if neighbor_radius is not None:
             createNeighborMatrix(
@@ -63,12 +60,8 @@ class NeuralProbe(object):
             )
         self.fps = fps
         self.num_channels = num_channels
-        self.spike_peak_duration = self._deprecate_or_convert(
-            spike_peak_duration, event_length, "spike_peak_duration", "event_length"
-        )
-        self.noise_duration = self._deprecate_or_convert(
-            noise_duration, peak_jitter, "noise_duration", "peak_jitter"
-        )
+        self.spike_peak_duration = int(event_length * self.fps / 1000)
+        self.noise_duration = int(peak_jitter * self.fps / 1000)
         self.noise_amp_percent = noise_amp_percent
         self.positions_file_path = positions_file_path
         self.neighbors_file_path = neighbors_file_path
@@ -99,34 +92,11 @@ class NeuralProbe(object):
         self.positions = np.asarray(positions)
         position_file.close()
 
-    def _deprecate_or_convert(self, old_var, new_var, old_name, new_name):
-        if old_var is not None:
-            warnings.warn(
-                "{} is deprecated and will be removed. ".format(old_name)
-                + "Set {} instead (in milliseconds). ".format(new_name)
-                + "{} takes priority over {}!".format(old_name, new_name),
-                DeprecationWarning,
-            )
-            return int(old_var)
-        else:
-            return int(new_var * self.fps / 1000)
-
     def Read(self, t0, t1):
         raise NotImplementedError(
             "The Read function is not implemented for \
             this probe"
         )
-
-    def getChannelsPositions(self, channels):
-        channel_positions = []
-        for channel in channels:
-            if channel >= self.num_channels:
-                raise ValueError(
-                    "Channel index too large, maximum " + self.num_channels
-                )
-            else:
-                channel_positions.append(self.positions[channel])
-        return channel_positions
 
 
 class RecordingExtractor(NeuralProbe):

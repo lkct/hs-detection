@@ -1,7 +1,6 @@
 import numpy as np
 import os
 from .detect.detect import detectData
-import warnings
 
 
 class HSDetection(object):
@@ -31,12 +30,8 @@ class HSDetection(object):
         probe,
         to_localize=True,
         num_com_centers=1,
-        cutout_start=None,
-        cutout_end=None,
         threshold=20,
         maa=0,
-        maxsl=None,
-        minsl=None,
         ahpthr=0,
         out_file_name="ProcessedSpikes",
         file_directory_name="",
@@ -74,18 +69,10 @@ class HSDetection(object):
         """
         self.probe = probe
 
-        self.cutout_start = self._deprecate_or_convert(
-            cutout_start, left_cutout_time, "cutout_start", "left_cutout_time"
-        )
-        self.cutout_end = self._deprecate_or_convert(
-            cutout_end, right_cutout_time, "cutout_end", "right_cutout_time"
-        )
-        self.minsl = self._deprecate_or_convert(
-            minsl, amp_evaluation_time, "minsl", "amp_evaluation_time"
-        )
-        self.maxsl = self._deprecate_or_convert(
-            maxsl, spk_evaluation_time, "maxsl", "spk_evaluation_time"
-        )
+        self.cutout_start = int(left_cutout_time * self.probe.fps / 1000 + 0.5)
+        self.cutout_end = int(right_cutout_time * self.probe.fps / 1000 + 0.5)
+        self.minsl = int(amp_evaluation_time * self.probe.fps / 1000 + 0.5)
+        self.maxsl = int(spk_evaluation_time * self.probe.fps / 1000 + 0.5)
 
         self.to_localize = to_localize
         self.cutout_length = self.cutout_start + self.cutout_end + 1
@@ -94,8 +81,6 @@ class HSDetection(object):
         self.ahpthr = ahpthr
         self.decay_filtering = decay_filtering
         self.num_com_centers = num_com_centers
-        self.sp_flat = None
-        self.spikes = {}
 
         # Make directory for results if it doesn't exist
         os.makedirs(file_directory_name, exist_ok=True)
@@ -108,66 +93,7 @@ class HSDetection(object):
             self.out_file_name = file_path + ".bin"
         self.save_all = save_all
 
-    def _deprecate_or_convert(self, old_var, new_var, old_name, new_name):
-        if old_var is not None:
-            msg = (
-                "{} is deprecated and will be removed. Set {} instead "
-                "(in milliseconds). {} takes priority over {}!"
-            )
-            warnings.warn(msg.format(old_name, new_name, old_name, new_name))
-            return int(old_var)
-        else:
-            return int(new_var * self.probe.fps / 1000 + 0.5)
-
-    def SetAddParameters(self, dict_of_new_parameters):
-        """
-         Adds and merges dict_of_new_parameters with the current fields of the
-         object. Uses the PEP448 convention to group two dics together.
-
-         Arguments:
-         dict_of_new_parameters -- the dictionary of parameters to be updated.
-        """
-        self.__dict__.update(dict_of_new_parameters)
-
-    def LoadDetected(self, file_name=None):
-        """
-        Reads a binary file with spikes detected with the DetectFromRaw()
-        method.
-
-        Arguments:
-        file_name -- The name of the .bin file. Defaults to self.out_file_name.
-        """
-        if file_name is None:
-            file_name = self.out_file_name
-
-        if os.stat(file_name).st_size == 0:
-            shapecache = np.asarray([]).reshape(0, 5)
-            warnings.warn(
-                "Loading an empty file {} . This usually happens when no spikes were"
-                "detected due to the detection parameters being set too "
-                "strictly".format(file_name)
-            )
-        else:
-            self.sp_flat = np.memmap(file_name, dtype=np.int32, mode="r")
-            assert self.sp_flat.shape[0] // self.cutout_length + 5 is \
-                not self.sp_flat.shape[0] / self.cutout_length + 5, \
-                "spike data has wrong dimensions"  # ???
-            shapecache = self.sp_flat.reshape((-1, self.cutout_length + 5))
-
-        self.spikes = {
-                "ch": shapecache[:, 0],
-                "t": shapecache[:, 1],
-                "Amplitude": shapecache[:, 2],
-                "x": shapecache[:, 3] / 1000,
-                "y": shapecache[:, 4] / 1000,
-                "Shape": list(shapecache[:, 5:]),
-            }
-        self.IsClustered = False
-        print("Loaded " + str(self.spikes['ch'].shape[0]) + " spikes.")
-
-    def DetectFromRaw(
-        self, load=False, nFrames=None, tInc=50000, recording_duration=None
-    ):
+    def DetectFromRaw(self, tInc=50000):
         """
         This function is a wrapper of the C function `detectData`. It takes
         the raw data file, performs detection and localisation, saves the result
@@ -181,15 +107,6 @@ class HSDetection(object):
         recording_duration -- maximum time limit of recording (the rest will be
         ignored)
         """
-
-        if nFrames is not None:
-            warnings.warn(
-                "nFrames is deprecated and will be removed. Leave "
-                "this out if you want to read the whole recording, "
-                "or set max_duration to set the limit (in seconds)."
-            )
-        elif recording_duration is not None:
-            nFrames = int(recording_duration * self.probe.fps)
 
         detectData(
             probe=self.probe,
@@ -206,10 +123,18 @@ class HSDetection(object):
             num_com_centers=self.num_com_centers,
             decay_filtering=self.decay_filtering,
             verbose=self.save_all,
-            nFrames=nFrames,
+            nFrames=None,
             tInc=tInc,
         )
 
-        if load:
-            # reload data into memory (detect saves it on disk)
-            self.LoadDetected()
+        if os.stat(self.out_file_name).st_size == 0:
+            shapecache = np.empty((0, 5 + self.cutout_length), dtype=np.int32)
+        else:
+            sp_flat = np.memmap(self.out_file_name, dtype=np.int32, mode='r')
+            shapecache = sp_flat.reshape((-1, 5 + self.cutout_length))
+
+        return [{'channel_ind': shapecache[:, 0],
+                 'sample_ind': shapecache[:, 1],
+                 'amplitude': shapecache[:, 2],
+                 'location': shapecache[:, 3:5] / 1000,
+                 'spike_shape': shapecache[:, 5:]}]
