@@ -118,7 +118,9 @@ setup(
         'tests': [
             'spikeinterface>=0.94',
             'requests',
-            'tqdm'
+            'tqdm',
+            'gprof2dot',
+            'line_profiler'
         ]
     },
     packages=find_packages(),
