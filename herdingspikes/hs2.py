@@ -1,8 +1,6 @@
-import pandas as pd
 import numpy as np
 import os
 from .detection_localisation.detect import detectData
-from matplotlib import pyplot as plt
 import warnings
 
 
@@ -97,7 +95,7 @@ class HSDetection(object):
         self.decay_filtering = decay_filtering
         self.num_com_centers = num_com_centers
         self.sp_flat = None
-        self.spikes = pd.DataFrame()
+        self.spikes = {}
 
         # Make directory for results if it doesn't exist
         os.makedirs(file_directory_name, exist_ok=True)
@@ -156,19 +154,16 @@ class HSDetection(object):
                 "spike data has wrong dimensions"  # ???
             shapecache = self.sp_flat.reshape((-1, self.cutout_length + 5))
 
-        self.spikes = pd.DataFrame(
-            {
+        self.spikes = {
                 "ch": shapecache[:, 0],
                 "t": shapecache[:, 1],
                 "Amplitude": shapecache[:, 2],
                 "x": shapecache[:, 3] / 1000,
                 "y": shapecache[:, 4] / 1000,
                 "Shape": list(shapecache[:, 5:]),
-            },
-            copy=False,
-        )
+            }
         self.IsClustered = False
-        print("Loaded " + str(self.spikes.shape[0]) + " spikes.")
+        print("Loaded " + str(self.spikes['ch'].shape[0]) + " spikes.")
 
     def DetectFromRaw(
         self, load=False, nFrames=None, tInc=50000, recording_duration=None
@@ -218,147 +213,3 @@ class HSDetection(object):
         if load:
             # reload data into memory (detect saves it on disk)
             self.LoadDetected()
-
-    def PlotTracesChannels(
-        self,
-        eventid,
-        ax=None,
-        window_size=100,
-        show_channels=True,
-        ascale=1.0,
-        show_channel_numbers=True,
-        show_loc=True,
-    ):
-        """
-        Draw a figure with an electrode and its neighbours, showing the raw
-        traces and events. Note that this requires loading the raw data in
-        memory again.
-
-        Arguments:
-        eventid -- centers, spatially and temporally, the plot to a specific
-        event id.
-        ax -- a matplotlib axes object where to draw. Defaults to current axis.
-        window_size -- number of samples shown around a spike
-        show_channels -- show bubbles corresponding to electrode locations
-        ascale -- make traces larger or smaller
-        show_channel_numbers -- whether to print electrode numbers next to them
-        show_loc -- whether to show a red point where the spike was localised
-        """
-        if ax is None:
-            ax = plt.gca()
-
-        pos, neighs = self.probe.positions, self.probe.neighbors
-
-        event = self.spikes.loc[eventid]
-        print("Spike detected at channel: ", event.ch)
-        print("Spike detected at frame: ", event.t)
-        print("Spike localised in position", event.x, event.y)
-        cutlen = len(event.Shape)
-
-        # compute distance between electrodes, for scaling
-        distances = np.abs(pos[event.ch][0] - pos[neighs[event.ch]][:, 0])
-        interdistance = np.min(distances[distances > 0])
-        scale = interdistance / 110.0 * ascale
-
-        # scatter of the large grey balls for electrode location
-        x = pos[(neighs[event.ch], 0)]
-        y = pos[(neighs[event.ch], 1)]
-        if show_channels:
-            plt.scatter(x, y, s=1600, alpha=0.2)
-
-        ws = window_size // 2
-        ws = max(ws, 1 + self.cutout_start, 1 + self.cutout_end)
-        t1 = np.max((0, event.t - ws))
-        t2 = event.t + ws
-
-        trange = (np.arange(t1, t2) - event.t) * scale
-        start_bluered = event.t - t1 - self.cutout_start
-        trange_bluered = trange[start_bluered : start_bluered + cutlen]
-
-        data = self.probe.Read(t1, t2).reshape((t2 - t1, self.probe.num_channels))
-        # remove offsets
-        data = data - data[0]
-
-        # grey and blue traces
-        for i, n in enumerate(neighs[event.ch]):
-            dist_from_max = np.sqrt(
-                (pos[n][0] - pos[event.ch][0]) ** 2
-                + (pos[n][1] - pos[event.ch][1]) ** 2
-            )
-            if n in self.probe.masked_channels:
-                col = "g"
-            elif dist_from_max <= self.probe.inner_radius:
-                col = "orange"
-            else:
-                col = "b"
-            plt.plot(pos[n][0] + trange, pos[n][1] + data[:, n] * scale, "gray")
-            plt.plot(
-                pos[n][0] + trange_bluered,
-                pos[n][1] + data[start_bluered : start_bluered + cutlen, n] * scale,
-                col
-            )
-
-        # red overlay for central channel
-        plt.plot(
-            pos[event.ch][0] + trange_bluered,
-            pos[event.ch][1] + event.Shape * scale,
-            "r"
-        )
-        inner_radius_circle = plt.Circle(
-            (pos[event.ch][0], pos[event.ch][1]),
-            self.probe.inner_radius,
-            color="red",
-            fill=False,
-        )
-        ax.add_artist(inner_radius_circle)
-
-        # red dot of event location
-        if show_loc:
-            plt.scatter(event.x, event.y, s=80, c="r")
-
-        # electrode numbers
-        if show_channel_numbers:
-            for i, txt in enumerate(neighs[event.ch]):
-                ax.annotate(txt, (x[i], y[i]))
-        ax.set_aspect("equal")
-        return ax
-
-    def PlotDensity(self, binsize=1.0, invert=False, ax=None):
-        if ax is None:
-            ax = plt.gca()
-        x, y = self.spikes.x, self.spikes.y
-        if invert:
-            x, y = y, x
-        binsx = np.arange(x.min(), x.max(), binsize)
-        binsy = np.arange(y.min(), y.max(), binsize)
-        h, xb, yb = np.histogram2d(x, y, bins=[binsx, binsy])
-        ax.imshow(
-            np.clip(np.log10(h), 1e-10, None),
-            extent=[xb.min(), xb.max(), yb.min(), yb.max()],
-            interpolation="none",
-            origin="lower",
-        )
-        return h, xb, yb
-
-    def PlotAll(self, invert=False, ax=None, max_show=100000, **kwargs):
-        """
-        Plots all the spikes currently stored in the class, in (x, y) space.
-
-        Arguments:
-        invert -- (boolean, optional) if True, flips x and y
-        ax -- a matplotlib axes object where to draw. Defaults to current axis.
-        max_show -- maximum number of spikes to show
-        **kwargs -- additional arguments are passed to pyplot.scatter
-        """
-        if ax is None:
-            ax = plt.gca()
-        x, y = self.spikes.x, self.spikes.y
-        if invert:
-            x, y = y, x
-        if self.spikes.shape[0] > max_show:
-            inds = np.random.choice(self.spikes.shape[0], max_show, replace=False)
-            print("We have", self.spikes.shape[0], "spikes, only showing", max_show)
-        else:
-            inds = np.arange(self.spikes.shape[0])
-        ax.scatter(x[inds], y[inds], **kwargs)
-        return ax

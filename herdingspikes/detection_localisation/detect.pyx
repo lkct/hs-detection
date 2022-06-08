@@ -4,7 +4,6 @@ import cython
 import numpy as np
 cimport numpy as np
 cimport cython
-import h5py
 from ctypes import CDLL
 import ctypes
 from datetime import datetime

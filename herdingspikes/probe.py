@@ -1,9 +1,7 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from .neighborMatrixUtils import createNeighborMatrix
 import ctypes
 import os
-from scipy.spatial.distance import cdist
 import warnings
 
 this_file_path = os.path.dirname(os.path.abspath(__file__))
@@ -19,8 +17,9 @@ def create_probe_files(pos_file, neighbor_file, radius, ch_positions):
         for pos in ch_positions:
             f.write("{},{},\n".format(pos[0], pos[1]))
     f.close()
-    # # NB: it is also possible to use metric='cityblock' (Manhattan distance)
-    distances = cdist(ch_positions, ch_positions, metric="euclidean")
+    # using Euclidean distance, also possible to use Manhattan (ord=1)
+    distances = np.linalg.norm(
+        ch_positions[:, None] - ch_positions[None, :], axis=2, ord=2)
     indices = np.arange(n_channels)
     with open(neighbor_file, "w") as f:
         for dist_from_ch in distances:
@@ -111,25 +110,6 @@ class NeuralProbe(object):
             return int(old_var)
         else:
             return int(new_var * self.fps / 1000)
-
-    # Show visualization of probe
-    def show(self, show_neighbors=[10], figwidth=3):
-        xmax, ymax = self.positions.max(0)
-        xmin, ymin = self.positions.min(0)
-        ratio = ymax / xmax
-        plt.figure(figsize=(figwidth, figwidth * ratio))
-        for ch in show_neighbors:
-            for neighbor in self.neighbors[ch]:
-                plt.plot(
-                    [self.positions[ch, 0], self.positions[neighbor, 0]],
-                    [self.positions[ch, 1], self.positions[neighbor, 1]],
-                    "--k",
-                    alpha=0.7,
-                )
-        plt.scatter(*self.positions.T)
-        plt.scatter(*self.positions[self.masked_channels].T, c="r")
-        for i, pos in enumerate(self.positions):
-            plt.annotate(f'{i}', pos)
 
     def Read(self, t0, t1):
         raise NotImplementedError(
