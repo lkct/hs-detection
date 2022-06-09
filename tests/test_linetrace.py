@@ -20,9 +20,9 @@ def test_linetrace(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
 
     hsdet_path = str2Path('result_HS')
     hsdet_path.mkdir(parents=True, exist_ok=True)
-    if str((hsdet_path / 'HS2_detected.bin').resolve()) != '/dev/null':
-        (hsdet_path / 'HS2_detected.bin').unlink(missing_ok=True)
-        (hsdet_path / 'HS2_detected.bin').symlink_to('/dev/null')
+    if str((hsdet_path / 'HS2_detected-0.bin').resolve()) != '/dev/null':
+        (hsdet_path / 'HS2_detected-0.bin').unlink(missing_ok=True)
+        (hsdet_path / 'HS2_detected-0.bin').symlink_to('/dev/null')
 
     prof_path = str2Path('prof/hs')
     prof_path.parent.mkdir(parents=True, exist_ok=True)
@@ -32,6 +32,7 @@ def test_linetrace(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
     prof(HSDetection.__init__)
     prof(HSDetection.get_traces)
     prof(HSDetection.detect)
+    prof(HSDetection.detect_seg)
 
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')

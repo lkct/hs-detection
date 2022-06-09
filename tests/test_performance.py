@@ -21,14 +21,14 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
 
     sihs_path = str2Path('results_HS')
     sihs_path.mkdir(parents=True, exist_ok=True)
-    if str((sihs_path / 'HS2_detected.bin').resolve()) != '/dev/null':
-        (sihs_path / 'HS2_detected.bin').unlink(missing_ok=True)
-        (sihs_path / 'HS2_detected.bin').symlink_to('/dev/null')
+    if str((sihs_path / 'HS2_detected-0.bin').resolve()) != '/dev/null':
+        (sihs_path / 'HS2_detected-0.bin').unlink(missing_ok=True)
+        (sihs_path / 'HS2_detected-0.bin').symlink_to('/dev/null')
     hsdet_path = str2Path('result_HS')
     hsdet_path.mkdir(parents=True, exist_ok=True)
-    if str((hsdet_path / 'HS2_detected.bin').resolve()) != '/dev/null':
-        (hsdet_path / 'HS2_detected.bin').unlink(missing_ok=True)
-        (hsdet_path / 'HS2_detected.bin').symlink_to('/dev/null')
+    if str((hsdet_path / 'HS2_detected-0.bin').resolve()) != '/dev/null':
+        (hsdet_path / 'HS2_detected-0.bin').unlink(missing_ok=True)
+        (hsdet_path / 'HS2_detected-0.bin').symlink_to('/dev/null')
 
     def timeit1(stmt): return timeit.timeit(stmt, number=1)
 

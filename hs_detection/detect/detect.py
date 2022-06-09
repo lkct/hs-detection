@@ -20,7 +20,7 @@ class HSDetection(object):
         self.recording = recording
         self.num_channels = recording.get_num_channels()
         self.fps = recording.get_sampling_frequency()
-        self.num_segments = recording.get_num_segments()  # TODO: seg proc
+        self.num_segments = recording.get_num_segments()
         self.num_frames = [recording.get_num_samples(seg)
                            for seg in range(self.num_segments)]
 
@@ -100,16 +100,20 @@ class HSDetection(object):
         return traces
 
     def detect(self) -> Sequence[Mapping[str, RealArray]]:
+        return [self.detect_seg(seg) for seg in range(self.num_segments)]
+
+    def detect_seg(self, segment_index: int) -> Mapping[str, RealArray]:
         det: cython.pointer(Detection) = new Detection()
 
         t_cut = self.cutout_start + self.maxsl
         t_cut2 = self.cutout_end + self.maxsl
-        t_inc = min(self.chunk_size, self.num_frames[0] - t_cut - t_cut2)
+        t_inc = min(self.chunk_size,
+                    self.num_frames[segment_index] - t_cut - t_cut2)
         t_inc_orig = t_inc
 
         channel_indices: cython.long[:] = np.arange(
             self.num_channels, dtype=np.int64)
-        det.InitDetection(self.num_frames[0], int(self.fps), self.num_channels, t_inc,
+        det.InitDetection(self.num_frames[segment_index], int(self.fps), self.num_channels, t_inc,
                           cython.address(channel_indices[0]), 0)
 
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
@@ -118,11 +122,13 @@ class HSDetection(object):
             self.neighbors, dtype=np.int32)
         masked_channels: cython.int[:] = np.ones(
             self.num_channels, dtype=np.int32)
+        out_file = self.out_file.with_stem(
+            self.out_file.stem + f'-{segment_index}')
         det.SetInitialParams(cython.address(position_matrix[0, 0]),
                              cython.address(neighbor_matrix[0, 0]),
                              self.num_channels,
                              self.spike_peak_duration,
-                             str(self.out_file.with_suffix('')).encode(),
+                             str(out_file.with_suffix('')).encode(),
                              self.noise_duration,
                              self.noise_amp_percent,
                              self.inner_radius,
@@ -144,32 +150,34 @@ class HSDetection(object):
             self.num_channels * (t_inc + t_cut + t_cut2), dtype=np.int16)
 
         t0 = 0
-        while t0 + t_inc + t_cut2 <= self.num_frames[0]:
+        while t0 + t_inc + t_cut2 <= self.num_frames[segment_index]:
             t1 = t0 + t_inc
             if self.verbose:
-                print(f'HSDetection: Analysing frames from {t0:8d} to {t1:8d} '
-                      f' ({100 * t0 / self.num_frames[0]:.1f}%)')
+                print(f'HSDetection: Analysing segment {segment_index}, '
+                      f'frames from {t0:8d} to {t1:8d} '
+                      f' ({100 * t0 / self.num_frames[segment_index]:.1f}%)')
 
-            vm = self.get_traces(
-                segment_index=0, start_frame=t0 - t_cut, end_frame=t1 + t_cut2)
+            vm = self.get_traces(segment_index=segment_index,
+                                 start_frame=t0 - t_cut, end_frame=t1 + t_cut2)
             if self.num_channels >= 20:
                 det.MeanVoltage(cython.address(vm[0]), t_inc, t_cut)
             det.Iterate(cython.address(vm[0]), t0,
                         t_inc, t_cut, t_cut2, t_inc_orig)
 
             t0 += t_inc
-            if t0 < self.num_frames[0] - t_cut2:
-                t_inc = min(t_inc, self.num_frames[0] - t_cut2 - t0)
+            if t0 < self.num_frames[segment_index] - t_cut2:
+                t_inc = min(
+                    t_inc, self.num_frames[segment_index] - t_cut2 - t0)
 
         det.FinishDetection()
         del det
 
-        if self.out_file.stat().st_size == 0:
+        if out_file.stat().st_size == 0:
             spikes: NDArray[np.int32] = np.empty(
                 (0, 5 + self.cutout_length), dtype=np.int32)
         else:
             spikes: NDArray[np.int32] = np.memmap(
-                str(self.out_file), dtype=np.int32, mode='r').reshape(-1, 5 + self.cutout_length)
+                str(out_file), dtype=np.int32, mode='r').reshape(-1, 5 + self.cutout_length)
 
         result: dict[str, RealArray] = {'channel_ind': spikes[:, 0],
                                         'sample_ind': spikes[:, 1],
@@ -179,4 +187,4 @@ class HSDetection(object):
         if self.save_shape:
             result |= {'spike_shape': spikes[:, 5:]}
 
-        return [result]
+        return result

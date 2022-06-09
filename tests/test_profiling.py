@@ -21,9 +21,9 @@ def test_profiling(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
 
     hsdet_path = str2Path('result_HS')
     hsdet_path.mkdir(parents=True, exist_ok=True)
-    if str((hsdet_path / 'HS2_detected.bin').resolve()) != '/dev/null':
-        (hsdet_path / 'HS2_detected.bin').unlink(missing_ok=True)
-        (hsdet_path / 'HS2_detected.bin').symlink_to('/dev/null')
+    if str((hsdet_path / 'HS2_detected-0.bin').resolve()) != '/dev/null':
+        (hsdet_path / 'HS2_detected-0.bin').unlink(missing_ok=True)
+        (hsdet_path / 'HS2_detected-0.bin').symlink_to('/dev/null')
 
     prof_path = str2Path('prof/hs')
     prof_path.parent.mkdir(parents=True, exist_ok=True)
