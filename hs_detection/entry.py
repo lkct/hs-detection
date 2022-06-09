@@ -8,12 +8,12 @@ from .hs2 import HSDetection
 from .recording import RealArray
 
 
-def DetectFromRaw(det: HSDetection, tInc: int = 50000) -> Sequence[Mapping[str, RealArray]]:
+def DetectFromRaw(det: HSDetection, t_inc: int = 50000) -> Sequence[Mapping[str, RealArray]]:
     detectData(
         probe=det,
-        file_name=str.encode(det.out_file_name[:-4]),
+        file_name=det.out_file_name[:-4],
         to_localize=det.to_localize,
-        sf=det.fps,
+        fps=int(det.fps),
         thres=det.threshold,
         cutout_start=det.cutout_start,
         cutout_end=det.cutout_end,
@@ -24,8 +24,8 @@ def DetectFromRaw(det: HSDetection, tInc: int = 50000) -> Sequence[Mapping[str, 
         num_com_centers=det.num_com_centers,
         decay_filtering=det.decay_filtering,
         verbose=det.save_all,
-        nFrames=None,
-        tInc=tInc,
+        num_frames=det.num_frames[0],
+        t_inc=t_inc,
     )
 
     if os.stat(det.out_file_name).st_size == 0:

@@ -77,7 +77,7 @@ def run_hsdet(recording: Recording,
         spk_evaluation_time=params['spk_evaluation_time']
     )
 
-    return DetectFromRaw(det, tInc=int(params['t_inc']))
+    return DetectFromRaw(det, t_inc=int(params['t_inc']))
 
 
 def run_herdingspikes(recording: Recording,
