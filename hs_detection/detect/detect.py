@@ -24,6 +24,21 @@ class HSDetection(object):
         self.num_frames = [recording.get_num_samples(seg)
                            for seg in range(self.num_segments)]
 
+        self.rescale: bool = params['rescale']
+        if self.rescale:
+            l, m, r = np.quantile(self.get_random_data_chunks(recording),
+                                  q=[0.05, 0.5, 1 - 0.05], axis=0, keepdims=True)
+            # quantile gives float64 on float32 data
+            l: NDArray[np.float32] = l.astype(np.float32)
+            m: NDArray[np.float32] = m.astype(np.float32)
+            r: NDArray[np.float32] = r.astype(np.float32)
+
+            self.scale: NDArray[np.float32] = params['rescale_value'] / (r - l)
+            self.offset: NDArray[np.float32] = -m * self.scale
+        else:
+            self.scale: NDArray[np.float32] = np.array(1.0, dtype=np.float32)
+            self.offset: NDArray[np.float32] = np.array(0.0, dtype=np.float32)
+
         positions: NDArray[np.float64] = np.array([
             recording.get_channel_property(ch, 'location') for ch in recording.get_channel_ids()])
         if positions.shape[1] > 2:
@@ -76,6 +91,24 @@ class HSDetection(object):
             out_file = out_file.with_suffix('.bin')
         self.out_file = out_file
 
+    @staticmethod
+    def get_random_data_chunks(recording: Recording,
+                               num_chunks_per_segment: int = 20,
+                               chunk_size: int = 10000,
+                               seed: int = 0
+                               ) -> NDArray[np.float32]:
+        # TODO: sample uniformly on samples instead of segments
+        chunks: list[RealArray] = []
+        for seg in range(recording.get_num_segments()):
+            num_frames = recording.get_num_samples(seg)
+            # TODO: new generator api
+            random_starts = np.random.RandomState(seed).randint(
+                0, num_frames - chunk_size, size=num_chunks_per_segment)
+            for start_frame in random_starts:
+                chunks.append(recording.get_traces(
+                    segment_index=seg, start_frame=start_frame, end_frame=start_frame + chunk_size))
+        return np.concatenate(chunks, axis=0, dtype=np.float32)
+
     def get_traces(self, segment_index: int, start_frame: int, end_frame: int) -> NDArray[np.int16]:
         if start_frame < 0:
             lpad = -start_frame * self.num_channels
@@ -89,15 +122,21 @@ class HSDetection(object):
         else:
             rpad = 0
 
-        traces: NDArray[np.int16] = self.recording.get_traces(
-            segment_index=segment_index, start_frame=start_frame, end_frame=end_frame
-        ).astype(np.int16, copy=False).reshape(-1)
+        traces: RealArray = self.recording.get_traces(
+            segment_index=segment_index, start_frame=start_frame, end_frame=end_frame)
+
+        if self.rescale:
+            traces = traces.astype(np.float32, copy=False) * \
+                self.scale + self.offset
+
+        traces_int: NDArray[np.int16] = traces.astype(
+            np.int16, copy=False).reshape(-1)
 
         if lpad or rpad:
-            traces = np.pad(traces, (lpad, rpad),
-                            mode='constant', constant_values=0)
+            traces_int = np.pad(traces_int, (lpad, rpad),
+                                mode='constant', constant_values=0)
 
-        return traces
+        return traces_int
 
     def detect(self) -> Sequence[Mapping[str, RealArray]]:
         return [self.detect_seg(seg) for seg in range(self.num_segments)]
