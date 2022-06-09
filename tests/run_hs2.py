@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 from typing import Mapping, Sequence, Union
 
@@ -5,29 +6,28 @@ import numpy as np
 import spikeinterface.sorters as ss
 import spikeinterface.toolkit as st
 from hs_detection import HSDetection
-from hs_detection.entry import DetectFromRaw
 from hs_detection.recording import RealArray, Recording
 
 default_kwargs = {
     # core params
     'left_cutout_time': 0.3,
     'right_cutout_time': 1.8,
-    'detect_threshold': 20,
+    'threshold': 20,
 
     # extra probe params
-    'probe_inner_radius': 70,
-    'probe_neighbor_radius': 90,
-    'probe_event_length': 0.26,
-    'probe_peak_jitter': 0.2,
+    'inner_radius': 70.0,
+    'neighbor_radius': 90.0,
+    'event_length': 0.26,
+    'peak_jitter': 0.2,
+    'noise_amp_percent': 1.0,
 
     # extra detection params
-    't_inc': 100000,
+    'chunk_size': 100000,
     'num_com_centers': 1,
     'maa': 12,
     'ahpthr': 11,
-    'out_file_name': 'HS2_detected',
+    'out_file': 'HS2_detected',
     'decay_filtering': False,
-    'save_all': False,
     'amp_evaluation_time': 0.4,
     'spk_evaluation_time': 1.0,
 
@@ -37,8 +37,29 @@ default_kwargs = {
     'filter': True,
 
     # rescale traces
-    'pre_scale': True,
-    'pre_scale_value': 20.0,
+    'rescale': True,
+    'rescale_value': 20.0,
+
+    # added switches
+    'localize': True,
+    'save_shape': True,
+    'verbose': True
+}
+
+
+deprecation = {
+    'detect_threshold': 'threshold',
+    'probe_inner_radius': 'inner_radius',
+    'probe_neighbor_radius': 'neighbor_radius',
+    'probe_event_length': 'event_length',
+    'probe_peak_jitter': 'peak_jitter',
+    't_inc': 'chunk_size',
+    'out_file_name': 'out_file',
+    'pre_scale': 'rescale',
+    'pre_scale_value': 'rescale_value',
+    # following not supported anymore
+    'probe_masked_channels': 'None',
+    'save_all': 'None'
 }
 
 
@@ -47,37 +68,26 @@ def run_hsdet(recording: Recording,
               **kwargs
               ) -> Sequence[Mapping[str, RealArray]]:
     params = default_kwargs.copy()
-    params.update(kwargs)
+    for k, v in kwargs.items():
+        if k in deprecation:
+            warnings.warn(
+                f'HSDetection params: {k} deprecated, use {deprecation[k]} instead.')
+            params[deprecation[k]] = v
+        else:
+            params[k] = v
+    params['out_file'] = Path(output_folder) / params['out_file']
 
     if params['filter'] and params['freq_min'] is not None and params['freq_max'] is not None:
         recording = st.bandpass_filter(
             recording, freq_min=params['freq_min'], freq_max=params['freq_max'])
 
-    if params['pre_scale']:
+    if params['rescale']:
         recording = st.normalize_by_quantile(
-            recording, scale=params['pre_scale_value'], median=0.0, q1=0.05, q2=0.95)
+            recording, scale=params['rescale_value'], median=0.0, q1=0.05, q2=0.95)
 
-    det = HSDetection(
-        recording,
-        inner_radius=params['probe_inner_radius'],
-        neighbor_radius=params['probe_neighbor_radius'],
-        event_length=params['probe_event_length'],
-        peak_jitter=params['probe_peak_jitter'],
-        left_cutout_time=params['left_cutout_time'],
-        right_cutout_time=params['right_cutout_time'],
-        threshold=params['detect_threshold'],
-        to_localize=True,
-        num_com_centers=params['num_com_centers'],
-        maa=params['maa'],
-        ahpthr=params['ahpthr'],
-        out_file=Path(output_folder) / params['out_file_name'],
-        decay_filtering=params['decay_filtering'],
-        save_all=params['save_all'],
-        amp_evaluation_time=params['amp_evaluation_time'],
-        spk_evaluation_time=params['spk_evaluation_time']
-    )
+    det = HSDetection(recording, params)
 
-    return DetectFromRaw(det, t_inc=int(params['t_inc']))
+    return det.detect()
 
 
 def run_herdingspikes(recording: Recording,
@@ -86,8 +96,10 @@ def run_herdingspikes(recording: Recording,
                       ) -> Sequence[Mapping[str, RealArray]]:
     params = default_kwargs.copy()
     params.update(kwargs)
+    if 'out_file_name' in params:
+        params['out_file'] = params['out_file_name']
 
-    out_file = Path(output_folder) / str(params['out_file_name'])
+    out_file = Path(output_folder) / str(params['out_file'])
     out_file = out_file.with_suffix('.bin')
 
     fps = recording.get_sampling_frequency()

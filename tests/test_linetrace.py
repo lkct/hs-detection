@@ -2,8 +2,6 @@ import sys
 
 import line_profiler
 from hs_detection import HSDetection
-from hs_detection.detect.detect import detectData
-from hs_detection.entry import DetectFromRaw
 from spikeinterface.extractors import MdaRecordingExtractor
 
 from data_utils import download_large, str2Path
@@ -31,10 +29,9 @@ def test_linetrace(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
 
     prof = line_profiler.LineProfiler()
     prof(run_hsdet)
-    prof(DetectFromRaw)
     prof(HSDetection.__init__)
     prof(HSDetection.get_traces)
-    prof(detectData)
+    prof(HSDetection.detect)
 
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
