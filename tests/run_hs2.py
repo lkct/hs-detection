@@ -6,6 +6,7 @@ import numpy as np
 import spikeinterface.sorters as ss
 import spikeinterface.toolkit as st
 from hs_detection import HSDetection
+from hs_detection.utils import ScaleRecording
 from hs_detection.recording import RealArray, Recording
 from spikeinterface import BaseRecording
 
@@ -83,8 +84,7 @@ def run_hsdet(recording: Recording,
             recording, freq_min=params['freq_min'], freq_max=params['freq_max'])
 
     if params['rescale']:
-        recording = st.normalize_by_quantile(
-            recording, scale=params['rescale_value'], median=0.0, q1=0.05, q2=0.95)
+        recording = ScaleRecording(recording, scale=params['rescale_value'])
 
     det = HSDetection(recording, params)
 
