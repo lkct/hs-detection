@@ -21,7 +21,7 @@ try:
     ext_src = ['detect.py']
     print('Using Cython')
 except ImportError:
-    # no Cython, use compiled cpp
+    # no cython, use compiled cpp
     def cythonize(x, **kwargs): return [x]
     ext_src = ['detect.cpp']
     print('Not using Cython')
@@ -110,23 +110,30 @@ setup(
         'Programming Language :: Python :: 3 :: Only'
     ],
     keywords='spikes sorting electrophysiology detection',
-    packages=find_packages(),
     python_requires='>=3.9',
     install_requires=[
         'numpy>=1.21,<1.22'
     ],
     extras_require={
-        'test': [
+        'tests': [
             'spikeinterface>=0.94',
             'requests',
-            'tqdm'
+            'tqdm',
+            'gprof2dot',
+            'line_profiler'
         ]
     },
+    packages=find_packages(),
     package_data={
         'hs_detection': [
             '.commit_version',
             '../README.md',
             'detect/*'
+        ]
+    },
+    exclude_package_data={
+        'hs_detection': [
+            'detect/*.so'
         ]
     },
     ext_modules=detect_ext,

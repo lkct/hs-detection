@@ -1,11 +1,12 @@
 import cProfile
 import os
-import sys
 import pstats
+import sys
+
+from spikeinterface.extractors import MdaRecordingExtractor
 
 from data_utils import download_large, str2Path
-from run_hs2 import run_hs
-from spikeinterface.extractors import MdaRecordingExtractor
+from run_hs2 import run_hsdet
 
 
 def test_profiling(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -> None:
@@ -16,7 +17,7 @@ def test_profiling(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
     recording = MdaRecordingExtractor(data_path)
     assert recording.get_sampling_frequency() == 32000 and \
         recording.get_num_samples() == 19200000
-    recording = recording.frame_slice(start_frame=0, end_frame=192000)
+    recording = recording.frame_slice(start_frame=0, end_frame=192000 * 1)
 
     hsdet_path = str2Path('result_HS')
     hsdet_path.mkdir(parents=True, exist_ok=True)
@@ -25,15 +26,15 @@ def test_profiling(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
         (hsdet_path / 'HS2_detected-0.bin').symlink_to('/dev/null')
 
     prof_path = str2Path('prof/hs')
+    prof_path.parent.mkdir(parents=True, exist_ok=True)
 
     prof = cProfile.Profile()
 
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
-
     try:
-        prof.runcall(run_hs,
-                     recording, filter=False, output_folder=hsdet_path)
+        prof.runcall(run_hsdet, recording, filter=False,
+                     output_folder=hsdet_path)
     except Exception as e:
         sys.stdout, sys.stderr = stdout, stderr
         print(e)
@@ -50,7 +51,7 @@ def test_profiling(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
 
     os.system('gprof2dot --node-label self-time --node-label self-time-percentage '
               '--node-label total-time --node-label total-time-percentage '
-              f'-f pstats -n 0.1 -e 0.01 {str(prof_path.with_suffix(".prof"))} | '
+              f'-n 0.1 -e 0.01 -f pstats {str(prof_path.with_suffix(".prof"))} | '
               f'dot -T png -o {str(prof_path.with_suffix(".png"))}')
 
 

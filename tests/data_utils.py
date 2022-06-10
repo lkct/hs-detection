@@ -34,9 +34,9 @@ def _download(url: str, save_path: Path, chunk_size: int = 2**20) -> None:
     """
     r = requests.get(url, stream=True)
     chunks = ceil(int(r.headers['Content-Length']) / chunk_size)
+    chunk_iter = tqdm.tqdm(r.iter_content(chunk_size=chunk_size),
+                           desc=save_path.name, total=chunks)
     with save_path.open('wb') as f:
-        chunk_iter = tqdm.tqdm(r.iter_content(chunk_size=chunk_size),
-                               total=chunks, desc=save_path.name)
         for chunk in chunk_iter:
             f.write(chunk)
 

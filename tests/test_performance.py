@@ -5,7 +5,7 @@ from spikeinterface.extractors import MdaRecordingExtractor
 from spikeinterface.sortingcomponents.peak_detection import detect_peaks
 
 from data_utils import download_large, str2Path
-from run_hs2 import run_herdingspikes, run_hs
+from run_hs2 import run_herdingspikes, run_hsdet
 
 
 def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -> None:
@@ -16,28 +16,28 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
     recording = MdaRecordingExtractor(data_path)
     assert recording.get_sampling_frequency() == 32000 and \
         recording.get_num_samples() == 19200000
-    recording = recording.frame_slice(start_frame=0, end_frame=192000)
-
-    def timeit1(stmt): return timeit.timeit(stmt, number=1)
+    # data 1% = 6s ~= 0.3GB
+    recording = recording.frame_slice(start_frame=0, end_frame=192000 * 1)
 
     sihs_path = str2Path('results_HS')
-    hsdet_path = str2Path('result_HS')
-
     sihs_path.mkdir(parents=True, exist_ok=True)
     if str((sihs_path / 'HS2_detected-0.bin').resolve()) != '/dev/null':
         (sihs_path / 'HS2_detected-0.bin').unlink(missing_ok=True)
         (sihs_path / 'HS2_detected-0.bin').symlink_to('/dev/null')
+    hsdet_path = str2Path('result_HS')
     hsdet_path.mkdir(parents=True, exist_ok=True)
     if str((hsdet_path / 'HS2_detected-0.bin').resolve()) != '/dev/null':
         (hsdet_path / 'HS2_detected-0.bin').unlink(missing_ok=True)
         (hsdet_path / 'HS2_detected-0.bin').symlink_to('/dev/null')
+
+    def timeit1(stmt): return timeit.timeit(stmt, number=1)
 
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
         t_sihs = timeit1(lambda: run_herdingspikes(
             recording, filter=False, output_folder=sihs_path))
-        t_hsdet = timeit1(lambda: run_hs(
+        t_hsdet = timeit1(lambda: run_hsdet(
             recording, filter=False, output_folder=hsdet_path))
 
         t_peak = timeit1(lambda: detect_peaks(
