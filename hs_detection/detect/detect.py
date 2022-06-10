@@ -110,9 +110,8 @@ class HSDetection(object):
             traces = traces.astype(np.float32, copy=False) * \
                 self.scale + self.offset
 
-        # astype cannot convert type annotation
         traces_int: NDArray[np.short] = traces.astype(
-            np.short, copy=False).reshape(-1)  # type: ignore
+            np.short, copy=False).reshape(-1)
 
         if lpad + rpad > 0:
             traces_int = np.pad(traces_int, (lpad, rpad),

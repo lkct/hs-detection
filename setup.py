@@ -113,7 +113,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.9',
     install_requires=[
-        'numpy==1.21'
+        'numpy>=1.21,<1.22'
     ],
     extras_require={
         'test': [
