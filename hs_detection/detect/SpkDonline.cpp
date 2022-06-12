@@ -49,7 +49,7 @@ namespace SpkDonline
                                      int num_com_centers, bool to_localize,
                                      int thres, int cutout_start, int cutout_end,
                                      int maa, int ahpthr, int maxsl, int minsl,
-                                     bool decay_filtering, bool verbose)
+                                     bool decay_filtering)
     {
         // set the detection parameters
         threshold = thres;
@@ -85,18 +85,12 @@ namespace SpkDonline
         }
 
         currQmsPosition = -1;
-        write_out = verbose;
-
-        if (write_out)
-        {
-            spikes_file.open(file_name + "_detected_spikes.asc");
-        }
 
         SpikeHandler::setInitialParameters(
             num_channels, spike_peak_duration, file_name, noise_duration,
             noise_amp_percent, inner_radius, masked_channels, channel_positions,
             neighbor_matrix, max_neighbors, num_com_centers, to_localize,
-            cutout_start, cutout_end, maxsl, decay_filtering, verbose);
+            cutout_start, cutout_end, maxsl, decay_filtering);
     }
 
     void Detection::MedianVoltage(short *vm) // easier to interpret, though
@@ -227,11 +221,6 @@ namespace SpkDonline
                                         Aglobal[t - tCut], Qms,
                                         (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
                                 }
-                                if (write_out)
-                                {
-                                    spikes_file << ChInd[i] << " " << t0 - MaxSl + t - tCut + 1
-                                                << " " << Amp[i] << endl;
-                                }
 
                                 SpikeHandler::addSpike(ChInd[i], t0 - MaxSl + t - tCut + 1,
                                                        Amp[i]);
@@ -266,17 +255,6 @@ namespace SpkDonline
                                       // recalibration; close file
     {
         SpikeHandler::terminateSpikeHandler();
-        if (write_out)
-        {
-            spikes_file.close();
-        }
-        else
-        {
-            spikes_file
-                << "Turn on verbose in DetectFromRaw method to get all detected spikes"
-                << endl;
-            spikes_file.close();
-        }
     }
 
     float **createPositionMatrix(int position_rows)

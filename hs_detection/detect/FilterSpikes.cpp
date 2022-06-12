@@ -5,7 +5,7 @@ using namespace std;
 namespace FilterSpikes
 {
 
-    Spike filterSpikesDecay(Spike first_spike, ofstream &filteredsp)
+    Spike filterSpikesDecay(Spike first_spike)
     {
         /*Removes all duplicate spikes and returns the max spike
 
@@ -24,13 +24,13 @@ namespace FilterSpikes
         max_spike = findMaxSpikeNeighbor(first_spike);
         if (Parameters::spikes_to_be_processed.size() != 0)
         {
-            filterOuterNeighbors(max_spike, filteredsp);
-            filterInnerNeighbors(max_spike, filteredsp);
+            filterOuterNeighbors(max_spike);
+            filterInnerNeighbors(max_spike);
         }
         return max_spike;
     }
 
-    Spike filterSpikesAll(Spike first_spike, ofstream &filteredsp)
+    Spike filterSpikesAll(Spike first_spike)
     {
         /*Removes all duplicate spikes and returns the max spike
 
@@ -49,7 +49,7 @@ namespace FilterSpikes
         max_spike = findMaxSpikeNeighbor(first_spike);
         if (Parameters::spikes_to_be_processed.size() != 0)
         {
-            filterAllNeighbors(max_spike, filteredsp);
+            filterAllNeighbors(max_spike);
         }
         return max_spike;
     }
@@ -107,7 +107,7 @@ namespace FilterSpikes
         return max_spike;
     }
 
-    void filterAllNeighbors(Spike max_spike, ofstream &filteredsp)
+    void filterAllNeighbors(Spike max_spike)
     {
         /*Filters all neighbors with smaller amplitudes than max spike that occur
         in the frame of the event.
@@ -133,10 +133,6 @@ namespace FilterSpikes
             {
                 if (curr_amp < max_spike.amplitude)
                 {
-                    if (Parameters::verbose)
-                    {
-                        filteredsp << curr_spike.channel << " " << curr_spike.frame << " " << curr_spike.amplitude << "  " << endl;
-                    }
                     it = Parameters::spikes_to_be_processed.erase(it);
                 }
                 else
@@ -153,7 +149,7 @@ namespace FilterSpikes
         }
     }
 
-    void filterOuterNeighbors(Spike max_spike, ofstream &filteredsp)
+    void filterOuterNeighbors(Spike max_spike)
     {
         /*Filters or leaves all outer neighbors based on minimum spanning tree
         algorithm. Basically, the outer spikes must pass through an inner spike
@@ -184,11 +180,6 @@ namespace FilterSpikes
                     {
                         if (filteredOuterSpike(curr_spike, max_spike))
                         {
-                            // filteredsp << curr_spike.channel << " " << curr_spike.frame <<  " " << curr_spike.amplitude << " PN ratio: " << posToNegRatio(curr_spike) << " Area/Amp: " << areaUnderSpike(curr_spike) << " RP time: " << repolarizationTime(curr_spike) << " Filtered by " << max_spike.channel << endl;
-                            if (Parameters::verbose)
-                            {
-                                filteredsp << curr_spike.channel << " " << curr_spike.frame << " " << curr_spike.amplitude << "  " << endl;
-                            }
                             outer_spikes_to_be_filtered.push_back(curr_spike);
                             ++it;
                         }
@@ -398,7 +389,7 @@ namespace FilterSpikes
         return closest_inner_channel;
     }
 
-    void filterInnerNeighbors(Spike max_spike, ofstream &filteredsp)
+    void filterInnerNeighbors(Spike max_spike)
     {
         /*Filters or leaves all outer neighbors based on minimum spanning tree
         algorithm. Basically, the outer spikes must pass through an inner spike
@@ -431,20 +422,10 @@ namespace FilterSpikes
                         {
                             if (curr_amp >= max_spike.amplitude * Parameters::noise_amp_percent)
                             {
-                                // filteredsp << curr_spike.channel << " " << curr_spike.frame <<  " " << curr_spike.amplitude << " PN ratio: " << posToNegRatio(curr_spike)  << " Area/Amp:: " << areaUnderSpike(curr_spike) << " RP time: " << repolarizationTime(curr_spike) << " Filtered by " << max_spike.channel << endl;
-                                if (Parameters::verbose)
-                                {
-                                    filteredsp << curr_spike.channel << " " << curr_spike.frame << " " << curr_spike.amplitude << endl;
-                                }
                                 it = Parameters::spikes_to_be_processed.erase(it);
                             }
                             else
                             {
-                                // filteredsp << curr_spike.channel << " " << curr_spike.frame <<  " " << curr_spike.amplitude << " PN ratio: " << posToNegRatio(curr_spike) << " Area/Amp:: " << areaUnderSpike(curr_spike) << " RP time: " << repolarizationTime(curr_spike) <<  " Filtered by " << max_spike.channel << endl;
-                                if (Parameters::verbose)
-                                {
-                                    filteredsp << curr_spike.channel << " " << curr_spike.frame << " " << curr_spike.amplitude << endl;
-                                }
                                 it = Parameters::spikes_to_be_processed.erase(it);
                             }
                         }

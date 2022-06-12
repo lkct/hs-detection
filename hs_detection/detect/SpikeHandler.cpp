@@ -13,7 +13,6 @@ int **Parameters::inner_neighbor_matrix;
 int **Parameters::outer_neighbor_matrix;
 int Parameters::aGlobal;
 bool Parameters::to_localize;
-bool Parameters::verbose;
 int **Parameters::baselines;
 int Parameters::cutout_start;
 int Parameters::cutout_end;
@@ -33,7 +32,6 @@ bool Parameters::decay_filtering;
 float Parameters::inner_radius;
 
 deque<Spike> Parameters::spikes_to_be_processed;
-std::ofstream filteredsp;
 std::ofstream spikes_filtered_file;
 
 namespace SpikeHandler
@@ -47,7 +45,7 @@ namespace SpikeHandler
                               int _max_neighbors, int _num_com_centers = 1,
                               bool _to_localize = false, int _cutout_start = 10,
                               int _cutout_end = 20, int _maxsl = 0,
-                              bool _decay_filtering = true, bool _verbose = true)
+                              bool _decay_filtering = true)
     {
         /*This sets all the initial parameters needed to run the filtering algorithm.
 
@@ -172,7 +170,6 @@ namespace SpikeHandler
         Parameters::inner_radius = _inner_radius;
         Parameters::event_number = 0;
         Parameters::debug = false;
-        Parameters::verbose = _verbose;
         Parameters::decay_filtering = _decay_filtering;
         Parameters::num_com_centers = _num_com_centers;
 
@@ -205,10 +202,6 @@ namespace SpikeHandler
         }
         //   spikes_filtered_file.open(file_name + ".bin", ios::trunc | ios::binary);
         spikes_filtered_file.open(file_name + ".bin", ios::binary);
-        if (_verbose)
-        {
-            filteredsp.open(file_name + "_filtered_spikes.asc");
-        }
         Parameters::spikes_to_be_processed.clear();
     }
     void loadRawData(short *_raw_data, int _index_data, int _iterations,
@@ -357,8 +350,7 @@ namespace SpikeHandler
                                 {
                                     cout << "spike frame: " << spike_to_be_added.frame << endl;
                                 }
-                                ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file,
-                                                                    filteredsp);
+                                ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file);
                             }
                             catch (...)
                             {
@@ -371,7 +363,7 @@ namespace SpikeHandler
                         }
                         else
                         {
-                            ProcessSpikes::filterSpikes(spikes_filtered_file, filteredsp);
+                            ProcessSpikes::filterSpikes(spikes_filtered_file);
                         }
                     }
                     else
@@ -390,18 +382,14 @@ namespace SpikeHandler
         {
             if (Parameters::to_localize)
             {
-                ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file, filteredsp);
+                ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file);
             }
             else
             {
-                ProcessSpikes::filterSpikes(spikes_filtered_file, filteredsp);
+                ProcessSpikes::filterSpikes(spikes_filtered_file);
             }
         }
         spikes_filtered_file.close();
-        if (Parameters::verbose)
-        {
-            filteredsp.close();
-        }
     }
 
     float channelsDist(int start_channel, int end_channel)

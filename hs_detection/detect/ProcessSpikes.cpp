@@ -3,7 +3,7 @@
 namespace ProcessSpikes
 {
 
-    void filterSpikes(ofstream &spikes_filtered_file, ofstream &filteredsp)
+    void filterSpikes(ofstream &spikes_filtered_file)
     {
         /*Calls a method from FilterSpikes to filter all spikes. It removes duplicate events
         and writes (or prints) out the channel number, frame, amplitude, and waveforms of the spike.
@@ -21,11 +21,11 @@ namespace ProcessSpikes
         {
             if (Parameters::decay_filtering == true)
             {
-                max_spike = FilterSpikes::filterSpikesDecay(first_spike, filteredsp);
+                max_spike = FilterSpikes::filterSpikesDecay(first_spike);
             }
             else
             {
-                max_spike = FilterSpikes::filterSpikesAll(first_spike, filteredsp);
+                max_spike = FilterSpikes::filterSpikesAll(first_spike);
             }
             int32_t msc = (int32_t)max_spike.channel;
             int32_t msf = (int32_t)max_spike.frame;
@@ -59,7 +59,7 @@ namespace ProcessSpikes
         }
     }
 
-    void filterLocalizeSpikes(ofstream &spikes_filtered_file, ofstream &filteredsp)
+    void filterLocalizeSpikes(ofstream &spikes_filtered_file)
     {
 
         // static int buffer[1024];
@@ -83,7 +83,7 @@ namespace ProcessSpikes
 
             if (Parameters::decay_filtering == true)
             {
-                max_spike = FilterSpikes::filterSpikesDecay(first_spike, filteredsp);
+                max_spike = FilterSpikes::filterSpikesDecay(first_spike);
             }
             else
             {
@@ -91,7 +91,7 @@ namespace ProcessSpikes
                 {
                     cout << "Filtering..." << endl;
                 }
-                max_spike = FilterSpikes::filterSpikesAll(first_spike, filteredsp);
+                max_spike = FilterSpikes::filterSpikesAll(first_spike);
                 if (Parameters::debug)
                 {
                     cout << "done filtering!" << endl;
@@ -106,12 +106,6 @@ namespace ProcessSpikes
             if (Parameters::debug)
             {
                 cout << "done localizing..." << endl;
-            }
-            if (Parameters::verbose)
-            {
-                filteredsp << max_spike.channel << " " << max_spike.frame << " " << max_spike.amplitude << "  " << get<0>(position) << " " << get<1>(position) << endl;
-                filteredsp << "E " << Parameters::event_number << endl;
-                ++Parameters::event_number;
             }
             if (Parameters::debug)
             {

@@ -10,8 +10,8 @@ using namespace std;
 namespace ProcessSpikes
 {
 
-    void filterSpikes(ofstream &spikes_filtered_file, ofstream &filteredsp);
-    void filterLocalizeSpikes(ofstream &spikes_filtered_file, ofstream &filteredsp);
+    void filterSpikes(ofstream &spikes_filtered_file);
+    void filterLocalizeSpikes(ofstream &spikes_filtered_file);
 };
 
 #endif
