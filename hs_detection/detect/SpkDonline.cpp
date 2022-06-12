@@ -279,94 +279,6 @@ namespace SpkDonline
         }
     }
 
-    void buildPositionsMatrix(float **_channel_positions, string positions_file_path,
-                              int rows, int cols)
-    {
-        /**
-      Reads from a string file and fills an array that contains coordinate positions
-      of each channel in the probe.
-
-      Parameters
-        ----------
-        channel_positions: 2D int array
-                A 2D array where each index has the X and Y position of every channel.
-        */
-        int line_count;
-        float coordinate;
-        string line;
-        ifstream positions_file(positions_file_path);
-        line_count = 0;
-        string::size_type sz;
-
-        if (positions_file.is_open())
-        {
-            while (getline(positions_file, line))
-            {
-                stringstream ss(line);
-                string token;
-                int index = 0;
-                while (getline(ss, token, ','))
-                {
-                    coordinate = stof(token, &sz);
-                    _channel_positions[line_count][index] = coordinate;
-                    ++index;
-                }
-                ss.str(string());
-                index = 0;
-                ++line_count;
-            }
-            positions_file.close();
-        }
-    }
-
-    void buildNeighborMatrix(int **_neighbor_matrix, string neighbors_file_path,
-                             int rows, int cols)
-    {
-        /**
-      Reads from a string file and fills an array which contains the neighbors
-      of each channel. Neighbors are channels that also receive waves from the
-      same neural spike.
-
-      Parameters
-        ----------
-        neighbor_matrix: 2D int array
-                A 2D array with each index representing channel numbers that
-                correspond to integer array values that contain the channel
-                numbers that the index channel is neighboring.
-        */
-        int line_count;
-        int neighbor;
-        string line;
-        ifstream neighbor_matrix_file(neighbors_file_path);
-        line_count = 0;
-        string::size_type sz;
-
-        if (neighbor_matrix_file.is_open())
-        {
-            while (getline(neighbor_matrix_file, line))
-            {
-                stringstream ss(line);
-                string token;
-                int index = 0;
-                while (getline(ss, token, ','))
-                {
-                    neighbor = stoi(token, &sz);
-                    _neighbor_matrix[line_count][index] = neighbor;
-                    ++index;
-                }
-                while (index < cols)
-                {
-                    _neighbor_matrix[line_count][index] = -1;
-                    ++index;
-                }
-                ss.str(string());
-                index = 0;
-                ++line_count;
-            }
-            neighbor_matrix_file.close();
-        }
-    }
-
     float **createPositionMatrix(int position_rows)
     {
         float **_channel_positions;
@@ -391,18 +303,5 @@ namespace SpkDonline
         }
 
         return _neighbor_matrix;
-    }
-
-    int **createBaselinesMatrix(int channel_rows, int channel_cols)
-    {
-        int **_Qms;
-
-        _Qms = new int *[channel_rows];
-        for (int i = 0; i < channel_rows; i++)
-        {
-            _Qms[i] = new int[channel_cols];
-        }
-
-        return _Qms;
     }
 }
