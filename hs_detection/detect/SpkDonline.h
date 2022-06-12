@@ -55,7 +55,6 @@ namespace SpkDonline
 
         int spikeCount;
         int currQmsPosition;
-        bool debugging = true;
 
     public:
         Detection();
