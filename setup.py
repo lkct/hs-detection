@@ -74,7 +74,7 @@ link_extra_args = []
 # OS X support  # TODO: test on mac
 if platform.system() == 'Darwin':
     extra_compile_args += ['-mmacosx-version-min=10.9', '-F.']
-    link_extra_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']
+    link_extra_args += ['-stdlib=libc++', '-mmacosx-version-min=10.9']
 
 # compile with/without Cython
 detect_ext = cythonize(
