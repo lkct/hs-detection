@@ -47,25 +47,22 @@ namespace LocalizeSpikes
             {
                 curr_neighbor_channel =
                     Parameters::inner_neighbor_matrix[curr_max_channel][j];
-                if (Parameters::masked_channels[curr_neighbor_channel] == 1)
+                sum_amp = 0;
+                for (int k = 0; k < cutout_size; k++)
                 {
-                    sum_amp = 0;
-                    for (int k = 0; k < cutout_size; k++)
-                    {
-                        sum_amp += waveforms[k + matrix_offset];
-                        /*
-                                  curr_amp = waveforms[k + matrix_offset];
-                                  if (curr_amp > curr_largest_amp) {
-                                    sum_amp += curr_amp;
-                                    curr_largest_amp = curr_amp;
-                                  }
-                        */
-                    }
-                    // curr_largest_amp = curr_amp;
-                    amps.push_back(make_tuple(curr_neighbor_channel, sum_amp));
-                    // curr_largest_amp = INT_MIN;
-                    matrix_offset += cutout_size;
+                    sum_amp += waveforms[k + matrix_offset];
+                    /*
+                              curr_amp = waveforms[k + matrix_offset];
+                              if (curr_amp > curr_largest_amp) {
+                                sum_amp += curr_amp;
+                                curr_largest_amp = curr_amp;
+                              }
+                    */
                 }
+                // curr_largest_amp = curr_amp;
+                amps.push_back(make_tuple(curr_neighbor_channel, sum_amp));
+                // curr_largest_amp = INT_MIN;
+                matrix_offset += cutout_size;
             }
 
             // compute median, threshold at median

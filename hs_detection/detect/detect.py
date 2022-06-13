@@ -159,8 +159,6 @@ class HSDetection(object):
             self.positions, dtype=np.int32)
         neighbor_matrix: cython.int[:, :] = np.ascontiguousarray(
             self.neighbors, dtype=np.int32)
-        masked_channels: cython.int[:] = np.ones(
-            self.num_channels, dtype=np.int32)
         out_file = self.out_file.with_stem(
             self.out_file.stem + f'-{segment_index}')
         det.SetInitialParams(cython.address(position_matrix[0, 0]),
@@ -171,7 +169,6 @@ class HSDetection(object):
                              self.noise_duration,
                              self.noise_amp_percent,
                              self.inner_radius,
-                             cython.address(masked_channels[0]),
                              self.max_neighbors,
                              self.num_com_centers,
                              self.localize,

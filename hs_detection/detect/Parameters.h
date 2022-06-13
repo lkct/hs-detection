@@ -77,7 +77,6 @@ namespace Parameters
     extern int iterations;                      // Number of current iterations of raw data passed in. User starts this at 0 and increments it for each chunk of data;
     extern int maxsl;                           // Number of frames after a detection that a spike is accepted
     extern int end_raw_data;                    // index of the end of the raw data
-    extern int *masked_channels;                // stores all masked channels as 0 and regular channels as 1
     extern int event_number;
     extern float inner_radius;
     extern bool debug;

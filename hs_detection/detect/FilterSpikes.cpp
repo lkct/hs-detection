@@ -315,44 +315,28 @@ namespace FilterSpikes
                 curr_dist = channelsDist(curr_inner_channel, max_spike.channel);
                 if (curr_dist < outer_dist_from_center)
                 {
-                    if (Parameters::masked_channels[curr_inner_channel] == 0)
+                    Spike inner_spike = getSpikeFromChannel(curr_inner_channel);
+                    if (inner_spike.frame == NOT_VALID_FRAME)
                     {
-                        // masked channel so we relax decay constraints and just return it
-                        if (outer_spike.amplitude >= max_spike.amplitude * Parameters::noise_amp_percent)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            filtered_spike = true;
-                            break;
-                        }
+                        // not a spike, keep searching
                     }
                     else
                     {
-                        Spike inner_spike = getSpikeFromChannel(curr_inner_channel);
-                        if (inner_spike.frame == NOT_VALID_FRAME)
+                        if (outer_spike.amplitude >= inner_spike.amplitude * Parameters::noise_amp_percent)
                         {
-                            // not a spike, keep searching
+                            // keep searching
                         }
                         else
                         {
-                            if (outer_spike.amplitude >= inner_spike.amplitude * Parameters::noise_amp_percent)
+                            // Find the closest neighbor in the spike vector and recurse with it (Recursive Step)
+                            if (outer_spike.frame < inner_spike.frame - Parameters::noise_duration)
                             {
+                                // Occured too far before the inner spike to be related
                                 // keep searching
                             }
                             else
                             {
-                                // Find the closest neighbor in the spike vector and recurse with it (Recursive Step)
-                                if (outer_spike.frame < inner_spike.frame - Parameters::noise_duration)
-                                {
-                                    // Occured too far before the inner spike to be related
-                                    // keep searching
-                                }
-                                else
-                                {
-                                    return filteredOuterSpike(inner_spike, max_spike);
-                                }
+                                return filteredOuterSpike(inner_spike, max_spike);
                             }
                         }
                     }
@@ -366,7 +350,7 @@ namespace FilterSpikes
     int getClosestInnerNeighborChannel(int outer_channel, int central_channel)
     {
         float curr_dist;
-        int closest_inner_channel;  // TODO: init value
+        int closest_inner_channel; // TODO: init value
         int closest_dist = INT_MAX;
         for (int i = 0; i < Parameters::max_neighbors; i++)
         {

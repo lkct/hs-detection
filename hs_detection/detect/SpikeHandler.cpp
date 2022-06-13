@@ -25,7 +25,6 @@ int Parameters::after_chunk;
 int Parameters::maxsl;
 int Parameters::end_raw_data;
 short *Parameters::raw_data;
-int *Parameters::masked_channels;
 int Parameters::event_number;
 bool Parameters::debug;
 bool Parameters::decay_filtering;
@@ -40,7 +39,7 @@ namespace SpikeHandler
     void setInitialParameters(int _num_channels,
                               int _spike_peak_duration, string file_name,
                               int _noise_duration, float _noise_amp_percent,
-                              float _inner_radius, int *_masked_channels,
+                              float _inner_radius,
                               float **_channel_positions, int **_neighbor_matrix,
                               int _max_neighbors, int _num_com_centers = 1,
                               bool _to_localize = false, int _cutout_start = 10,
@@ -166,7 +165,6 @@ namespace SpikeHandler
         Parameters::cutout_start = _cutout_start;
         Parameters::cutout_end = _cutout_end;
         Parameters::maxsl = _maxsl;
-        Parameters::masked_channels = _masked_channels;
         Parameters::inner_radius = _inner_radius;
         Parameters::event_number = 0;
         Parameters::debug = false;
@@ -657,42 +655,38 @@ namespace SpikeHandler
                 // Out of inner neighbors
                 if (curr_neighbor_channel != -1)
                 {
-                    // Masked neighbor
-                    if (Parameters::masked_channels[curr_neighbor_channel] == 1)
+                    nearest_neighbor_counts[i] += 1;
+                    // Check if noise_duration is too large in comparison to the buffer size
+                    int cutout_size = Parameters::cutout_start + Parameters::cutout_end + 1;
+                    int amp_cutout_size, cutout_start_index;
+                    if (Parameters::cutout_start < Parameters::noise_duration || Parameters::cutout_end < Parameters::noise_duration)
                     {
-                        nearest_neighbor_counts[i] += 1;
-                        // Check if noise_duration is too large in comparison to the buffer size
-                        int cutout_size = Parameters::cutout_start + Parameters::cutout_end + 1;
-                        int amp_cutout_size, cutout_start_index;
-                        if (Parameters::cutout_start < Parameters::noise_duration || Parameters::cutout_end < Parameters::noise_duration)
+                        amp_cutout_size = cutout_size;
+                        cutout_start_index = Parameters::cutout_start;
+                    }
+                    else
+                    {
+                        amp_cutout_size = Parameters::noise_duration * 2;
+                        cutout_start_index = Parameters::noise_duration;
+                    }
+                    for (int k = 0; k < amp_cutout_size; k++)
+                    {
+                        int curr_reading =
+                            Parameters::raw_data[(curr_spike.frame - cutout_start_index -
+                                                  frames_processed +
+                                                  Parameters::index_data + k) *
+                                                     Parameters::num_channels +
+                                                 curr_neighbor_channel];
+                        int curr_amp = ((curr_reading - Parameters::aGlobal) * Parameters::ASCALE -
+                                        Parameters::baselines[curr_neighbor_channel]
+                                                             [Parameters::index_baselines]);
+                        if (curr_amp < 0)
                         {
-                            amp_cutout_size = cutout_size;
-                            cutout_start_index = Parameters::cutout_start;
+                            com_cutouts.push_back(0);
                         }
                         else
                         {
-                            amp_cutout_size = Parameters::noise_duration * 2;
-                            cutout_start_index = Parameters::noise_duration;
-                        }
-                        for (int k = 0; k < amp_cutout_size; k++)
-                        {
-                            int curr_reading =
-                                Parameters::raw_data[(curr_spike.frame - cutout_start_index -
-                                                      frames_processed +
-                                                      Parameters::index_data + k) *
-                                                         Parameters::num_channels +
-                                                     curr_neighbor_channel];
-                            int curr_amp = ((curr_reading - Parameters::aGlobal) * Parameters::ASCALE -
-                                            Parameters::baselines[curr_neighbor_channel]
-                                                                 [Parameters::index_baselines]);
-                            if (curr_amp < 0)
-                            {
-                                com_cutouts.push_back(0);
-                            }
-                            else
-                            {
-                                com_cutouts.push_back(curr_amp);
-                            }
+                            com_cutouts.push_back(curr_amp);
                         }
                     }
                 }

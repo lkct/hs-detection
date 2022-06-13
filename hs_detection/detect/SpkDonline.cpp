@@ -24,7 +24,7 @@ namespace SpkDonline
         Sampling = sf;
         Aglobal = new int[tInc];
         for (int i = 0; i < tInc; i++)
-            Aglobal[i] = agl;  // TODO: agl fix to 0?
+            Aglobal[i] = agl; // TODO: agl fix to 0?
         for (int i = 0; i < NChannels; i++)
         {
             Qd[i] = 400;
@@ -45,7 +45,7 @@ namespace SpkDonline
                                      int spike_peak_duration,
                                      string file_name, int noise_duration,
                                      float noise_amp_percent, float inner_radius,
-                                     int *_masked_channels, int max_neighbors,
+                                     int max_neighbors,
                                      int num_com_centers, bool to_localize,
                                      int thres, int cutout_start, int cutout_end,
                                      int maa, int ahpthr, int maxsl, int minsl,
@@ -59,7 +59,6 @@ namespace SpkDonline
         MinSl = minsl;
         float **channel_positions;
         int **neighbor_matrix;
-        masked_channels = _masked_channels;
         iterations = 0;
 
         channel_positions = createPositionMatrix(num_channels);
@@ -88,7 +87,7 @@ namespace SpkDonline
 
         SpikeHandler::setInitialParameters(
             num_channels, spike_peak_duration, file_name, noise_duration,
-            noise_amp_percent, inner_radius, masked_channels, channel_positions,
+            noise_amp_percent, inner_radius, channel_positions,
             neighbor_matrix, max_neighbors, num_com_centers, to_localize,
             cutout_start, cutout_end, maxsl, decay_filtering);
     }
@@ -103,11 +102,8 @@ namespace SpkDonline
         for (int t = 0; t < tInc; t++)
         { // this function wastes most of the time
             for (int i = 0; i < NChannels; i++)
-            { // loop across channels
-                if (masked_channels[i] != 0)
-                {
-                    Slice[i] = vm[i + t * NChannels]; // vm [i] [t];
-                }
+            {                                     // loop across channels
+                Slice[i] = vm[i + t * NChannels]; // vm [i] [t];
             }
             sort(Slice, Slice + sizeof Slice / sizeof Slice[0]); // TODO: size correct?
             Aglobal[t] = Slice[NChannels / 2];
@@ -128,11 +124,8 @@ namespace SpkDonline
             Vsum = 0;
             for (int i = 0; i < NChannels; i++)
             { // loop across channels
-                if (masked_channels[i] != 0)
-                {
-                    Vsum += (vm[i + t * NChannels]);
-                    n++;
-                }
+                Vsum += (vm[i + t * NChannels]);
+                n++;
             }
             Aglobal[t - tCut] = Vsum / n;
         }
@@ -155,96 +148,93 @@ namespace SpkDonline
             for (i = 0; i < NChannels; i++)
             { // loop across channels
               // CHANNEL OUT OF LINEAR REGIME) {
-                if (masked_channels[i] != 0)
+                a = (vm[i + t * NChannels] - Aglobal[t - tCut]) * Ascale -
+                    Qm[i]; // difference between ADC counts and Qm
+                // UPDATE Qm and Qd
+                if (a > 0)
                 {
-                    a = (vm[i + t * NChannels] - Aglobal[t - tCut]) * Ascale -
-                        Qm[i]; // difference between ADC counts and Qm
-                    // UPDATE Qm and Qd
-                    if (a > 0)
+                    if (a > Qd[i])
                     {
-                        if (a > Qd[i])
+                        Qm[i] += Qd[i] / Tau_m0;
+                        if (a < (5 * Qd[i]))
                         {
-                            Qm[i] += Qd[i] / Tau_m0;
-                            if (a < (5 * Qd[i]))
-                            {
-                                Qd[i]++;
-                            }
-                            else if ((Qd[i] > Qdmin) & (a > (6 * Qd[i])))
-                            {
-                                Qd[i]--;
-                            }
+                            Qd[i]++;
                         }
-                        else if (Qd[i] > Qdmin)
-                        { // set a minimum level for Qd
+                        else if ((Qd[i] > Qdmin) & (a > (6 * Qd[i])))
+                        {
                             Qd[i]--;
                         }
                     }
-                    else if (a < -Qd[i])
-                    {
-                        Qm[i] -= Qd[i] / Tau_m0 / 2;
+                    else if (Qd[i] > Qdmin)
+                    { // set a minimum level for Qd
+                        Qd[i]--;
                     }
-                    Qms[i][currQmsPosition % (MaxSl + Parameters::spike_peak_duration)] = Qm[i];
+                }
+                else if (a < -Qd[i])
+                {
+                    Qm[i] -= Qd[i] / Tau_m0 / 2;
+                }
+                Qms[i][currQmsPosition % (MaxSl + Parameters::spike_peak_duration)] = Qm[i];
 
-                    a = (vm[i + t * NChannels] - Aglobal[t - tCut]) * Ascale -
-                        Qm[i]; // should tCut be subtracted here??
-                    // TREATMENT OF THRESHOLD CROSSINGS
-                    if (Sl[i] > 0)
-                    {                                      // Sl frames after peak value
-                        Sl[i] = (Sl[i] + 1) % (MaxSl + 1); // increment Sl[i]
-                        if (Sl[i] < MinSl)
-                        { // calculate area under first and second frame
-                          // after spike
-                            SpkArea[i] += a;
-                        }
-                        // check whether it does repolarize
-                        else if (a < (AHPthr * Qd[i]))
+                a = (vm[i + t * NChannels] - Aglobal[t - tCut]) * Ascale -
+                    Qm[i]; // should tCut be subtracted here??
+                // TREATMENT OF THRESHOLD CROSSINGS
+                if (Sl[i] > 0)
+                {                                      // Sl frames after peak value
+                    Sl[i] = (Sl[i] + 1) % (MaxSl + 1); // increment Sl[i]
+                    if (Sl[i] < MinSl)
+                    { // calculate area under first and second frame
+                      // after spike
+                        SpkArea[i] += a;
+                    }
+                    // check whether it does repolarize
+                    else if (a < (AHPthr * Qd[i]))
+                    {
+                        AHP[i] = true;
+                    }
+                    // accept spikes after MaxSl frames if...
+                    if ((Sl[i] == MaxSl) & (AHP[i]))
+                    {
+                        if ((2 * SpkArea[i]) > (MinSl * MinAvgAmp * Qd[i]))
                         {
-                            AHP[i] = true;
-                        }
-                        // accept spikes after MaxSl frames if...
-                        if ((Sl[i] == MaxSl) & (AHP[i]))
-                        {
-                            if ((2 * SpkArea[i]) > (MinSl * MinAvgAmp * Qd[i]))
+                            // increase spike count
+                            spikeCount += 1;
+
+                            if (t - tCut - MaxSl + 1 > 0)
                             {
-                                // increase spike count
-                                spikeCount += 1;
-
-                                if (t - tCut - MaxSl + 1 > 0)
-                                {
-                                    SpikeHandler::setLocalizationParameters(
-                                        Aglobal[t - tCut - MaxSl + 1], Qms,
-                                        (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
-                                }
-                                else
-                                {
-                                    SpikeHandler::setLocalizationParameters(
-                                        Aglobal[t - tCut], Qms,
-                                        (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
-                                }
-
-                                SpikeHandler::addSpike(ChInd[i], t0 - MaxSl + t - tCut + 1,
-                                                       Amp[i]);
+                                SpikeHandler::setLocalizationParameters(
+                                    Aglobal[t - tCut - MaxSl + 1], Qms,
+                                    (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
                             }
-                            Sl[i] = 0;
+                            else
+                            {
+                                SpikeHandler::setLocalizationParameters(
+                                    Aglobal[t - tCut], Qms,
+                                    (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
+                            }
+
+                            SpikeHandler::addSpike(ChInd[i], t0 - MaxSl + t - tCut + 1,
+                                                   Amp[i]);
                         }
-                        // check whether current ADC count is higher
-                        else if (Amp[i] < a)
-                        {
-                            Sl[i] = 1; // reset peak value
-                            Amp[i] = a;
-                            AHP[i] = false;  // reset AHP
-                            SpkArea[i] += a; // not resetting this one (anyway don't need to
-                                             // care if the spike is wide)
-                        }
+                        Sl[i] = 0;
                     }
-                    // check for threshold crossings
-                    else if (a > ((threshold * Qd[i]) / 2))
+                    // check whether current ADC count is higher
+                    else if (Amp[i] < a)
                     {
-                        Sl[i] = 1;
+                        Sl[i] = 1; // reset peak value
                         Amp[i] = a;
-                        AHP[i] = false;
-                        SpkArea[i] = a;
+                        AHP[i] = false;  // reset AHP
+                        SpkArea[i] += a; // not resetting this one (anyway don't need to
+                                         // care if the spike is wide)
                     }
+                }
+                // check for threshold crossings
+                else if (a > ((threshold * Qd[i]) / 2))
+                {
+                    Sl[i] = 1;
+                    Amp[i] = a;
+                    AHP[i] = false;
+                    SpkArea[i] = a;
                 }
             }
         }
