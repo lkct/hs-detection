@@ -142,14 +142,10 @@ class HSDetection(object):
         return [self.detect_seg(seg) for seg in range(self.num_segments)]
 
     def detect_seg(self, segment_index: int) -> Mapping[str, RealArray]:
-        det: cython.pointer(Detection) = new Detection()
-
         t_cut = self.cutout_start + self.maxsl
         t_cut2 = self.cutout_end + self.maxsl
         t_inc = min(self.chunk_size,
                     self.num_frames[segment_index] - t_cut - t_cut2)
-
-        det.InitDetection(self.num_channels, t_inc)
 
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
             self.positions, dtype=np.int32)
@@ -157,25 +153,27 @@ class HSDetection(object):
             self.neighbors, dtype=np.int32)
         out_file = self.out_file.with_stem(
             self.out_file.stem + f'-{segment_index}')
-        det.SetInitialParams(cython.address(position_matrix[0, 0]),
-                             cython.address(neighbor_matrix[0, 0]),
-                             self.num_channels,
-                             self.spike_peak_duration,
-                             str(out_file.with_suffix('')).encode(),
-                             self.noise_duration,
-                             self.noise_amp_percent,
-                             self.inner_radius,
-                             self.max_neighbors,
-                             self.num_com_centers,
-                             self.localize,
-                             self.threshold,
-                             self.cutout_start,
-                             self.cutout_end,
-                             self.maa,
-                             self.ahpthr,
-                             self.maxsl,
-                             self.minsl,
-                             self.decay_filtering)
+        det: cython.pointer(Detection) = new Detection(
+            t_inc,
+            cython.address(position_matrix[0, 0]),
+            cython.address(neighbor_matrix[0, 0]),
+            self.num_channels,
+            self.spike_peak_duration,
+            str(out_file.with_suffix('')).encode(),
+            self.noise_duration,
+            self.noise_amp_percent,
+            self.inner_radius,
+            self.max_neighbors,
+            self.num_com_centers,
+            self.localize,
+            self.threshold,
+            self.cutout_start,
+            self.cutout_end,
+            self.maa,
+            self.ahpthr,
+            self.maxsl,
+            self.minsl,
+            self.decay_filtering)
 
         vm: cython.short[:] = np.zeros(
             self.num_channels * (t_inc + t_cut + t_cut2), dtype=np.int16)

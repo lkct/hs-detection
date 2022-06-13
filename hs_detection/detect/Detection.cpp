@@ -1,0 +1,229 @@
+#include <algorithm>
+#include <cstring>
+#include "SpikeHandler.h"
+#include "Detection.h"
+
+using namespace std;
+
+namespace HSDetection
+{
+    Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
+                         int nChannels, int spikePeakDuration, string filename,
+                         int noiseDuration, float noiseAmpPercent, float innerRadius,
+                         int maxNeighbors, int numComCenters, bool localize,
+                         int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
+                         int ahpthr, int maxSl, int minSl, bool decayFiltering)
+        : nChannels(nChannels), tInc(tInc), threshold(threshold), minAvgAmp(minAvgAmp),
+          AHPthr(ahpthr), maxSl(maxSl), minSl(minSl), iterations(0),
+          currQmsPosition(-1), spikePeakDuration(spikePeakDuration)
+    {
+        Qd = new int[nChannels];
+        Qm = new int[nChannels];
+        Qms = new int *[nChannels]; // TODO: locality, swap axis?
+        for (int i = 0; i < nChannels; i++)
+        {
+            Qms[i] = new int[spikePeakDuration + maxSl + 2];
+        }
+
+        Sl = new int[nChannels];
+        AHP = new bool[nChannels];
+        Amp = new int[nChannels];
+        SpkArea = new int[nChannels];
+
+        A = new int[nChannels];
+
+        Slice = new int[nChannels];
+        Aglobal = new int[tInc];
+
+        fill_n(Qd, nChannels, 400); // TODO: magic number?
+        fill_n(Qm, nChannels, Voffset * Ascale);
+
+        memset(Sl, 0, nChannels * sizeof(int));      // TODO: 0 init?
+        memset(AHP, 0, nChannels * sizeof(bool));    // TODO: 0 init?
+        memset(Amp, 0, nChannels * sizeof(int));     // TODO: 0 init?
+        memset(SpkArea, 0, nChannels * sizeof(int)); // TODO: 0 init?
+
+        fill_n(A, nChannels, artT);
+
+        // TODO: init of Slice?
+        memset(Aglobal, 0, tInc * sizeof(int)); // TODO: 0 init?
+
+        float **channelPosition; // TODO: float or int?
+        int **channelNeighbor;
+        channelPosition = new float *[nChannels]; // TODO: proper delete?
+        channelNeighbor = new int *[nChannels];
+        for (int i = 0; i < nChannels; i++)
+        {
+            channelPosition[i] = new float[2];
+            channelPosition[i][0] = positionMatrix[i * 2];
+            channelPosition[i][1] = positionMatrix[i * 2 + 1];
+            channelNeighbor[i] = new int[maxNeighbors];
+            memcpy(channelNeighbor[i], neighborMatrix + i * maxNeighbors, maxNeighbors * sizeof(int));
+        }
+
+        SpikeHandler::setInitialParameters(
+            nChannels, spikePeakDuration, filename, noiseDuration,
+            noiseAmpPercent, innerRadius, channelPosition,
+            channelNeighbor, maxNeighbors, numComCenters, localize,
+            cutoutStart, cutoutEnd, maxSl, decayFiltering);
+    }
+
+    Detection::~Detection()
+    {
+        delete[] Qd;
+        delete[] Qm;
+        for (int i = 0; i < nChannels; i++)
+        {
+            delete[] Qms[i];
+        }
+        delete[] Qms;
+
+        delete[] Sl;
+        delete[] AHP;
+        delete[] Amp;
+        delete[] SpkArea;
+
+        delete[] A;
+
+        delete[] Slice;
+        delete[] Aglobal;
+    }
+
+    void Detection::MedianVoltage(short *vm) // TODO: add, use?
+    {
+    }
+
+    void Detection::MeanVoltage(short *vm, int tInc, int tCut)
+    {
+        // // if median takes too long...
+        // // or there are only few
+        // // channnels (?)
+        for (int t = 0, tVm = tCut; t < tInc; t++, tVm++)
+        {
+            int sum = 0;
+            for (int i = 0; i < nChannels; i++)
+            {
+                sum += vm[tVm * nChannels + i];
+            }
+            Aglobal[t] = sum / (nChannels + 1); // TODO: no need +1
+        }
+    }
+
+    void Detection::Iterate(short *vm, int t0, int tInc, int tCut, int tCut2)
+    {
+        SpikeHandler::loadRawData(vm, tCut, iterations, this->tInc, tCut, tCut2);
+        iterations++;
+
+        // // Does this need to end at tInc + tCut? (Cole+Martino)
+        for (int t = tCut; t < tInc; t++)
+        {
+            currQmsPosition++;
+            for (int i = 0; i < nChannels; i++)
+            {
+                // // CHANNEL OUT OF LINEAR REGIME
+                // // difference between ADC counts and Qm
+                int a = (vm[t * nChannels + i] - Aglobal[t - tCut]) * Ascale - Qm[i];
+
+                // TODO: clean `if`s
+                // // UPDATE Qm and Qd
+                if (a > 0)
+                {
+                    if (a > Qd[i])
+                    {
+                        Qm[i] += Qd[i] / Tau_m0;
+                        if (a < 5 * Qd[i])
+                        {
+                            Qd[i]++; // TODO: inc/dec amount (relative to Ascale)
+                        }
+                        else if ((Qd[i] > Qdmin) && (a > 6 * Qd[i]))
+                        {
+                            Qd[i]--;
+                        }
+                    }
+                    else if (Qd[i] > Qdmin)
+                    {
+                        // // set a minimum level for Qd
+                        Qd[i]--;
+                    }
+                }
+                else if (a < -Qd[i])
+                {
+                    Qm[i] -= Qd[i] / (Tau_m0 * 2);
+                }
+
+                Qms[i][currQmsPosition % (maxSl + spikePeakDuration)] = Qm[i];
+
+                // // should tCut be subtracted here??
+                // calc against updated Qm
+                a = (vm[t * nChannels + i] - Aglobal[t - tCut]) * Ascale - Qm[i];
+
+                // // TREATMENT OF THRESHOLD CROSSINGS
+                if (Sl[i] > 0)
+                {
+                    // // Sl frames after peak value
+                    // // increment Sl[i]
+                    Sl[i] = (Sl[i] + 1) % (maxSl + 1); // TODO: need mod?
+                    if (Sl[i] < minSl)
+                    {
+                        // calculate area under first and second frame
+                        // after spike
+                        SpkArea[i] += a;
+                    }
+                    else if (a < AHPthr * Qd[i])
+                    {
+                        // // check whether it does repolarize
+                        AHP[i] = true;
+                    }
+
+                    if ((Sl[i] == maxSl) && AHP[i])
+                    {
+                        if (2 * SpkArea[i] > minSl * minAvgAmp * Qd[i])
+                        {
+                            if (t - tCut - maxSl + 1 > 0)
+                            {
+                                SpikeHandler::setLocalizationParameters(
+                                    Aglobal[t - tCut - maxSl + 1], Qms,
+                                    (currQmsPosition + 1) % (maxSl + spikePeakDuration));
+                            }
+                            else
+                            {
+                                SpikeHandler::setLocalizationParameters(
+                                    Aglobal[t - tCut], Qms,
+                                    (currQmsPosition + 1) % (maxSl + spikePeakDuration));
+                            }
+
+                            SpikeHandler::addSpike(i, t0 - maxSl + t - tCut + 1, Amp[i]);
+                        }
+                        Sl[i] = 0;
+                    }
+                    else if (Amp[i] < a)
+                    {
+                        // // check whether current ADC count is higher
+                        Sl[i] = 1; // // reset peak value
+                        Amp[i] = a;
+                        AHP[i] = false;  // // reset AHP
+                        SpkArea[i] += a; // // not resetting this one (anyway don't need to care if the spike is wide)
+                    }
+                }
+                else if (a > threshold * Qd[i] / 2)
+                {
+                    // // check for threshold crossings
+                    Sl[i] = 1;
+                    Amp[i] = a;
+                    AHP[i] = false;
+                    SpkArea[i] = a;
+                }
+
+            } // for i
+
+        } // for t
+
+    } // Detection::Iterate
+
+    // // write spikes in interval after last recalibration; close file
+    void Detection::FinishDetection()
+    {
+        SpikeHandler::terminateSpikeHandler();
+    }
+
+} // namespace HSDetection
