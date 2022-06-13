@@ -6,8 +6,7 @@ namespace SpkDonline
     Detection::Detection() {}
     Detection::~Detection() {}
 
-    void Detection::InitDetection(int NCh,
-                                  long ti, int agl)
+    void Detection::InitDetection(int NCh, long ti)
     {
         NChannels = NCh;
         tInc = ti;
@@ -22,7 +21,7 @@ namespace SpkDonline
 
         Aglobal = new int[tInc];
         for (int i = 0; i < tInc; i++)
-            Aglobal[i] = agl; // TODO: agl fix to 0?
+            Aglobal[i] = 0;
         for (int i = 0; i < NChannels; i++)
         {
             Qd[i] = 400;
