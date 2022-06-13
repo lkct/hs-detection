@@ -120,7 +120,8 @@ setup(
             'requests',
             'tqdm',
             'gprof2dot',
-            'line_profiler'
+            'line_profiler',
+            'py-spy'
         ]
     },
     packages=find_packages(),
