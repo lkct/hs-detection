@@ -1,9 +1,7 @@
 #ifndef FILTERSPIKES_H
 #define FILTERSPIKES_H
 
-#include "Parameters.h"
-
-using namespace std;
+#include "Spike.h"
 
 namespace FilterSpikes
 {

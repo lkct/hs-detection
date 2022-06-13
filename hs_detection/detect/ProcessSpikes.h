@@ -1,17 +1,13 @@
 #ifndef PROCESSSPIKES_H
 #define PROCESSSPIKES_H
 
-#include "Parameters.h"
-#include "FilterSpikes.h"
-#include "LocalizeSpikes.h"
-
-using namespace std;
+#include <fstream>
 
 namespace ProcessSpikes
 {
 
-    void filterSpikes(ofstream &spikes_filtered_file);
-    void filterLocalizeSpikes(ofstream &spikes_filtered_file);
+    void filterSpikes(std::ofstream &spikes_filtered_file);
+    void filterLocalizeSpikes(std::ofstream &spikes_filtered_file);
 };
 
 #endif

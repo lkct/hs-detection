@@ -1,22 +1,15 @@
 #ifndef SPIKEHANDLER_H
 #define SPIKEHANDLER_H
 
-#include "ProcessSpikes.h"
-
-using namespace std;
-
-struct CustomLessThan
-{
-    bool operator()(tuple<int, float> const &lhs, tuple<int, float> const &rhs) const
-    {
-        return std::get<1>(lhs) < std::get<1>(rhs);
-    }
-};
+#include <string>
+#include <vector>
+#include <tuple>
+#include "Spike.h"
 
 namespace SpikeHandler
 {
 
-    void setInitialParameters(int _num_channels, int _spike_peak_duration, string file_name,
+    void setInitialParameters(int _num_channels, int _spike_peak_duration, std::string file_name,
                               int _noise_duration, float _noise_amp_percent, float _inner_radius, float **_channel_positions, int **_neighbor_matrix,
                               int _max_neighbors, int _num_com_centers, bool _to_localize, int _cutout_start, int _cutout_end, int _maxsl,
                               bool _decay_filtering);
@@ -27,7 +20,7 @@ namespace SpikeHandler
     // Inner neighbor creation methods
     float channelsDist(int start_channel, int end_channel);
     void fillNeighborLayerMatrices();
-    vector<int> getInnerNeighborsRadius(vector<tuple<int, float>> distances_neighbors, int central_channel);
+    std::vector<int> getInnerNeighborsRadius(std::vector<std::tuple<int, float>> distances_neighbors, int central_channel);
     int **createInnerNeighborMatrix();
     int **createOuterNeighborMatrix();
     Spike storeWaveformCutout(int cutout_size, Spike curr_spike);

@@ -1,4 +1,9 @@
 #include "LocalizeSpikes.h"
+#include <iostream>
+#include <algorithm>
+#include "Parameters.h"
+
+using namespace std;
 
 namespace LocalizeSpikes
 {

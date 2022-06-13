@@ -1,4 +1,7 @@
 #include "FilterSpikes.h"
+#include "Parameters.h"
+#include <cmath>
+#include <climits>
 
 using namespace std;
 

@@ -4,38 +4,7 @@
 // Contains all parameters and libraries for running the SpikeHandler Methods
 
 #include <deque>
-#include <iostream>
-#include <stdio.h>
-#include <string>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <deque>
-#include <tuple>
-#include <iterator>
-#include <vector>
-#include <stdlib.h>
-#include <limits.h>
-#include <stdint.h>
-#include <math.h>
-//#include<bits/stdc++.h>
-
-using namespace std;
-
-// Internal representation of a spike. User has no need to use it.
-struct Spike
-{
-    int amplitude;
-    int channel;
-    int frame;
-    deque<int> largest_channels;
-    vector<int32_t> written_cutout;
-    tuple<vector<int>, int *> waveformscounts;
-    // //These contain all information of what occurred at neighbors
-    // vector<Event> inner_neighbors;
-    // vector<Event> outer_neighbors;
-};
+#include "Spike.h"
 
 namespace Parameters
 {
@@ -64,7 +33,7 @@ namespace Parameters
     extern int aGlobal;                         // Global noise
     extern int **baselines;                     // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
     extern bool to_localize;                    // True: filter and localize the spike, False: just filter the spike.
-    extern deque<Spike> spikes_to_be_processed; // Contains all spikes to be proccessed when spike_peak_duration number of frames is stored.
+    extern std::deque<Spike> spikes_to_be_processed; // Contains all spikes to be proccessed when spike_peak_duration number of frames is stored.
     extern int cutout_start;                    // The number of frames before the spike that the cutout starts at
     extern int cutout_end;                      // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
     extern short *raw_data;                     // raw data passed in for current iteration

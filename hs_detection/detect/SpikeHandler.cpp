@@ -1,4 +1,14 @@
 #include "SpikeHandler.h"
+#include <deque>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include "Parameters.h"
+#include <cmath>
+#include <algorithm>
+#include "ProcessSpikes.h"
+
+using namespace std;
 
 int Parameters::ASCALE = -64;
 int Parameters::num_com_centers;
@@ -31,10 +41,18 @@ bool Parameters::decay_filtering;
 float Parameters::inner_radius;
 
 deque<Spike> Parameters::spikes_to_be_processed;
-std::ofstream spikes_filtered_file;
+ofstream spikes_filtered_file;
 
 namespace SpikeHandler
 {
+
+    struct CustomLessThan
+    {
+        bool operator()(tuple<int, float> const &lhs, tuple<int, float> const &rhs) const
+        {
+            return std::get<1>(lhs) < std::get<1>(rhs);
+        }
+    };
 
     void setInitialParameters(int _num_channels,
                               int _spike_peak_duration, string file_name,

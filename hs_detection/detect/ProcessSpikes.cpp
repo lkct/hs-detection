@@ -1,4 +1,12 @@
 #include "ProcessSpikes.h"
+#include "Spike.h"
+#include "FilterSpikes.h"
+#include "LocalizeSpikes.h"
+#include <iostream>
+#include <cmath>
+#include "Parameters.h"
+
+using namespace std;
 
 namespace ProcessSpikes
 {
