@@ -148,7 +148,6 @@ class HSDetection(object):
         t_cut2 = self.cutout_end + self.maxsl
         t_inc = min(self.chunk_size,
                     self.num_frames[segment_index] - t_cut - t_cut2)
-        t_inc_orig = t_inc
 
         channel_indices: cython.long[:] = np.arange(
             self.num_channels, dtype=np.int64)
@@ -196,8 +195,7 @@ class HSDetection(object):
                                  start_frame=t0 - t_cut, end_frame=t1 + t_cut2)
             if self.num_channels >= 20:
                 det.MeanVoltage(cython.address(vm[0]), t_inc, t_cut)
-            det.Iterate(cython.address(vm[0]), t0,
-                        t_inc, t_cut, t_cut2, t_inc_orig)
+            det.Iterate(cython.address(vm[0]), t0, t_inc, t_cut, t_cut2)
 
             t0 += t_inc
             if t0 < self.num_frames[segment_index] - t_cut2:

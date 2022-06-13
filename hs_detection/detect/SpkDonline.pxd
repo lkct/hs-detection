@@ -16,5 +16,5 @@ cdef extern from "SpkDonline.h" namespace "SpkDonline":
                               int maa, int ahpthr, int maxsl, int minsl, bool decay_filtering)
         void MedianVoltage(short * vm)
         void MeanVoltage(short * vm, int tInc, int tCut)
-        void Iterate(short *vm, long t0, int tInc, int tCut, int tCut2, int maxFramesProcessed)
+        void Iterate(short *vm, long t0, int tInc, int tCut, int tCut2)
         void FinishDetection()
