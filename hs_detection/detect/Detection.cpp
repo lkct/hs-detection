@@ -162,7 +162,7 @@ namespace HSDetection
                 {
                     // // Sl frames after peak value
                     // // increment Sl[i]
-                    Sl[i] = (Sl[i] + 1) % (maxSl + 1); // TODO: need mod?
+                    Sl[i]++;
                     if (Sl[i] < minSl)
                     {
                         // calculate area under first and second frame
