@@ -32,8 +32,6 @@ namespace SpkDonline
             A[i] = artT; // start like after an out-of-linear-regime event
             SpkArea[i] = 0;
         }
-
-        spikeCount = 0;
     }
 
     void Detection::SetInitialParams(int *pos_mtx,
@@ -193,9 +191,6 @@ namespace SpkDonline
                     {
                         if ((2 * SpkArea[i]) > (MinSl * MinAvgAmp * Qd[i]))
                         {
-                            // increase spike count
-                            spikeCount += 1;
-
                             if (t - tCut - MaxSl + 1 > 0)
                             {
                                 SpikeHandler::setLocalizationParameters(

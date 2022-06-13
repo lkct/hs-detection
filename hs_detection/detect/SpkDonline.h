@@ -48,7 +48,6 @@ namespace SpkDonline
         int *Slice;
         int a; // buffer for Iterate()
 
-        int spikeCount;
         int currQmsPosition;
 
     public:
