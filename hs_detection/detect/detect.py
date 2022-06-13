@@ -152,7 +152,7 @@ class HSDetection(object):
 
         channel_indices: cython.long[:] = np.arange(
             self.num_channels, dtype=np.int64)
-        det.InitDetection(int(self.fps), self.num_channels, t_inc,
+        det.InitDetection(self.num_channels, t_inc,
                           cython.address(channel_indices[0]), 0)
 
         position_matrix: cython.int[:, :] = np.ascontiguousarray(

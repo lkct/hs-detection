@@ -6,7 +6,7 @@ namespace SpkDonline
     Detection::Detection() {}
     Detection::~Detection() {}
 
-    void Detection::InitDetection(int sf, int NCh,
+    void Detection::InitDetection(int NCh,
                                   long ti, long *Indices, int agl)
     {
         NChannels = NCh;
@@ -21,7 +21,6 @@ namespace SpkDonline
         ChInd = new int[NChannels];
         Slice = new int[NChannels];
 
-        Sampling = sf;
         Aglobal = new int[tInc];
         for (int i = 0; i < tInc; i++)
             Aglobal[i] = agl; // TODO: agl fix to 0?
