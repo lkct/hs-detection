@@ -6,7 +6,7 @@ namespace SpkDonline
     Detection::Detection() {}
     Detection::~Detection() {}
 
-    void Detection::InitDetection(long nFrames, int sf, int NCh,
+    void Detection::InitDetection(int sf, int NCh,
                                   long ti, long *Indices, int agl)
     {
         NChannels = NCh;
@@ -24,7 +24,7 @@ namespace SpkDonline
         Sampling = sf;
         Aglobal = new int[tInc];
         for (int i = 0; i < tInc; i++)
-            Aglobal[i] = agl;
+            Aglobal[i] = agl;  // TODO: agl fix to 0?
         for (int i = 0; i < NChannels; i++)
         {
             Qd[i] = 400;
@@ -109,7 +109,7 @@ namespace SpkDonline
                     Slice[i] = vm[i + t * NChannels]; // vm [i] [t];
                 }
             }
-            sort(Slice, Slice + sizeof Slice / sizeof Slice[0]);
+            sort(Slice, Slice + sizeof Slice / sizeof Slice[0]); // TODO: size correct?
             Aglobal[t] = Slice[NChannels / 2];
         }
     }

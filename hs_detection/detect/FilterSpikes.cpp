@@ -119,7 +119,7 @@ namespace FilterSpikes
         */
 
         Spike curr_spike;
-        int curr_channel, curr_amp, curr_frame;
+        int curr_channel, curr_amp;
         deque<Spike>::iterator it;
         it = Parameters::spikes_to_be_processed.begin();
 
@@ -128,7 +128,6 @@ namespace FilterSpikes
             curr_spike = *it;
             curr_channel = it->channel;
             curr_amp = it->amplitude;
-            curr_frame = it->frame;
             if (areNeighbors(max_spike.channel, curr_channel))
             {
                 if (curr_amp < max_spike.amplitude)
@@ -367,7 +366,7 @@ namespace FilterSpikes
     int getClosestInnerNeighborChannel(int outer_channel, int central_channel)
     {
         float curr_dist;
-        int closest_inner_channel;
+        int closest_inner_channel;  // TODO: init value
         int closest_dist = INT_MAX;
         for (int i = 0; i < Parameters::max_neighbors; i++)
         {

@@ -8,7 +8,7 @@ from libcpp.string cimport string
 cdef extern from "SpkDonline.h" namespace "SpkDonline":
     cdef cppclass Detection:
         Detection() except +
-        void InitDetection(long nFrames, int sf, int NCh, long ti, long int * Indices, int agl)
+        void InitDetection(int sf, int NCh, long ti, long int * Indices, int agl)
         void SetInitialParams(int * pos_mtx, int * neigh_mtx, int num_channels,
                               int spike_peak_duration, string file_name, int noise_duration,
                               float noise_amp_percent, float inner_radius, int* _masked_channels,

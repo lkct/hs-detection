@@ -31,9 +31,7 @@ namespace LocalizeSpikes
         vector<int> waveforms = get<0>(spike_to_be_localized.waveformscounts);
         deque<tuple<tuple<float, float>, int>> com_positions_amps;
         int matrix_offset = 0;
-        int curr_largest_amp;
         int curr_neighbor_channel;
-        int curr_amp;
         int sum_amp;
         int neighbor_count;
         int cutout_size;
@@ -41,8 +39,6 @@ namespace LocalizeSpikes
         for (int i = 0; i < Parameters::num_com_centers; i++)
         {
             deque<tuple<int, int>> amps;
-            curr_largest_amp = INT_MIN; // arbitrarily small to make sure that it is
-                                        // immediately overwritten
             neighbor_count = get<1>(spike_to_be_localized.waveformscounts)[i];
             cutout_size = Parameters::noise_duration * 2;
             curr_max_channel = spike_to_be_localized.largest_channels[i];
