@@ -7,7 +7,7 @@ namespace SpkDonline
     Detection::~Detection() {}
 
     void Detection::InitDetection(int NCh,
-                                  long ti, long *Indices, int agl)
+                                  long ti, int agl)
     {
         NChannels = NCh;
         tInc = ti;
@@ -18,7 +18,6 @@ namespace SpkDonline
         Amp = new int[NChannels];     // buffers spike amplitude
         SpkArea = new int[NChannels]; // integrates over spike
         A = new int[NChannels];       // control parameter for amplifier effects
-        ChInd = new int[NChannels];
         Slice = new int[NChannels];
 
         Aglobal = new int[tInc];
@@ -33,7 +32,6 @@ namespace SpkDonline
             Amp[i] = 0;
             A[i] = artT; // start like after an out-of-linear-regime event
             SpkArea[i] = 0;
-            ChInd[i] = Indices[i];
         }
 
         spikeCount = 0;
@@ -212,7 +210,7 @@ namespace SpkDonline
                                     (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
                             }
 
-                            SpikeHandler::addSpike(ChInd[i], t0 - MaxSl + t - tCut + 1,
+                            SpikeHandler::addSpike(i, t0 - MaxSl + t - tCut + 1,
                                                    Amp[i]);
                         }
                         Sl[i] = 0;

@@ -13,7 +13,6 @@ namespace SpkDonline
     class Detection
     {
         int NChannels; // number of channels; is set when reading the data
-        int *ChInd;    // indices for parallelization
         // Variables for variance and mean
         int *Qd;              // noise amplitude
         int *Qm;              // median
@@ -55,7 +54,7 @@ namespace SpkDonline
     public:
         Detection();
         ~Detection();
-        void InitDetection(int NCh, long ti, long int *Indices, int agl);
+        void InitDetection(int NCh, long ti, int agl);
         void SetInitialParams(int *pos_mtx, int *neigh_mtx, int num_channels, int spike_peak_duration,
                               string file_name, int noise_duration, float noise_amp_percent, float inner_radius, int max_neighbors,
                               int num_com_centers, bool to_localize, int thres, int cutout_start, int cutout_end, int maa, int ahpthr, int maxsl, int minsl,

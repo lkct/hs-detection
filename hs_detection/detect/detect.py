@@ -149,10 +149,7 @@ class HSDetection(object):
         t_inc = min(self.chunk_size,
                     self.num_frames[segment_index] - t_cut - t_cut2)
 
-        channel_indices: cython.long[:] = np.arange(
-            self.num_channels, dtype=np.int64)
-        det.InitDetection(self.num_channels, t_inc,
-                          cython.address(channel_indices[0]), 0)
+        det.InitDetection(self.num_channels, t_inc, 0)
 
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
             self.positions, dtype=np.int32)
