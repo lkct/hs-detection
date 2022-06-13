@@ -5,9 +5,6 @@
 
 using namespace std;
 
-// Define Infinite (Using INT_MAX caused overflow problems)
-#define INF 10000
-
 struct CustomLessThan
 {
     bool operator()(tuple<int, float> const &lhs, tuple<int, float> const &rhs) const
