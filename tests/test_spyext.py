@@ -15,7 +15,7 @@ def test_spyext(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -
     recording = MdaRecordingExtractor(data_path)
     assert recording.get_sampling_frequency() == 32000 and \
         recording.get_num_samples() == 19200000
-    recording = recording.frame_slice(start_frame=0, end_frame=192000 * 10)
+    recording = recording.frame_slice(start_frame=0, end_frame=192000 * 1)
 
     hsdet_path = str2Path('result_HS')
     hsdet_path.mkdir(parents=True, exist_ok=True)
