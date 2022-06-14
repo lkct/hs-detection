@@ -81,9 +81,8 @@ namespace FilterSpikes
         max_spike_amp = first_spike.amplitude;
         // Find the max amplitude neighbor of the first spike
         deque<Spike>::iterator it;
-        deque<Spike>::iterator it_final;
-        it = Parameters::spikes_to_be_processed.begin();
-        int index = it - Parameters::spikes_to_be_processed.begin();
+        deque<Spike>::iterator max_it;
+        max_it = it = Parameters::spikes_to_be_processed.begin();
 
         // Find max
         while (it != Parameters::spikes_to_be_processed.end())
@@ -100,13 +99,12 @@ namespace FilterSpikes
                     {
                         max_spike = curr_spike;
                         max_spike_amp = curr_amp;
-                        index = it - Parameters::spikes_to_be_processed.begin();
+                        max_it = it;
                     }
                 }
             }
             ++it;
         }
-        deque<Spike>::iterator max_it = Parameters::spikes_to_be_processed.begin() + index;
         Parameters::spikes_to_be_processed.erase(max_it);
         return max_spike;
     }
