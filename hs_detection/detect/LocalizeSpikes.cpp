@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include "Parameters.h"
+#include "Detection.h"
 
 using namespace std;
 
@@ -41,11 +42,11 @@ namespace LocalizeSpikes
         int neighbor_count;
         int cutout_size;
         int curr_max_channel;
-        for (int i = 0; i < Parameters::num_com_centers; i++)
+        for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
             deque<tuple<int, int>> amps;
             neighbor_count = get<1>(spike_to_be_localized.waveformscounts)[i];
-            cutout_size = Parameters::noise_duration * 2;
+            cutout_size = HSDetection::Detection::noise_duration * 2;
             curr_max_channel = spike_to_be_localized.largest_channels[i];
             // compute amplitudes using sum over 2*noise_duration data points
             for (int j = 0; j < neighbor_count; j++)
@@ -74,7 +75,7 @@ namespace LocalizeSpikes
             int do_correction = 1;
             int correct = 0;
             int amps_size = amps.size();
-            if (Parameters::debug)
+            if (false)
             {
                 cout << "Correction phase..." << endl;
             }
@@ -82,7 +83,7 @@ namespace LocalizeSpikes
             {
                 sort(begin(amps), end(amps), CustomLessThan()); // sort the array
                 // correct = get<1>(amps.at(0))-1;
-                if (Parameters::debug)
+                if (false)
                 {
                     cout << "Amps size: " << amps_size << endl;
                 }
@@ -95,7 +96,7 @@ namespace LocalizeSpikes
                     correct = get<1>(amps.at(amps_size / 2));
                 }
             }
-            if (Parameters::debug)
+            if (false)
             {
                 cout << "Done correcting..." << endl;
             }
@@ -150,7 +151,7 @@ namespace LocalizeSpikes
         int weight; // contains the amplitudes for the center of mass calculation.
                     // Updated each localization
 
-        for (int i = 0; i < Parameters::num_com_centers; i++)
+        for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
             X_coordinate = get<0>(get<0>((com_positions_amps[i])));
             Y_coordinate = get<1>(get<0>((com_positions_amps[i])));
@@ -167,7 +168,7 @@ namespace LocalizeSpikes
         if (denominator == 0)
         {
             cout << "Whopodis" << endl;
-            for (int i = 0; i < Parameters::num_com_centers; i++)
+            for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
             {
                 X_coordinate = get<0>(get<0>((com_positions_amps[i])));
                 Y_coordinate = get<1>(get<0>((com_positions_amps[i])));
@@ -217,7 +218,7 @@ namespace LocalizeSpikes
                     // Updated each localization
         int centered_amps_size = centered_amps.size();
 
-        if (Parameters::debug)
+        if (false)
         {
             cout << "Done localizing..." << endl;
         }

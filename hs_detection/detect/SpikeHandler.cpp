@@ -7,38 +7,25 @@
 #include <cmath>
 #include <algorithm>
 #include "ProcessSpikes.h"
+#include "Detection.h"
 
 using namespace std;
 
-int Parameters::ASCALE = -64;
-int Parameters::num_com_centers;
-int Parameters::num_channels;
-int Parameters::spike_peak_duration;
-int Parameters::noise_duration;
-float Parameters::noise_amp_percent;
-int Parameters::max_neighbors;
 int **Parameters::neighbor_matrix;
 float **Parameters::channel_positions;
 int **Parameters::inner_neighbor_matrix;
 int **Parameters::outer_neighbor_matrix;
 int Parameters::aGlobal;
-bool Parameters::to_localize;
 int **Parameters::baselines;
-int Parameters::cutout_start;
-int Parameters::cutout_end;
 int Parameters::index_data;
 int Parameters::index_baselines;
 int Parameters::iterations;
 int Parameters::max_frames_processed;
 int Parameters::before_chunk;
 int Parameters::after_chunk;
-int Parameters::maxsl;
 int Parameters::end_raw_data;
 short *Parameters::raw_data;
 int Parameters::event_number;
-bool Parameters::debug;
-bool Parameters::decay_filtering;
-float Parameters::inner_radius;
 
 deque<Spike> Parameters::spikes_to_be_processed;
 ofstream spikes_filtered_file;
@@ -54,15 +41,8 @@ namespace SpikeHandler
         }
     };
 
-    void setInitialParameters(int _num_channels,
-                              int _spike_peak_duration, string file_name,
-                              int _noise_duration, float _noise_amp_percent,
-                              float _inner_radius,
-                              float **_channel_positions, int **_neighbor_matrix,
-                              int _max_neighbors, int _num_com_centers = 1,
-                              bool _to_localize = false, int _cutout_start = 10,
-                              int _cutout_end = 20, int _maxsl = 0,
-                              bool _decay_filtering = true)
+    void setInitialParameters(string file_name,
+                              float **_channel_positions, int **_neighbor_matrix)
     {
         /*This sets all the initial parameters needed to run the filtering algorithm.
 
@@ -121,90 +101,27 @@ namespace SpikeHandler
                 The number of frames until a spike is accepted when the peak value is
       given.
         */
-        if (_num_channels < 0)
-        {
-            cout << "Number of channels given incorrectly. Terminating Spike Handler"
-                 << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (_max_neighbors < 0)
-        {
-            cout << "Number of max neighbors less than 0. Terminating Spike Handler"
-                 << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (_spike_peak_duration < 0)
-        {
-            cout << "Spike Peak Duration less than 0. Terminating Spike Handler"
-                 << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (_noise_amp_percent < 0 || _noise_amp_percent > 1)
-        {
-            cout << "Noise Amplitude Percent not a valid percentage. Terminating Spike "
-                    "Handler"
-                 << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (_noise_duration < 0)
-        {
-            cout << "Cutout Length less than 0. Terminating Spike Handler" << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (_cutout_start < 0)
-        {
-            cout << "Cutout Start less than 0. Terminating Spike Handler" << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (_cutout_end < 0)
-        {
-            cout << "Cutout End less than 0. Terminating Spike Handler" << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (_maxsl < 0)
-        {
-            cout << "Maxsl less than 0. Terminating Spike Handler" << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (_inner_radius < 0)
-        {
-            cout << "Inner Radius less than 0. Terminating Spike Handler" << endl;
-            exit(EXIT_FAILURE);
-        }
 
-        Parameters::num_channels = _num_channels;
-        Parameters::max_neighbors = _max_neighbors;
-        Parameters::spike_peak_duration = _spike_peak_duration;
-        Parameters::noise_duration = _noise_duration;
-        Parameters::noise_amp_percent = _noise_amp_percent;
-        Parameters::to_localize = _to_localize;
         Parameters::channel_positions = _channel_positions;
         Parameters::neighbor_matrix = _neighbor_matrix;
-        Parameters::cutout_start = _cutout_start;
-        Parameters::cutout_end = _cutout_end;
-        Parameters::maxsl = _maxsl;
-        Parameters::inner_radius = _inner_radius;
         Parameters::event_number = 0;
-        Parameters::debug = false;
-        Parameters::decay_filtering = _decay_filtering;
-        Parameters::num_com_centers = _num_com_centers;
 
         Parameters::inner_neighbor_matrix = createInnerNeighborMatrix();
         Parameters::outer_neighbor_matrix = createOuterNeighborMatrix();
         fillNeighborLayerMatrices();
-        if (Parameters::debug)
+        if (false)
         {
-            for (int i = 0; i < Parameters::num_channels; i++)
+            for (int i = 0; i < HSDetection::Detection::num_channels; i++)
             {
                 cout << "Channel: " << i << endl;
                 cout << "Inner Neighbors: ";
-                for (int j = 0; j < Parameters::max_neighbors; j++)
+                for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
                 {
                     cout << Parameters::inner_neighbor_matrix[i][j] << "  ";
                 }
                 cout << endl;
                 cout << "Outer Neighbors: ";
-                for (int k = 0; k < Parameters::max_neighbors; k++)
+                for (int k = 0; k < HSDetection::Detection::max_neighbors; k++)
                 {
                     cout << Parameters::outer_neighbor_matrix[i][k] << "  ";
                 }
@@ -261,8 +178,8 @@ namespace SpikeHandler
         Parameters::after_chunk = after_chunk;
         Parameters::end_raw_data =
             (Parameters::max_frames_processed + Parameters::after_chunk + Parameters::index_data) *
-                Parameters::num_channels +
-            Parameters::num_channels - 1;
+                HSDetection::Detection::num_channels +
+            HSDetection::Detection::num_channels - 1;
     }
     void setLocalizationParameters(int _aGlobal, int **_baselines,
                                    int _index_baselines)
@@ -311,30 +228,30 @@ namespace SpikeHandler
         amplitude: int
                 The amplitude at which the spike is detected.
         */
-        int cutout_size = Parameters::cutout_start + Parameters::cutout_end + 1;
+        int cutout_size = HSDetection::Detection::cutout_start + HSDetection::Detection::cutout_end + 1;
 
         Spike spike_to_be_added;
         spike_to_be_added.channel = channel;
         spike_to_be_added.frame = frame;
         spike_to_be_added.amplitude = amplitude;
 
-        if (Parameters::debug)
+        if (false)
         {
             cout << "storing COM cutouts " << endl;
         }
         spike_to_be_added = storeWaveformCutout(cutout_size, spike_to_be_added);
-        if (Parameters::debug)
+        if (false)
         {
             cout << "... done storing COM cutouts " << endl;
         }
-        if (Parameters::to_localize)
+        if (HSDetection::Detection::to_localize)
         {
-            if (Parameters::debug)
+            if (false)
             {
                 cout << "Storing counts..." << endl;
             }
             spike_to_be_added = storeCOMWaveformsCounts(spike_to_be_added);
-            if (Parameters::debug)
+            if (false)
             {
                 cout << "... done storing counts!" << endl;
             }
@@ -353,14 +270,14 @@ namespace SpikeHandler
                 Spike first_spike = Parameters::spikes_to_be_processed.front();
                 int first_frame = first_spike.frame;
                 int current_frame = spike_to_be_added.frame;
-                if (current_frame > first_frame + (Parameters::spike_peak_duration +
-                                                   Parameters::noise_duration))
+                if (current_frame > first_frame + (HSDetection::Detection::spike_peak_duration +
+                                                   HSDetection::Detection::noise_duration))
                 {
-                    if (Parameters::to_localize)
+                    if (HSDetection::Detection::to_localize)
                     {
                         try
                         {
-                            if (Parameters::debug)
+                            if (false)
                             {
                                 cout << "spike frame: " << spike_to_be_added.frame << endl;
                             }
@@ -393,7 +310,7 @@ namespace SpikeHandler
         // Filter any remaining spikes leftover at the end and close the spike file.
         while (Parameters::spikes_to_be_processed.size() != 0)
         {
-            if (Parameters::to_localize)
+            if (HSDetection::Detection::to_localize)
             {
                 ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file);
             }
@@ -442,7 +359,7 @@ namespace SpikeHandler
 
     void fillNeighborLayerMatrices()
     {
-        if (Parameters::debug)
+        if (false)
         {
             cout << "Filling Neighbor Layer Matrix" << endl;
         }
@@ -451,10 +368,10 @@ namespace SpikeHandler
         float curr_dist;
         vector<tuple<int, float>> distances_neighbors;
         vector<int> inner_neighbors;
-        for (int i = 0; i < Parameters::num_channels; i++)
+        for (int i = 0; i < HSDetection::Detection::num_channels; i++)
         {
             curr_channel = i;
-            for (int j = 0; j < Parameters::max_neighbors; j++)
+            for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
                 curr_neighbor = Parameters::neighbor_matrix[curr_channel][j];
                 if (curr_channel != curr_neighbor && curr_neighbor != -1)
@@ -482,14 +399,14 @@ namespace SpikeHandler
                 ++k;
                 ++it;
             }
-            while (k < Parameters::max_neighbors)
+            while (k < HSDetection::Detection::max_neighbors)
             {
                 Parameters::inner_neighbor_matrix[i][k] = -1;
                 ++k;
             }
             // Fill outer neighbor matrix
             k = 0;
-            for (int l = 0; l < Parameters::max_neighbors; l++)
+            for (int l = 0; l < HSDetection::Detection::max_neighbors; l++)
             {
                 curr_neighbor = Parameters::neighbor_matrix[i][l];
                 if (curr_neighbor != -1 && curr_neighbor != i)
@@ -510,7 +427,7 @@ namespace SpikeHandler
                     }
                 }
             }
-            while (k < Parameters::max_neighbors)
+            while (k < HSDetection::Detection::max_neighbors)
             {
                 Parameters::outer_neighbor_matrix[i][k] = -1;
                 ++k;
@@ -534,7 +451,7 @@ namespace SpikeHandler
         {
             curr_neighbor = get<0>(*it);
             curr_dist = get<1>(*it);
-            if (curr_dist <= Parameters::inner_radius)
+            if (curr_dist <= HSDetection::Detection::inner_radius)
             {
                 inner_channels.push_back(curr_neighbor);
                 ++it;
@@ -551,10 +468,10 @@ namespace SpikeHandler
     {
         int **inner_neighbor_matrix;
 
-        inner_neighbor_matrix = new int *[Parameters::num_channels];
-        for (int i = 0; i < Parameters::num_channels; i++)
+        inner_neighbor_matrix = new int *[HSDetection::Detection::num_channels];
+        for (int i = 0; i < HSDetection::Detection::num_channels; i++)
         {
-            inner_neighbor_matrix[i] = new int[Parameters::max_neighbors];
+            inner_neighbor_matrix[i] = new int[HSDetection::Detection::max_neighbors];
         }
 
         return inner_neighbor_matrix;
@@ -564,10 +481,10 @@ namespace SpikeHandler
     {
         int **outer_neighbor_matrix;
 
-        outer_neighbor_matrix = new int *[Parameters::num_channels];
-        for (int i = 0; i < Parameters::num_channels; i++)
+        outer_neighbor_matrix = new int *[HSDetection::Detection::num_channels];
+        for (int i = 0; i < HSDetection::Detection::num_channels; i++)
         {
-            outer_neighbor_matrix[i] = new int[Parameters::max_neighbors];
+            outer_neighbor_matrix[i] = new int[HSDetection::Detection::max_neighbors];
         }
         return outer_neighbor_matrix;
     }
@@ -598,9 +515,9 @@ namespace SpikeHandler
             try
             {
                 int curr_reading_index =
-                    (curr_spike.frame - Parameters::cutout_start - frames_processed +
+                    (curr_spike.frame - HSDetection::Detection::cutout_start - frames_processed +
                      Parameters::index_data + i) *
-                        Parameters::num_channels +
+                        HSDetection::Detection::num_channels +
                     channel;
                 if (curr_reading_index < 0 ||
                     curr_reading_index > Parameters::end_raw_data)
@@ -645,15 +562,15 @@ namespace SpikeHandler
 
         vector<int> com_cutouts;
         int *nearest_neighbor_counts;
-        nearest_neighbor_counts = new int[Parameters::num_com_centers];
-        for (int i = 0; i < Parameters::num_com_centers; i++)
+        nearest_neighbor_counts = new int[HSDetection::Detection::num_com_centers];
+        for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
             nearest_neighbor_counts[i] = 0;
         }
 
         // Get closest channels for COM
         int channel = curr_spike.channel;
-        for (int i = 0; i < Parameters::num_com_centers; i++)
+        for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
             int curr_max_channel = Parameters::inner_neighbor_matrix[channel][i];
             if (curr_max_channel == -1)
@@ -664,7 +581,7 @@ namespace SpikeHandler
             }
             curr_spike.largest_channels.push_back(curr_max_channel);
             int frames_processed = Parameters::max_frames_processed * Parameters::iterations;
-            for (int j = 0; j < Parameters::max_neighbors; j++)
+            for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
                 int curr_neighbor_channel = Parameters::inner_neighbor_matrix[curr_max_channel][j];
                 // Out of inner neighbors
@@ -672,17 +589,17 @@ namespace SpikeHandler
                 {
                     nearest_neighbor_counts[i] += 1;
                     // Check if noise_duration is too large in comparison to the buffer size
-                    int cutout_size = Parameters::cutout_start + Parameters::cutout_end + 1;
+                    int cutout_size = HSDetection::Detection::cutout_start + HSDetection::Detection::cutout_end + 1;
                     int amp_cutout_size, cutout_start_index;
-                    if (Parameters::cutout_start < Parameters::noise_duration || Parameters::cutout_end < Parameters::noise_duration)
+                    if (HSDetection::Detection::cutout_start < HSDetection::Detection::noise_duration || HSDetection::Detection::cutout_end < HSDetection::Detection::noise_duration)
                     {
                         amp_cutout_size = cutout_size;
-                        cutout_start_index = Parameters::cutout_start;
+                        cutout_start_index = HSDetection::Detection::cutout_start;
                     }
                     else
                     {
-                        amp_cutout_size = Parameters::noise_duration * 2;
-                        cutout_start_index = Parameters::noise_duration;
+                        amp_cutout_size = HSDetection::Detection::noise_duration * 2;
+                        cutout_start_index = HSDetection::Detection::noise_duration;
                     }
                     for (int k = 0; k < amp_cutout_size; k++)
                     {
@@ -690,9 +607,9 @@ namespace SpikeHandler
                             Parameters::raw_data[(curr_spike.frame - cutout_start_index -
                                                   frames_processed +
                                                   Parameters::index_data + k) *
-                                                     Parameters::num_channels +
+                                                     HSDetection::Detection::num_channels +
                                                  curr_neighbor_channel];
-                        int curr_amp = ((curr_reading - Parameters::aGlobal) * Parameters::ASCALE -
+                        int curr_amp = ((curr_reading - Parameters::aGlobal) * HSDetection::Detection::ASCALE -
                                         Parameters::baselines[curr_neighbor_channel]
                                                              [Parameters::index_baselines]);
                         if (curr_amp < 0)

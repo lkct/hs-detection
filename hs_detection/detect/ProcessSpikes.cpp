@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cmath>
 #include "Parameters.h"
+#include "Detection.h"
 
 using namespace std;
 
@@ -27,7 +28,7 @@ namespace ProcessSpikes
 
         while (!isProcessed)
         {
-            if (Parameters::decay_filtering == true)
+            if (HSDetection::Detection::decay_filtering == true)
             {
                 max_spike = FilterSpikes::filterSpikesDecay(first_spike);
             }
@@ -55,7 +56,7 @@ namespace ProcessSpikes
             else
             {
                 max_spike = Parameters::spikes_to_be_processed.front();
-                if (max_spike.frame > first_spike.frame + Parameters::noise_duration)
+                if (max_spike.frame > first_spike.frame + HSDetection::Detection::noise_duration)
                 {
                     isProcessed = true;
                 }
@@ -89,33 +90,33 @@ namespace ProcessSpikes
         while (!isProcessed)
         {
 
-            if (Parameters::decay_filtering == true)
+            if (HSDetection::Detection::decay_filtering == true)
             {
                 max_spike = FilterSpikes::filterSpikesDecay(first_spike);
             }
             else
             {
-                if (Parameters::debug)
+                if (false)
                 {
                     cout << "Filtering..." << endl;
                 }
                 max_spike = FilterSpikes::filterSpikesAll(first_spike);
-                if (Parameters::debug)
+                if (false)
                 {
                     cout << "done filtering!" << endl;
                 }
             }
 
-            if (Parameters::debug)
+            if (false)
             {
                 cout << "Localizing..." << endl;
             }
             tuple<float, float> position = LocalizeSpikes::localizeSpike(max_spike);
-            if (Parameters::debug)
+            if (false)
             {
                 cout << "done localizing..." << endl;
             }
-            if (Parameters::debug)
+            if (false)
             {
                 cout << "here?" << endl;
             }
@@ -143,7 +144,7 @@ namespace ProcessSpikes
             //         cout << "X real: " << get<0>(position)  << endl;
             //         cout << "Y real: " << get<1>(position)  << endl;
             //     }
-            if (Parameters::debug)
+            if (false)
             {
                 cout << "files suck?" << endl;
             }
@@ -155,7 +156,7 @@ namespace ProcessSpikes
             else
             {
                 max_spike = Parameters::spikes_to_be_processed.front();
-                if (max_spike.frame > first_spike.frame + Parameters::noise_duration)
+                if (max_spike.frame > first_spike.frame + HSDetection::Detection::noise_duration)
                 {
                     isProcessed = true;
                 }

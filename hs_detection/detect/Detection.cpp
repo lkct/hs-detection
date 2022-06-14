@@ -7,6 +7,19 @@ using namespace std;
 
 namespace HSDetection
 {
+    int Detection::num_com_centers = 0;
+    int Detection::num_channels = 0;
+    int Detection::spike_peak_duration = 0;
+    int Detection::noise_duration = 0;
+    float Detection::noise_amp_percent = 0;
+    int Detection::max_neighbors = 0;
+    bool Detection::to_localize = 0;
+    bool Detection::decay_filtering = 0;
+    int Detection::maxsl = 0;
+    int Detection::cutout_start = 0;
+    int Detection::cutout_end = 0;
+    float Detection::inner_radius = 0;
+
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float innerRadius,
@@ -61,11 +74,21 @@ namespace HSDetection
             memcpy(channelNeighbor[i], neighborMatrix + i * maxNeighbors, maxNeighbors * sizeof(int));
         }
 
-        SpikeHandler::setInitialParameters(
-            nChannels, spikePeakDuration, filename, noiseDuration,
-            noiseAmpPercent, innerRadius, channelPosition,
-            channelNeighbor, maxNeighbors, numComCenters, localize,
-            cutoutStart, cutoutEnd, maxSl, decayFiltering);
+        // TODO: error check?
+        num_com_centers = numComCenters;
+        num_channels = nChannels;
+        spike_peak_duration = spikePeakDuration;
+        noise_duration = noiseDuration;
+        noise_amp_percent = noiseAmpPercent;
+        max_neighbors = maxNeighbors;
+        to_localize = localize;
+        decay_filtering = decayFiltering;
+        maxsl = maxSl;
+        cutout_start = cutoutStart;
+        cutout_end = cutoutEnd;
+        inner_radius = innerRadius;
+
+        SpikeHandler::setInitialParameters(filename, channelPosition, channelNeighbor);
     }
 
     Detection::~Detection()

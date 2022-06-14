@@ -2,6 +2,7 @@
 #include "Parameters.h"
 #include <cmath>
 #include <climits>
+#include "Detection.h"
 
 using namespace std;
 
@@ -95,7 +96,7 @@ namespace FilterSpikes
             {
                 if (curr_amp >= max_spike_amp)
                 {
-                    if (curr_frame <= first_spike.frame + Parameters::noise_duration)
+                    if (curr_frame <= first_spike.frame + HSDetection::Detection::noise_duration)
                     {
                         max_spike = curr_spike;
                         max_spike_amp = curr_amp;
@@ -174,7 +175,7 @@ namespace FilterSpikes
             curr_spike = *it;
             curr_channel = curr_spike.channel;
             curr_frame = curr_spike.frame;
-            if (curr_frame <= max_spike.frame + Parameters::noise_duration)
+            if (curr_frame <= max_spike.frame + HSDetection::Detection::noise_duration)
             {
                 if (areNeighbors(max_spike.channel, curr_channel))
                 {
@@ -251,7 +252,7 @@ namespace FilterSpikes
         int NOT_VALID_FRAME = -1;
 
         int curr_inner_neighbor;
-        for (int i = 0; i < Parameters::max_neighbors; i++)
+        for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
             curr_inner_neighbor = Parameters::inner_neighbor_matrix[outer_spike.channel][i];
             if (curr_inner_neighbor == -1)
@@ -269,9 +270,9 @@ namespace FilterSpikes
                     {
                         if (curr_inner_neighbor == it->channel)
                         {
-                            if (outer_spike.amplitude < it->amplitude * Parameters::noise_amp_percent)
+                            if (outer_spike.amplitude < it->amplitude * HSDetection::Detection::noise_amp_percent)
                             {
-                                if (outer_spike.frame < it->frame - Parameters::noise_duration)
+                                if (outer_spike.frame < it->frame - HSDetection::Detection::noise_duration)
                                 {
                                     // outer spike occurs too far before inner spike, probably new spike
                                     shares_inner = true;
@@ -305,7 +306,7 @@ namespace FilterSpikes
         // for(int i = 0; i < Parameters::max_neighbors; i++) {
         float curr_dist;
         float outer_dist_from_center = channelsDist(outer_spike.channel, max_spike.channel);
-        for (int i = 0; i < Parameters::max_neighbors; i++)
+        for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
             int curr_inner_channel = Parameters::inner_neighbor_matrix[outer_spike.channel][i];
             // out of inner channels
@@ -325,14 +326,14 @@ namespace FilterSpikes
                     }
                     else
                     {
-                        if (outer_spike.amplitude >= inner_spike.amplitude * Parameters::noise_amp_percent)
+                        if (outer_spike.amplitude >= inner_spike.amplitude * HSDetection::Detection::noise_amp_percent)
                         {
                             // keep searching
                         }
                         else
                         {
                             // Find the closest neighbor in the spike vector and recurse with it (Recursive Step)
-                            if (outer_spike.frame < inner_spike.frame - Parameters::noise_duration)
+                            if (outer_spike.frame < inner_spike.frame - HSDetection::Detection::noise_duration)
                             {
                                 // Occured too far before the inner spike to be related
                                 // keep searching
@@ -355,7 +356,7 @@ namespace FilterSpikes
         float curr_dist;
         int closest_inner_channel; // TODO: init value
         int closest_dist = INT_MAX;
-        for (int i = 0; i < Parameters::max_neighbors; i++)
+        for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
             int curr_inner_channel = Parameters::inner_neighbor_matrix[outer_channel][i];
             if (curr_inner_channel == -1)
@@ -398,7 +399,7 @@ namespace FilterSpikes
             curr_channel = it->channel;
             curr_amp = it->amplitude;
             curr_frame = it->frame;
-            if (curr_frame <= max_spike.frame + Parameters::noise_duration)
+            if (curr_frame <= max_spike.frame + HSDetection::Detection::noise_duration)
             {
                 if (areNeighbors(max_spike.channel, curr_channel))
                 {
@@ -406,7 +407,7 @@ namespace FilterSpikes
                     {
                         if (curr_amp < max_spike.amplitude)
                         {
-                            if (curr_amp >= max_spike.amplitude * Parameters::noise_amp_percent)
+                            if (curr_amp >= max_spike.amplitude * HSDetection::Detection::noise_amp_percent)
                             {
                                 it = Parameters::spikes_to_be_processed.erase(it);
                             }
@@ -496,7 +497,7 @@ namespace FilterSpikes
         bool is_inner_neighbor = false;
 
         int curr_inner_neighbor;
-        for (int i = 0; i < Parameters::max_neighbors; i++)
+        for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
             curr_inner_neighbor = Parameters::inner_neighbor_matrix[center_channel][i];
             if (curr_inner_neighbor == curr_channel)
@@ -531,7 +532,7 @@ namespace FilterSpikes
         */
         bool are_neighbors = false;
         int curr_neighbor;
-        for (int i = 0; i < Parameters::max_neighbors; i++)
+        for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
             curr_neighbor = Parameters::neighbor_matrix[channel_one][i];
             if (curr_neighbor == channel_two)

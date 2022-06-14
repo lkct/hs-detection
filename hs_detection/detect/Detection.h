@@ -52,7 +52,23 @@ namespace HSDetection
         const int Qdmin = 200; // set minimum value of Qd
         const int Tau_m0 = 4;  // timescale for updating Qm (increment is Qd/Tau_m)
 
+
     public:
+        // TODO: from parameters
+        static const int ASCALE = -64;  // Scaling on the raw extracellular data
+        static int num_com_centers;     // Number of channels used for center of mass
+        static int num_channels;        // Number of channels on the probe
+        static int spike_peak_duration; // The number of frames it takes a spike amplitude to fully decay.
+        static int noise_duration;      // The number of frames that the true spike can occur after the first detection.
+        static float noise_amp_percent; // Amplitude percentage allowed to differentiate between decreasing amplitude duplicate spike
+        static int max_neighbors;       // Maximum number of neighbors a channel can have in the probe
+        static bool to_localize;        // True: filter and localize the spike, False: just filter the spike.
+        static bool decay_filtering;    // if true, then tries to filter by decay (more effective for less dense arrays)
+        static int maxsl;               // Number of frames after a detection that a spike is accepted
+        static int cutout_start;        // The number of frames before the spike that the cutout starts at
+        static int cutout_end;          // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
+        static float inner_radius;
+
         Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,
                   int noiseDuration, float noiseAmpPercent, float innerRadius,
