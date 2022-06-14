@@ -213,7 +213,7 @@ namespace SpikeHandler
                             {
                                 cerr << "spike frame: " << spike_to_be_added.frame << endl;
                             }
-                            ProcessSpikes::filterLocalizeSpikes(HSDetection::Detection::spikes_filtered_file);
+                            ProcessSpikes::filterLocalizeSpikes();
                         }
                         catch (...)
                         {
@@ -226,7 +226,7 @@ namespace SpikeHandler
                     }
                     else
                     {
-                        ProcessSpikes::filterSpikes(HSDetection::Detection::spikes_filtered_file);
+                        ProcessSpikes::filterSpikes();
                     }
                 }
                 else
@@ -244,11 +244,11 @@ namespace SpikeHandler
         {
             if (HSDetection::Detection::to_localize)
             {
-                ProcessSpikes::filterLocalizeSpikes(HSDetection::Detection::spikes_filtered_file);
+                ProcessSpikes::filterLocalizeSpikes();
             }
             else
             {
-                ProcessSpikes::filterSpikes(HSDetection::Detection::spikes_filtered_file);
+                ProcessSpikes::filterSpikes();
             }
         }
         HSDetection::Detection::spikes_filtered_file.close();
