@@ -26,7 +26,7 @@ namespace FilterSpikes
         Spike max_spike(0,0,0);
         // Find the max amplitude neighbor of the first spike
         max_spike = findMaxSpikeNeighbor(first_spike);
-        if (HSDetection::Detection::queue.queue.size() != 0)
+        if (!HSDetection::Detection::queue.empty())
         {
             filterOuterNeighbors(max_spike);
             filterInnerNeighbors(max_spike);
@@ -51,7 +51,7 @@ namespace FilterSpikes
         Spike max_spike(0,0,0);
         // Find the max amplitude neighbor of the first spike
         max_spike = findMaxSpikeNeighbor(first_spike);
-        if (HSDetection::Detection::queue.queue.size() != 0)
+        if (!HSDetection::Detection::queue.empty())
         {
             filterAllNeighbors(max_spike);
         }
@@ -82,10 +82,10 @@ namespace FilterSpikes
         // Find the max amplitude neighbor of the first spike
         HSDetection::SpikeQueue::iterator it;
         HSDetection::SpikeQueue::iterator max_it;
-        max_it = it = HSDetection::Detection::queue.queue.begin();
+        max_it = it = HSDetection::Detection::queue.begin();
 
         // Find max
-        while (it != HSDetection::Detection::queue.queue.end())
+        while (it != HSDetection::Detection::queue.end())
         {
             curr_spike = *it;
             curr_channel = it->channel;
@@ -105,7 +105,7 @@ namespace FilterSpikes
             }
             ++it;
         }
-        HSDetection::Detection::queue.queue.erase(max_it);
+        HSDetection::Detection::queue.erase(max_it);
         return max_spike;
     }
 
@@ -123,9 +123,9 @@ namespace FilterSpikes
         Spike curr_spike(0,0,0);
         int curr_channel, curr_amp;
         HSDetection::SpikeQueue::iterator it;
-        it = HSDetection::Detection::queue.queue.begin();
+        it = HSDetection::Detection::queue.begin();
 
-        while (it != HSDetection::Detection::queue.queue.end())
+        while (it != HSDetection::Detection::queue.end())
         {
             curr_spike = *it;
             curr_channel = it->channel;
@@ -134,7 +134,7 @@ namespace FilterSpikes
             {
                 if (curr_amp < max_spike.amplitude)
                 {
-                    it = HSDetection::Detection::queue.queue.erase(it);
+                    it = HSDetection::Detection::queue.erase(it);
                 }
                 else
                 {
@@ -166,9 +166,9 @@ namespace FilterSpikes
         int curr_channel, curr_frame;
         vector<Spike> outer_spikes_to_be_filtered;
         HSDetection::SpikeQueue::iterator it;
-        it = HSDetection::Detection::queue.queue.begin();
+        it = HSDetection::Detection::queue.begin();
 
-        while (it != HSDetection::Detection::queue.queue.end())
+        while (it != HSDetection::Detection::queue.end())
         {
             curr_spike = *it;
             curr_channel = curr_spike.channel;
@@ -221,15 +221,15 @@ namespace FilterSpikes
             curr_channel_to_be_filtered = curr_spike_to_be_filtered.channel;
             curr_frame_to_be_filtered = curr_spike_to_be_filtered.frame;
 
-            it = HSDetection::Detection::queue.queue.begin();
-            while (it != HSDetection::Detection::queue.queue.end())
+            it = HSDetection::Detection::queue.begin();
+            while (it != HSDetection::Detection::queue.end())
             {
                 curr_spike = *it;
                 curr_channel = curr_spike.channel;
                 curr_frame = curr_spike.frame;
                 if (curr_channel == curr_channel_to_be_filtered && curr_frame == curr_frame_to_be_filtered)
                 {
-                    it = HSDetection::Detection::queue.queue.erase(it);
+                    it = HSDetection::Detection::queue.erase(it);
                     break;
                 }
                 else
@@ -262,9 +262,9 @@ namespace FilterSpikes
                 if (isInnerNeighbor(max_spike.channel, curr_inner_neighbor))
                 {
                     HSDetection::SpikeQueue::iterator it;
-                    it = HSDetection::Detection::queue.queue.begin();
+                    it = HSDetection::Detection::queue.begin();
                     // Find max
-                    while (it != HSDetection::Detection::queue.queue.end())
+                    while (it != HSDetection::Detection::queue.end())
                     {
                         if (curr_inner_neighbor == it->channel)
                         {
@@ -389,9 +389,9 @@ namespace FilterSpikes
         Spike curr_spike(0,0,0);
         int curr_channel, curr_amp, curr_frame;
         HSDetection::SpikeQueue::iterator it;
-        it = HSDetection::Detection::queue.queue.begin();
+        it = HSDetection::Detection::queue.begin();
 
-        while (it != HSDetection::Detection::queue.queue.end())
+        while (it != HSDetection::Detection::queue.end())
         {
             curr_spike = *it;
             curr_channel = it->channel;
@@ -407,11 +407,11 @@ namespace FilterSpikes
                         {
                             if (curr_amp >= max_spike.amplitude * HSDetection::Detection::noise_amp_percent)
                             {
-                                it = HSDetection::Detection::queue.queue.erase(it);
+                                it = HSDetection::Detection::queue.erase(it);
                             }
                             else
                             {
-                                it = HSDetection::Detection::queue.queue.erase(it);
+                                it = HSDetection::Detection::queue.erase(it);
                             }
                         }
                         else
@@ -549,9 +549,9 @@ namespace FilterSpikes
     Spike getSpikeFromChannel(int channel)
     {
         HSDetection::SpikeQueue::iterator it;
-        it = HSDetection::Detection::queue.queue.begin();
+        it = HSDetection::Detection::queue.begin();
         // Find max
-        while (it != HSDetection::Detection::queue.queue.end())
+        while (it != HSDetection::Detection::queue.end())
         {
             if (channel == it->channel)
             {

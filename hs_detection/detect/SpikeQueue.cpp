@@ -5,10 +5,6 @@
 
 namespace HSDetection
 {
-    SpikeQueue::SpikeQueue() : queue() {}
-
-    SpikeQueue::~SpikeQueue() {}
-
     void SpikeQueue::add(Spike spike_to_be_added)
     {
         // TODO: move to processing?
