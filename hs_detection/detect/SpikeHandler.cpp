@@ -90,25 +90,6 @@ namespace SpikeHandler
         HSDetection::Detection::inner_neighbor_matrix = createInnerNeighborMatrix();
         HSDetection::Detection::outer_neighbor_matrix = createOuterNeighborMatrix();
         fillNeighborLayerMatrices();
-        if (false)
-        {
-            for (int i = 0; i < HSDetection::Detection::num_channels; i++)
-            {
-                cerr << "Channel: " << i << endl;
-                cerr << "Inner Neighbors: ";
-                for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
-                {
-                    cerr << HSDetection::Detection::inner_neighbor_matrix[i][j] << "  ";
-                }
-                cerr << endl;
-                cerr << "Outer Neighbors: ";
-                for (int k = 0; k < HSDetection::Detection::max_neighbors; k++)
-                {
-                    cerr << HSDetection::Detection::outer_neighbor_matrix[i][k] << "  ";
-                }
-                cerr << endl;
-            }
-        }
 
         Parameters::spikes_to_be_processed.clear();
     }
@@ -167,26 +148,10 @@ namespace SpikeHandler
         spike_to_be_added.frame = frame;
         spike_to_be_added.amplitude = amplitude;
 
-        if (false)
-        {
-            cerr << "storing COM cutouts " << endl;
-        }
         spike_to_be_added = storeWaveformCutout(cutout_size, spike_to_be_added);
-        if (false)
-        {
-            cerr << "... done storing COM cutouts " << endl;
-        }
         if (HSDetection::Detection::to_localize)
         {
-            if (false)
-            {
-                cerr << "Storing counts..." << endl;
-            }
             spike_to_be_added = storeCOMWaveformsCounts(spike_to_be_added);
-            if (false)
-            {
-                cerr << "... done storing counts!" << endl;
-            }
         }
 
         bool isAdded = false;
@@ -209,10 +174,6 @@ namespace SpikeHandler
                     {
                         try
                         {
-                            if (false)
-                            {
-                                cerr << "spike frame: " << spike_to_be_added.frame << endl;
-                            }
                             ProcessSpikes::filterLocalizeSpikes();
                         }
                         catch (...)
@@ -291,10 +252,6 @@ namespace SpikeHandler
 
     void fillNeighborLayerMatrices()
     {
-        if (false)
-        {
-            cerr << "Filling Neighbor Layer Matrix" << endl;
-        }
         int curr_channel;
         int curr_neighbor;
         float curr_dist;
