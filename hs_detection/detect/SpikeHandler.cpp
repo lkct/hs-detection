@@ -2,7 +2,6 @@
 #include <deque>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include "Parameters.h"
 #include <cmath>
 #include <algorithm>
@@ -16,7 +15,6 @@ int **Parameters::baselines;
 int Parameters::index_baselines;
 
 deque<Spike> Parameters::spikes_to_be_processed;
-ofstream spikes_filtered_file;
 
 namespace SpikeHandler
 {
@@ -29,7 +27,7 @@ namespace SpikeHandler
         }
     };
 
-    void setInitialParameters(string file_name)
+    void setInitialParameters()
     {
         /*This sets all the initial parameters needed to run the filtering algorithm.
 
@@ -112,12 +110,6 @@ namespace SpikeHandler
             }
         }
 
-        if (spikes_filtered_file.is_open())
-        {
-            spikes_filtered_file.close();
-        }
-        //   spikes_filtered_file.open(file_name + ".bin", ios::trunc | ios::binary);
-        spikes_filtered_file.open(file_name + ".bin", ios::binary);
         Parameters::spikes_to_be_processed.clear();
     }
 
@@ -138,7 +130,7 @@ namespace SpikeHandler
         */
         if (_index_baselines < 0)
         {
-            spikes_filtered_file.close();
+            // spikes_filtered_file.close();
             cerr << "Index baselines less than 0. Terminating Spike Handler" << endl;
             exit(EXIT_FAILURE);
         }
@@ -221,11 +213,11 @@ namespace SpikeHandler
                             {
                                 cerr << "spike frame: " << spike_to_be_added.frame << endl;
                             }
-                            ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file);
+                            ProcessSpikes::filterLocalizeSpikes(HSDetection::Detection::spikes_filtered_file);
                         }
                         catch (...)
                         {
-                            spikes_filtered_file.close();
+                            // spikes_filtered_file.close();
                             cerr << "Baseline matrix or its parameters entered incorrectly. "
                                     "Terminating SpikeHandler."
                                  << endl;
@@ -234,7 +226,7 @@ namespace SpikeHandler
                     }
                     else
                     {
-                        ProcessSpikes::filterSpikes(spikes_filtered_file);
+                        ProcessSpikes::filterSpikes(HSDetection::Detection::spikes_filtered_file);
                     }
                 }
                 else
@@ -252,14 +244,14 @@ namespace SpikeHandler
         {
             if (HSDetection::Detection::to_localize)
             {
-                ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file);
+                ProcessSpikes::filterLocalizeSpikes(HSDetection::Detection::spikes_filtered_file);
             }
             else
             {
-                ProcessSpikes::filterSpikes(spikes_filtered_file);
+                ProcessSpikes::filterSpikes(HSDetection::Detection::spikes_filtered_file);
             }
         }
-        spikes_filtered_file.close();
+        HSDetection::Detection::spikes_filtered_file.close();
     }
 
     float channelsDist(int start_channel, int end_channel)
@@ -458,7 +450,7 @@ namespace SpikeHandler
             }
             catch (...)
             {
-                spikes_filtered_file.close();
+                // spikes_filtered_file.close();
                 cerr << "Raw Data and it parameters entered incorrectly, could not "
                         "access data. Terminating SpikeHandler."
                      << endl;

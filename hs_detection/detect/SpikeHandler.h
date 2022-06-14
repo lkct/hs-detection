@@ -1,7 +1,6 @@
 #ifndef SPIKEHANDLER_H
 #define SPIKEHANDLER_H
 
-#include <string>
 #include <vector>
 #include <tuple>
 #include "Spike.h"
@@ -9,7 +8,7 @@
 namespace SpikeHandler
 {
 
-    void setInitialParameters(std::string file_name);
+    void setInitialParameters();
     void setLocalizationParameters(int _aGlobal, int **_baselines, int _index_baselines);
     void addSpike(int channel, int frame, int amplitude);
     void terminateSpikeHandler();

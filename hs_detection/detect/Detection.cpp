@@ -27,6 +27,8 @@ namespace HSDetection
 
     VoltTrace Detection::trace(0, 0, 0);
 
+    std::ofstream Detection::spikes_filtered_file;
+
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float innerRadius,
@@ -100,7 +102,8 @@ namespace HSDetection
 
         trace = VoltTrace(tInc, cutoutStart + maxSl, nChannels);
 
-        SpikeHandler::setInitialParameters(filename);
+        SpikeHandler::setInitialParameters();
+        spikes_filtered_file.open(filename + ".bin", ios::binary); // // ios::trunc?
     }
 
     Detection::~Detection()
