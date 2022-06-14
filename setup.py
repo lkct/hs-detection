@@ -62,6 +62,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 ext_folder = 'hs_detection/detect/'
 sources = ['Detection.cpp',
+           'SpikeQueue.cpp',
            'SpikeHandler.cpp',
            'ProcessSpikes.cpp',
            'FilterSpikes.cpp',

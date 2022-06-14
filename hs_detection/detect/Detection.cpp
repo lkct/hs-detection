@@ -30,6 +30,8 @@ namespace HSDetection
 
     std::ofstream Detection::spikes_filtered_file;
 
+    SpikeQueue Detection::queue;
+
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float innerRadius,
@@ -231,7 +233,7 @@ namespace HSDetection
                                     (currQmsPosition + 1) % (maxSl + spikePeakDuration));
                             }
 
-                            SpikeHandler::addSpike(i, t0 - maxSl + t - tCut + 1, Amp[i]);
+                            queue.add(Spike(t0 - maxSl + t - tCut + 1, i, Amp[i]));
                         }
                         Sl[i] = 0;
                     }
@@ -262,7 +264,8 @@ namespace HSDetection
     // // write spikes in interval after last recalibration; close file
     void Detection::FinishDetection()
     {
-        SpikeHandler::terminateSpikeHandler();
+        queue.close();
+        spikes_filtered_file.close();
     }
 
 } // namespace HSDetection

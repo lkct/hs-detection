@@ -14,8 +14,6 @@ int Parameters::aGlobal;
 int **Parameters::baselines;
 int Parameters::index_baselines;
 
-deque<Spike> Parameters::spikes_to_be_processed;
-
 namespace SpikeHandler
 {
 
@@ -90,8 +88,6 @@ namespace SpikeHandler
         HSDetection::Detection::inner_neighbor_matrix = createInnerNeighborMatrix();
         HSDetection::Detection::outer_neighbor_matrix = createOuterNeighborMatrix();
         fillNeighborLayerMatrices();
-
-        Parameters::spikes_to_be_processed.clear();
     }
 
     void setLocalizationParameters(int _aGlobal, int **_baselines,
@@ -118,99 +114,6 @@ namespace SpikeHandler
         Parameters::aGlobal = _aGlobal;
         Parameters::baselines = _baselines;
         Parameters::index_baselines = _index_baselines;
-    }
-
-    void addSpike(int channel, int frame, int amplitude)
-    {
-        /*Adds a spike to the spikes_to_be_processed deque. Once the frame of the
-      spike to be added is
-        greater than the spike_peak_duration larger than the first spike in the deque,
-      it will process
-        all the current spikes in the deque and then attempt to add the spike again.
-      It will keep repeating
-        this process until the spike to be added frame is smaller than the
-      spike_peak_duration plus the frames
-      of the first spike or the deque is empty.
-
-        Parameters
-        ----------
-        channel: int
-                The channel at which the spike is detected.
-        frame: int
-                The frame at which the spike is detected.
-        amplitude: int
-                The amplitude at which the spike is detected.
-        */
-        Spike spike_to_be_added;
-        spike_to_be_added.channel = channel;
-        spike_to_be_added.frame = frame;
-        spike_to_be_added.amplitude = amplitude;
-
-        spike_to_be_added = storeWaveformCutout(HSDetection::Detection::cutout_size, spike_to_be_added);
-        if (HSDetection::Detection::to_localize)
-        {
-            spike_to_be_added = storeCOMWaveformsCounts(spike_to_be_added);
-        }
-
-        bool isAdded = false;
-        while (!isAdded)
-        {
-            if (Parameters::spikes_to_be_processed.empty())
-            {
-                Parameters::spikes_to_be_processed.push_back(spike_to_be_added);
-                isAdded = true;
-            }
-            else
-            {
-                Spike first_spike = Parameters::spikes_to_be_processed.front();
-                int first_frame = first_spike.frame;
-                int current_frame = spike_to_be_added.frame;
-                if (current_frame > first_frame + (HSDetection::Detection::spike_peak_duration +
-                                                   HSDetection::Detection::noise_duration))
-                {
-                    if (HSDetection::Detection::to_localize)
-                    {
-                        try
-                        {
-                            ProcessSpikes::filterLocalizeSpikes();
-                        }
-                        catch (...)
-                        {
-                            // spikes_filtered_file.close();
-                            cerr << "Baseline matrix or its parameters entered incorrectly. "
-                                    "Terminating SpikeHandler."
-                                 << endl;
-                            exit(EXIT_FAILURE);
-                        }
-                    }
-                    else
-                    {
-                        ProcessSpikes::filterSpikes();
-                    }
-                }
-                else
-                {
-                    Parameters::spikes_to_be_processed.push_back(spike_to_be_added);
-                    isAdded = true;
-                }
-            }
-        }
-    }
-    void terminateSpikeHandler()
-    {
-        // Filter any remaining spikes leftover at the end and close the spike file.
-        while (Parameters::spikes_to_be_processed.size() != 0)
-        {
-            if (HSDetection::Detection::to_localize)
-            {
-                ProcessSpikes::filterLocalizeSpikes();
-            }
-            else
-            {
-                ProcessSpikes::filterSpikes();
-            }
-        }
-        HSDetection::Detection::spikes_filtered_file.close();
     }
 
     float channelsDist(int start_channel, int end_channel)

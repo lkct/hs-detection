@@ -3,6 +3,7 @@
 
 #include <string>
 #include "VoltTrace.h"
+#include "SpikeQueue.h"
 #include <fstream>
 
 namespace HSDetection
@@ -87,6 +88,8 @@ namespace HSDetection
         static VoltTrace trace;
 
         static std::ofstream spikes_filtered_file;
+
+        static SpikeQueue queue;
 
         Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,

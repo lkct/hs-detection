@@ -14,8 +14,8 @@ namespace ProcessSpikes
 
     void filterSpikes()
     {
-        Spike first_spike = Parameters::spikes_to_be_processed.front();
-        Spike max_spike;
+        Spike first_spike = HSDetection::Detection::queue.queue.front();
+        Spike max_spike(0,0,0);
         bool isProcessed = false;
 
         while (!isProcessed)
@@ -43,13 +43,13 @@ namespace ProcessSpikes
             HSDetection::Detection::spikes_filtered_file.write((char *)&Y, sizeof(Y));
             HSDetection::Detection::spikes_filtered_file.write((char *)&max_spike.written_cutout[0], max_spike.written_cutout.size() * sizeof(int32_t));
 
-            if (Parameters::spikes_to_be_processed.size() == 0)
+            if (HSDetection::Detection::queue.queue.size() == 0)
             {
                 isProcessed = true;
             }
             else
             {
-                max_spike = Parameters::spikes_to_be_processed.front();
+                max_spike = HSDetection::Detection::queue.queue.front();
                 if (max_spike.frame > first_spike.frame + HSDetection::Detection::noise_duration)
                 {
                     isProcessed = true;
@@ -64,8 +64,8 @@ namespace ProcessSpikes
 
     void filterLocalizeSpikes()
     {
-        Spike first_spike = Parameters::spikes_to_be_processed.front();
-        Spike max_spike;
+        Spike first_spike = HSDetection::Detection::queue.queue.front();
+        Spike max_spike(0,0,0);
         bool isProcessed = false;
 
         while (!isProcessed)
@@ -95,13 +95,13 @@ namespace ProcessSpikes
             HSDetection::Detection::spikes_filtered_file.write((char *)&Y, sizeof(Y));
             HSDetection::Detection::spikes_filtered_file.write((char *)&max_spike.written_cutout[0], max_spike.written_cutout.size() * sizeof(int32_t));
 
-            if (Parameters::spikes_to_be_processed.size() == 0)
+            if (HSDetection::Detection::queue.queue.size() == 0)
             {
                 isProcessed = true;
             }
             else
             {
-                max_spike = Parameters::spikes_to_be_processed.front();
+                max_spike = HSDetection::Detection::queue.queue.front();
                 if (max_spike.frame > first_spike.frame + HSDetection::Detection::noise_duration)
                 {
                     isProcessed = true;

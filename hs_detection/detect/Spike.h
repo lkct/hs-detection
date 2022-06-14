@@ -6,14 +6,19 @@
 #include <tuple>
 
 // // Internal representation of a spike. User has no need to use it.
-struct Spike
+class Spike
 {
-    int amplitude;
+public:
     int channel;
     int frame;
+    int amplitude;
     std::deque<int> largest_channels;
     std::vector<int> written_cutout;
     std::tuple<std::vector<int>, int *> waveformscounts;
+
+    Spike(int frame, int channel, int amplitude)
+        : channel(channel), frame(frame), amplitude(amplitude) {}
+    ~Spike() {}
 };
 
 #endif
