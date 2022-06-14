@@ -1,7 +1,6 @@
 #ifndef SPIKE_H
 #define SPIKE_H
 
-#include <deque>
 #include <vector>
 
 // // Internal representation of a spike. User has no need to use it.
@@ -11,7 +10,7 @@ public:
     int channel;
     int frame;
     int amplitude;
-    std::deque<int> largest_channels;
+    std::vector<int> largest_channels;
     std::vector<int> written_cutout;
     std::vector<int> waveforms;
     std::vector<int> neighbor_counts;

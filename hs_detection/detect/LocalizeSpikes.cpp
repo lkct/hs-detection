@@ -33,41 +33,30 @@ namespace LocalizeSpikes
            An X and Y coordinate tuple that corresponds to where the spike occurred.
          */
 
-        vector<int> waveforms = spike_to_be_localized.waveforms;
+        vector<int> *waveforms = &spike_to_be_localized.waveforms;
+        vector<int> *neighbor_counts = &spike_to_be_localized.neighbor_counts;
+        vector<int> *largest_channels = &spike_to_be_localized.largest_channels;
         vector<tuple<Point, int>> com_positions_amps;
-        int matrix_offset = 0;
-        int curr_neighbor_channel;
-        int sum_amp;
-        int neighbor_count;
-        int cutout_size;
-        int curr_max_channel;
+
+        int cutout_size = HSDetection::Detection::noise_duration * 2; // compute amplitudes using sum over 2*noise_duration data points
+
+        int offset = 0;
+
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
+            int neighbor_count = (*neighbor_counts)[i];
+            int curr_max_channel = (*largest_channels)[i];
             vector<tuple<int, int>> amps;
-            neighbor_count = spike_to_be_localized.neighbor_counts[i];
-            cutout_size = HSDetection::Detection::noise_duration * 2;
-            curr_max_channel = spike_to_be_localized.largest_channels[i];
-            // compute amplitudes using sum over 2*noise_duration data points
-            for (int j = 0; j < neighbor_count; j++)
+
+            for (int j = 0; j < neighbor_count; j++, offset++)
             {
-                curr_neighbor_channel =
-                    HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
-                sum_amp = 0;
+                int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
+                int sum_amp = 0;
                 for (int k = 0; k < cutout_size; k++)
                 {
-                    sum_amp += waveforms[k + matrix_offset];
-                    /*
-                              curr_amp = waveforms[k + matrix_offset];
-                              if (curr_amp > curr_largest_amp) {
-                                sum_amp += curr_amp;
-                                curr_largest_amp = curr_amp;
-                              }
-                    */
+                    sum_amp += (*waveforms)[k + offset * cutout_size];
                 }
-                // curr_largest_amp = curr_amp;
                 amps.push_back(make_tuple(curr_neighbor_channel, sum_amp));
-                // curr_largest_amp = INT_MIN;
-                matrix_offset += cutout_size;
             }
 
             // compute median, threshold at median
