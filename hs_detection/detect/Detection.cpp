@@ -18,6 +18,7 @@ namespace HSDetection
     int Detection::maxsl = 0;
     int Detection::cutout_start = 0;
     int Detection::cutout_end = 0;
+    int Detection::cutout_size = 0;
     float Detection::inner_radius = 0;
     int **Detection::neighbor_matrix = nullptr;
     float **Detection::channel_positions = nullptr;
@@ -95,6 +96,7 @@ namespace HSDetection
         maxsl = maxSl;
         cutout_start = cutoutStart;
         cutout_end = cutoutEnd;
+        cutout_size = cutoutStart + cutoutEnd + 1;
         inner_radius = innerRadius;
         channel_positions = channelPosition;
         neighbor_matrix = channelNeighbor;

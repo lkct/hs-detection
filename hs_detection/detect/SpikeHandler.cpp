@@ -141,14 +141,12 @@ namespace SpikeHandler
         amplitude: int
                 The amplitude at which the spike is detected.
         */
-        int cutout_size = HSDetection::Detection::cutout_start + HSDetection::Detection::cutout_end + 1;
-
         Spike spike_to_be_added;
         spike_to_be_added.channel = channel;
         spike_to_be_added.frame = frame;
         spike_to_be_added.amplitude = amplitude;
 
-        spike_to_be_added = storeWaveformCutout(cutout_size, spike_to_be_added);
+        spike_to_be_added = storeWaveformCutout(HSDetection::Detection::cutout_size, spike_to_be_added);
         if (HSDetection::Detection::to_localize)
         {
             spike_to_be_added = storeCOMWaveformsCounts(spike_to_be_added);
@@ -463,11 +461,10 @@ namespace SpikeHandler
                 {
                     nearest_neighbor_counts[i] += 1;
                     // Check if noise_duration is too large in comparison to the buffer size
-                    int cutout_size = HSDetection::Detection::cutout_start + HSDetection::Detection::cutout_end + 1;
                     int amp_cutout_size, cutout_start_index;
                     if (HSDetection::Detection::cutout_start < HSDetection::Detection::noise_duration || HSDetection::Detection::cutout_end < HSDetection::Detection::noise_duration)
                     {
-                        amp_cutout_size = cutout_size;
+                        amp_cutout_size = HSDetection::Detection::cutout_size;
                         cutout_start_index = HSDetection::Detection::cutout_start;
                     }
                     else

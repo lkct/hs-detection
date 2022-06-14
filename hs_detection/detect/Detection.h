@@ -67,6 +67,7 @@ namespace HSDetection
         static int maxsl;               // Number of frames after a detection that a spike is accepted
         static int cutout_start;        // The number of frames before the spike that the cutout starts at
         static int cutout_end;          // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
+        static int cutout_size;
         static float inner_radius;
         static int **neighbor_matrix;       /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
                                              index contains pointer to another array which contains channel number of all its neighbors.
