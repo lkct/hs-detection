@@ -25,6 +25,9 @@ namespace HSDetection
     int **Detection::inner_neighbor_matrix = nullptr;
     int **Detection::outer_neighbor_matrix = nullptr;
     int Detection::t_inc = 0;
+    int Detection::aGlobal = 0;
+    int **Detection::baselines = nullptr;
+    int Detection::index_baselines = 0;
 
     VoltTrace Detection::trace(0, 0, 0);
 
@@ -106,8 +109,11 @@ namespace HSDetection
 
         trace = VoltTrace(tInc, cutoutStart + maxSl, nChannels);
 
-        SpikeHandler::setInitialParameters();
         spikes_filtered_file.open(filename + ".bin", ios::binary); // // ios::trunc?
+
+        inner_neighbor_matrix = SpikeHandler::createInnerNeighborMatrix();
+        outer_neighbor_matrix = SpikeHandler::createOuterNeighborMatrix();
+        SpikeHandler::fillNeighborLayerMatrices();
     }
 
     Detection::~Detection()
@@ -222,15 +228,15 @@ namespace HSDetection
                         {
                             if (t - tCut - maxSl + 1 > 0)
                             {
-                                SpikeHandler::setLocalizationParameters(
-                                    Aglobal[t - tCut - maxSl + 1], Qms,
-                                    (currQmsPosition + 1) % (maxSl + spikePeakDuration));
+                                aGlobal = Aglobal[t - tCut - maxSl + 1];
+                                baselines = Qms;
+                                index_baselines = (currQmsPosition + 1) % (maxSl + spikePeakDuration);
                             }
                             else
                             {
-                                SpikeHandler::setLocalizationParameters(
-                                    Aglobal[t - tCut], Qms,
-                                    (currQmsPosition + 1) % (maxSl + spikePeakDuration));
+                                aGlobal = Aglobal[t - tCut];
+                                baselines = Qms;
+                                index_baselines = (currQmsPosition + 1) % (maxSl + spikePeakDuration);
                             }
 
                             queue.add(Spike(t0 - maxSl + t - tCut + 1, i, Amp[i]));

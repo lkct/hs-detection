@@ -4,7 +4,6 @@
 #include "LocalizeSpikes.h"
 #include <iostream>
 #include <cmath>
-#include "Parameters.h"
 #include "Detection.h"
 
 using namespace std;

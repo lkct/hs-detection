@@ -8,8 +8,6 @@
 namespace SpikeHandler
 {
 
-    void setInitialParameters();
-    void setLocalizationParameters(int _aGlobal, int **_baselines, int _index_baselines);
     // Inner neighbor creation methods
     float channelsDist(int start_channel, int end_channel);
     void fillNeighborLayerMatrices();

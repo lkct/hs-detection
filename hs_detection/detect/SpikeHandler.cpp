@@ -2,17 +2,12 @@
 #include <deque>
 #include <iostream>
 #include <fstream>
-#include "Parameters.h"
 #include <cmath>
 #include <algorithm>
 #include "ProcessSpikes.h"
 #include "Detection.h"
 
 using namespace std;
-
-int Parameters::aGlobal;
-int **Parameters::baselines;
-int Parameters::index_baselines;
 
 namespace SpikeHandler
 {
@@ -24,97 +19,6 @@ namespace SpikeHandler
             return std::get<1>(lhs) < std::get<1>(rhs);
         }
     };
-
-    void setInitialParameters()
-    {
-        /*This sets all the initial parameters needed to run the filtering algorithm.
-
-        Parameters
-        ----------
-        _num_channels: int
-                Number of channels on the probe
-      (where the beginning of the spike was).
-        file_name: string
-        The name of the file that the processed spikes will be written to in binary.
-        _noise_duration: int
-                The frames in which the true spike can occur after the first detection
-      of the spike.
-                Ideally, the _noise_duration would be zero if there is no noise (then
-      the first spike
-                that occurs is the original spike), but sometimes the true spike is
-      detected after
-                a duplicate.
-        _noise_amp_percent: float
-                The amplitude percent difference at which two spikes can be considered
-      unique
-                even if the spike detected after has a smaller amplitude (with zero
-      _noise_amp_percent,
-                two concurrent spikes where the second spike has a slightly smaller
-      amplitude
-                will be considered duplicates).
-      _masked_channels: 1D int array
-        The channels that are masked for the detection (AKA we get input from them)
-        _channel_positions: 2D int array
-                Indexed by the channel number starting at 0 and going up to
-      num_channels: Each
-                index contains pointer to another array which contains X and Y
-      position of the channel. User creates
-                this before calling SpikeHandler.
-        _neighbor_matrix: 2D int array
-                Indexed by the channel number starting at 0 and going up to
-      num_channels: Each
-                index contains pointer to another array which contains channel number
-      of all its neighbors.
-                User creates this before calling SpikeHandler.
-        _max_neighbors: int
-                The maximum number of neighbors a channel can have (a neighbor is any
-      channel that can receive the
-                same spike waveform as the original channel if the spike occurred at
-      the original channel).
-        _to_localize: bool
-                True: Localize the spike using our localization method
-                False: Do not localize.
-        cutout_length: int
-                The cutout length to be written out for the spike. Can't be larger
-      than extra data tacked on to raw data.
-        _spikes_to_be_processed: Spike deque
-                Contains all spikes to be proccessed when spike_peak_duration number
-      of frames is stored.
-        _maxsl: int
-                The number of frames until a spike is accepted when the peak value is
-      given.
-        */
-
-        HSDetection::Detection::inner_neighbor_matrix = createInnerNeighborMatrix();
-        HSDetection::Detection::outer_neighbor_matrix = createOuterNeighborMatrix();
-        fillNeighborLayerMatrices();
-    }
-
-    void setLocalizationParameters(int _aGlobal, int **_baselines,
-                                   int _index_baselines)
-    {
-        /*Sets all time dependent variables for localization. The localization needs a
-        global noise value
-        and a precalculated median baseline value for processing amplitudes of spikes.
-
-        Parameters
-        ----------
-        _aGlobal: int
-                The global noise values for all the channels.
-        _baselines: int
-                Contains spike_delay number of frames of median baseline values.
-        Updated by user at every frame.
-        */
-        if (_index_baselines < 0)
-        {
-            // spikes_filtered_file.close();
-            cerr << "Index baselines less than 0. Terminating Spike Handler" << endl;
-            exit(EXIT_FAILURE);
-        }
-        Parameters::aGlobal = _aGlobal;
-        Parameters::baselines = _baselines;
-        Parameters::index_baselines = _index_baselines;
-    }
 
     float channelsDist(int start_channel, int end_channel)
     {
@@ -379,9 +283,9 @@ namespace SpikeHandler
                     {
                         int curr_reading = HSDetection::Detection::trace.get(
                             curr_spike.frame - cutout_start_index + k, curr_neighbor_channel);
-                        int curr_amp = ((curr_reading - Parameters::aGlobal) * HSDetection::Detection::ASCALE -
-                                        Parameters::baselines[curr_neighbor_channel]
-                                                             [Parameters::index_baselines]);
+                        int curr_amp = ((curr_reading - HSDetection::Detection::aGlobal) * HSDetection::Detection::ASCALE -
+                                        HSDetection::Detection::baselines[curr_neighbor_channel]
+                                                             [HSDetection::Detection::index_baselines]);
                         if (curr_amp < 0)
                         {
                             com_cutouts.push_back(0);

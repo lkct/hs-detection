@@ -1,7 +1,6 @@
 #include "LocalizeSpikes.h"
 #include <iostream>
 #include <algorithm>
-#include "Parameters.h"
 #include "Detection.h"
 
 using namespace std;

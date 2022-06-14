@@ -1,5 +1,4 @@
 #include "FilterSpikes.h"
-#include "Parameters.h"
 #include <cmath>
 #include <climits>
 #include "Detection.h"
