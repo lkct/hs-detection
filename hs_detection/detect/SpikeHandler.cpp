@@ -284,7 +284,7 @@ namespace SpikeHandler
                         int curr_reading = HSDetection::Detection::trace.get(
                             curr_spike.frame - cutout_start_index + k, curr_neighbor_channel);
                         int curr_amp = (curr_reading - HSDetection::Detection::aGlobal) * HSDetection::Detection::ASCALE -
-                                        HSDetection::Detection::baselines[HSDetection::Detection::index_baselines][curr_neighbor_channel];
+                                        HSDetection::Detection::baselines[curr_neighbor_channel];
                         if (curr_amp < 0)
                         {
                             com_cutouts.push_back(0);

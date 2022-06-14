@@ -26,8 +26,7 @@ namespace HSDetection
     int **Detection::outer_neighbor_matrix = nullptr;
     int Detection::t_inc = 0;
     int Detection::aGlobal = 0;
-    int **Detection::baselines = nullptr;
-    int Detection::index_baselines = 0;
+    int *Detection::baselines = nullptr;
 
     VoltTrace Detection::trace(0, 0, 0);
 
@@ -229,15 +228,12 @@ namespace HSDetection
                             if (t - tCut - maxSl + 1 > 0)
                             {
                                 aGlobal = Aglobal[t - tCut - maxSl + 1];
-                                baselines = Qms;
-                                index_baselines = (currQmsPosition + 1) % (maxSl + spikePeakDuration);
                             }
                             else
                             {
                                 aGlobal = Aglobal[t - tCut];
-                                baselines = Qms;
-                                index_baselines = (currQmsPosition + 1) % (maxSl + spikePeakDuration);
                             }
+                            baselines = Qms[(currQmsPosition + 1) % (maxSl + spikePeakDuration)];
 
                             queue.add(Spike(t0 - maxSl + t - tCut + 1, i, Amp[i]));
                         }

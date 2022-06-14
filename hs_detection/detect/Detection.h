@@ -85,9 +85,7 @@ namespace HSDetection
                                          this before calling SpikeHandler. */
         static int t_inc;
         static int aGlobal;         // Global noise
-        static int **baselines;     // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
-        static int index_baselines; /*The index given to start accessing the baseline array since baseline array is size 5 and location of
-                                      oldest baseline is constantly changing*/
+        static int *baselines;     // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
 
         static VoltTrace trace;
 
