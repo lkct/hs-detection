@@ -22,59 +22,9 @@ namespace FilterSpikes
         max_spike: Spike
             The largest amplitude spike belonging to the event of the first spike.
         */
-        Spike max_spike(0,0,0);
-        // Find the max amplitude neighbor of the first spike
-        max_spike = findMaxSpikeNeighbor(first_spike);
-        if (!HSDetection::Detection::queue.empty())
-        {
-            filterOuterNeighbors(max_spike);
-            filterInnerNeighbors(max_spike);
-        }
-        return max_spike;
-    }
-
-    Spike filterSpikesAll(Spike first_spike)
-    {
-        /*Removes all duplicate spikes and returns the max spike
-
-        Parameters
-        ----------
-        first_spike: Spike
-            The first spike detected in the event.
-
-        Returns
-        -------
-        max_spike: Spike
-            The largest amplitude spike belonging to the event of the first spike.
-        */
-        Spike max_spike(0,0,0);
-        // Find the max amplitude neighbor of the first spike
-        max_spike = findMaxSpikeNeighbor(first_spike);
-        if (!HSDetection::Detection::queue.empty())
-        {
-            filterAllNeighbors(max_spike);
-        }
-        return max_spike;
-    }
-
-    Spike findMaxSpikeNeighbor(Spike first_spike)
-    {
-        /*Finds the max amplitude neighbor of the first spike in the current window
-
-        Parameters
-        ----------
-        first_spike: Spike
-            The first spike detected in the event.
-
-        Returns
-        -------
-        max_spike: Spike
-            The largest amplitude spike belonging to the event of the first spike.
-        */
-
         int curr_channel, curr_amp, curr_frame;
-        Spike curr_spike(0,0,0);
-        Spike max_spike(0,0,0);
+        Spike curr_spike(0, 0, 0);
+        Spike max_spike(0, 0, 0);
         int max_spike_amp;
         max_spike = first_spike;
         max_spike_amp = first_spike.amplitude;
@@ -105,48 +55,96 @@ namespace FilterSpikes
             ++it;
         }
         HSDetection::Detection::queue.erase(max_it);
+
+        if (!HSDetection::Detection::queue.empty())
+        {
+            filterOuterNeighbors(max_spike);
+            filterInnerNeighbors(max_spike);
+        }
         return max_spike;
     }
 
-    void filterAllNeighbors(Spike max_spike)
+    Spike filterSpikesAll(Spike first_spike)
     {
-        /*Filters all neighbors with smaller amplitudes than max spike that occur
-        in the frame of the event.
+        /*Removes all duplicate spikes and returns the max spike
 
         Parameters
         ----------
+        first_spike: Spike
+            The first spike detected in the event.
+
+        Returns
+        -------
         max_spike: Spike
-            The max spike detected in the event.
+            The largest amplitude spike belonging to the event of the first spike.
         */
-
-        Spike curr_spike(0,0,0);
-        int curr_channel, curr_amp;
+        int curr_channel, curr_amp, curr_frame;
+        Spike curr_spike(0, 0, 0);
+        Spike max_spike(0, 0, 0);
+        int max_spike_amp;
+        max_spike = first_spike;
+        max_spike_amp = first_spike.amplitude;
+        // Find the max amplitude neighbor of the first spike
         HSDetection::SpikeQueue::iterator it;
-        it = HSDetection::Detection::queue.begin();
+        HSDetection::SpikeQueue::iterator max_it;
+        max_it = it = HSDetection::Detection::queue.begin();
 
+        // Find max
         while (it != HSDetection::Detection::queue.end())
         {
             curr_spike = *it;
             curr_channel = it->channel;
             curr_amp = it->amplitude;
-            if (areNeighbors(max_spike.channel, curr_channel))
+            curr_frame = it->frame;
+            if (areNeighbors(first_spike.channel, curr_channel))
             {
-                if (curr_amp < max_spike.amplitude)
+                if (curr_amp >= max_spike_amp)
                 {
-                    it = HSDetection::Detection::queue.erase(it);
+                    if (curr_frame <= first_spike.frame + HSDetection::Detection::noise_duration)
+                    {
+                        max_spike = curr_spike;
+                        max_spike_amp = curr_amp;
+                        max_it = it;
+                    }
+                }
+            }
+            ++it;
+        }
+        HSDetection::Detection::queue.erase(max_it);
+
+        if (!HSDetection::Detection::queue.empty())
+        {
+            Spike curr_spike(0, 0, 0);
+            int curr_channel, curr_amp;
+            HSDetection::SpikeQueue::iterator it;
+            it = HSDetection::Detection::queue.begin();
+
+            while (it != HSDetection::Detection::queue.end())
+            {
+                curr_spike = *it;
+                curr_channel = it->channel;
+                curr_amp = it->amplitude;
+                if (areNeighbors(max_spike.channel, curr_channel))
+                {
+                    if (curr_amp < max_spike.amplitude)
+                    {
+                        it = HSDetection::Detection::queue.erase(it);
+                    }
+                    else
+                    {
+                        // Neighbor has larger amplitude that max neighbor (probably new spike), filter later
+                        ++it;
+                    }
                 }
                 else
                 {
-                    // Neighbor has larger amplitude that max neighbor (probably new spike), filter later
+                    // Not a neighbor, filter later
                     ++it;
                 }
             }
-            else
-            {
-                // Not a neighbor, filter later
-                ++it;
-            }
         }
+
+        return max_spike;
     }
 
     void filterOuterNeighbors(Spike max_spike)
@@ -161,7 +159,7 @@ namespace FilterSpikes
             The max spike detected in the event.
         */
 
-        Spike curr_spike(0,0,0);
+        Spike curr_spike(0, 0, 0);
         int curr_channel, curr_frame;
         vector<Spike> outer_spikes_to_be_filtered;
         HSDetection::SpikeQueue::iterator it;
@@ -209,7 +207,7 @@ namespace FilterSpikes
         }
 
         // Filter all spikes that need to be filtered all together at once
-        Spike curr_spike_to_be_filtered(0,0,0);
+        Spike curr_spike_to_be_filtered(0, 0, 0);
         int curr_channel_to_be_filtered;
         int curr_frame_to_be_filtered;
         vector<Spike>::iterator it2;
@@ -299,7 +297,6 @@ namespace FilterSpikes
                 }
             }
         }
-        // int closest_inner_neighbor_channel = getClosestInnerNeighborChannel(outer_spike.channel, max_spike.channel);
         // for(int i = 0; i < Parameters::max_neighbors; i++) {
         float curr_dist;
         float outer_dist_from_center = channelsDist(outer_spike.channel, max_spike.channel);
@@ -348,31 +345,6 @@ namespace FilterSpikes
         //}
     }
 
-    int getClosestInnerNeighborChannel(int outer_channel, int central_channel)
-    {
-        float curr_dist;
-        int closest_inner_channel; // TODO: init value
-        int closest_dist = INT_MAX;
-        for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
-        {
-            int curr_inner_channel = HSDetection::Detection::inner_neighbor_matrix[outer_channel][i];
-            if (curr_inner_channel == -1)
-            {
-                break;
-            }
-            else
-            {
-                curr_dist = channelsDist(curr_inner_channel, central_channel);
-                if (curr_dist < closest_dist)
-                {
-                    curr_dist = closest_dist;
-                    closest_inner_channel = curr_inner_channel;
-                }
-            }
-        }
-        return closest_inner_channel;
-    }
-
     void filterInnerNeighbors(Spike max_spike)
     {
         /*Filters or leaves all outer neighbors based on minimum spanning tree
@@ -385,7 +357,7 @@ namespace FilterSpikes
             The max spike detected in the event.
         */
 
-        Spike curr_spike(0,0,0);
+        Spike curr_spike(0, 0, 0);
         int curr_channel, curr_amp, curr_frame;
         HSDetection::SpikeQueue::iterator it;
         it = HSDetection::Detection::queue.begin();
@@ -558,7 +530,7 @@ namespace FilterSpikes
             }
             ++it;
         }
-        Spike no_spike(0,0,0);
+        Spike no_spike(0, 0, 0);
         no_spike.channel = -1;
         no_spike.frame = -1;
         no_spike.amplitude = -1;
