@@ -21,7 +21,7 @@ namespace HSDetection
 
         void updateChunk(short *traceBuffer) { this->traceBuffer = traceBuffer, frameOffset += chunkSize; }
         short *operator[](int frame) const { return traceBuffer + (frame - frameOffset) * numChannels; }
-        short get(int frame, int ch) const { return (*this)[frame][ch]; }
+        short get(int frame, int channel) const { return (*this)[frame][channel]; }
         // TODO: sliceFrame
     };
 
