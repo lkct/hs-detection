@@ -47,10 +47,10 @@ namespace HSDetection
     {
         Qd = new int[nChannels];
         Qm = new int[nChannels];
-        Qms = new int *[nChannels]; // TODO: locality, swap axis?
-        for (int i = 0; i < nChannels; i++)
+        Qms = new int *[spikePeakDuration + maxSl];
+        for (int i = 0; i < spikePeakDuration + maxSl; i++)
         {
-            Qms[i] = new int[spikePeakDuration + maxSl + 2];
+            Qms[i] = new int[nChannels];
         }
 
         Sl = new int[nChannels];
@@ -120,7 +120,7 @@ namespace HSDetection
     {
         delete[] Qd;
         delete[] Qm;
-        for (int i = 0; i < nChannels; i++)
+        for (int i = 0; i < spikePeakDuration + maxSl; i++)
         {
             delete[] Qms[i];
         }
@@ -198,7 +198,7 @@ namespace HSDetection
                     Qm[i] -= Qd[i] / (Tau_m0 * 2);
                 }
 
-                Qms[i][currQmsPosition % (maxSl + spikePeakDuration)] = Qm[i];
+                Qms[currQmsPosition % (maxSl + spikePeakDuration)][i] = Qm[i];
 
                 // // should tCut be subtracted here??
                 // calc against updated Qm
