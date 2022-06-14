@@ -19,11 +19,7 @@ namespace HSDetection
               frameOffset(-cutoutLeft - chunkSize), chunkSize(chunkSize) {}
         ~VoltTrace() {}
 
-        void updateChunk(short *traceBuffer)
-        {
-            this->traceBuffer = traceBuffer;
-            frameOffset += chunkSize;
-        }
+        void updateChunk(short *traceBuffer) { this->traceBuffer = traceBuffer, frameOffset += chunkSize; }
         short *operator[](int frame) const { return traceBuffer + (frame - frameOffset) * numChannels; }
         short get(int frame, int ch) const { return (*this)[frame][ch]; }
         // TODO: sliceFrame
