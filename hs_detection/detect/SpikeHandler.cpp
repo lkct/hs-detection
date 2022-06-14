@@ -460,12 +460,6 @@ namespace SpikeHandler
                      HSDetection::RawData::index_data + i) *
                         HSDetection::Detection::num_channels +
                     channel;
-                if (curr_reading_index < 0 ||
-                    curr_reading_index > HSDetection::RawData::end_raw_data)
-                {
-                    curr_written_reading = (int32_t)0;
-                }
-                else
                 {
                     curr_written_reading =
                         (int32_t)HSDetection::RawData::raw_data[curr_reading_index];

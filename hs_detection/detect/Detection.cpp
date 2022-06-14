@@ -27,9 +27,6 @@ namespace HSDetection
 
     int RawData::index_data;
     int RawData::iterations;
-    int RawData::before_chunk;
-    int RawData::after_chunk;
-    int RawData::end_raw_data;
     short *RawData::raw_data;
 
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
@@ -152,10 +149,6 @@ namespace HSDetection
         RawData::raw_data = vm;
         RawData::index_data = tCut;
         RawData::iterations = iterations;
-        RawData::before_chunk = tCut;
-        RawData::after_chunk = tCut2;
-        RawData::end_raw_data =
-            (t_inc + RawData::after_chunk + RawData::index_data) * num_channels + num_channels - 1;
 
         iterations++;
 

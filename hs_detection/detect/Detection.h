@@ -100,11 +100,8 @@ namespace HSDetection
     public:
         static short *raw_data;     // raw data passed in for current iteration
         static int index_data;      // The index given to start accessing the raw data. To account for extra data tacked on for cutout purposes.
-        static int before_chunk;    // The number of buffer frames before chunk
-        static int after_chunk;     // The number of buffer frames after chunk
         static int iterations;      // Number of current iterations of raw data passed in. User starts this at 0 and increments it for each chunk of data;
-        static int end_raw_data;    // index of the end of the raw data
     };
-}
+} // namespace HSDetection
 
 #endif
