@@ -266,6 +266,7 @@ namespace SpikeHandler
                     int amp_cutout_size, cutout_start_index;
                     if (HSDetection::Detection::cutout_start < HSDetection::Detection::noise_duration || HSDetection::Detection::cutout_end < HSDetection::Detection::noise_duration)
                     {
+                        // TODO: possible to enter this branch???
                         amp_cutout_size = HSDetection::Detection::cutout_size;
                         cutout_start_index = HSDetection::Detection::cutout_start;
                     }
@@ -274,21 +275,19 @@ namespace SpikeHandler
                         amp_cutout_size = HSDetection::Detection::noise_duration * 2;
                         cutout_start_index = HSDetection::Detection::noise_duration;
                     }
+                    int sum = 0;
                     for (int k = 0; k < amp_cutout_size; k++)
                     {
                         int curr_reading = HSDetection::Detection::trace.get(
                             curr_spike.frame - cutout_start_index + k, curr_neighbor_channel);
                         int curr_amp = (curr_reading - curr_spike.aGlobal) * HSDetection::Detection::ASCALE -
-                                        curr_spike.baselines[curr_neighbor_channel];
-                        if (curr_amp < 0)
+                                       curr_spike.baselines[curr_neighbor_channel];
+                        if (curr_amp >= 0)
                         {
-                            com_cutouts.push_back(0);
-                        }
-                        else
-                        {
-                            com_cutouts.push_back(curr_amp);
+                            sum += curr_amp;
                         }
                     }
+                    com_cutouts.push_back(sum);
                 }
                 // Out of neighbors to add cutout for
                 else

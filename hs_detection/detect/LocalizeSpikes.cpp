@@ -38,8 +38,6 @@ namespace LocalizeSpikes
         vector<int> *largest_channels = &spike_to_be_localized.largest_channels;
         vector<tuple<Point, int>> com_positions_amps;
 
-        int cutout_size = HSDetection::Detection::noise_duration * 2; // compute amplitudes using sum over 2*noise_duration data points
-
         int offset = 0;
 
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
@@ -51,12 +49,7 @@ namespace LocalizeSpikes
             for (int j = 0; j < neighbor_count; j++, offset++)
             {
                 int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
-                int sum_amp = 0;
-                for (int k = 0; k < cutout_size; k++)
-                {
-                    sum_amp += (*waveforms)[k + offset * cutout_size];
-                }
-                amps.push_back(make_tuple(curr_neighbor_channel, sum_amp));
+                amps.push_back(make_tuple(curr_neighbor_channel, (*waveforms)[offset]));
             }
 
             // compute median, threshold at median
