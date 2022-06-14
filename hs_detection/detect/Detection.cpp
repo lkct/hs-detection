@@ -25,9 +25,7 @@ namespace HSDetection
     int **Detection::outer_neighbor_matrix = nullptr;
     int Detection::t_inc = 0;
 
-    int RawData::index_data;
-    int RawData::iterations;
-    short *RawData::raw_data;
+    VoltTrace Detection::trace(0, 0, 0);
 
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
@@ -36,7 +34,7 @@ namespace HSDetection
                          int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
                          int ahpthr, int maxSl, int minSl, bool decayFiltering)
         : nChannels(nChannels), tInc(tInc), threshold(threshold), minAvgAmp(minAvgAmp),
-          AHPthr(ahpthr), maxSl(maxSl), minSl(minSl), iterations(0),
+          AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
           currQmsPosition(-1), spikePeakDuration(spikePeakDuration)
     {
         Qd = new int[nChannels];
@@ -100,6 +98,8 @@ namespace HSDetection
         neighbor_matrix = channelNeighbor;
         t_inc = tInc;
 
+        trace = VoltTrace(tInc, cutoutStart + maxSl, nChannels);
+
         SpikeHandler::setInitialParameters(filename);
     }
 
@@ -146,11 +146,7 @@ namespace HSDetection
 
     void Detection::Iterate(short *vm, int t0, int tInc, int tCut, int tCut2)
     {
-        RawData::raw_data = vm;
-        RawData::index_data = tCut;
-        RawData::iterations = iterations;
-
-        iterations++;
+        trace.updateChunk(vm);
 
         // // Does this need to end at tInc + tCut? (Cole+Martino)
         for (int t = tCut; t < tInc; t++)

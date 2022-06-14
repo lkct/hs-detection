@@ -2,6 +2,7 @@
 #define DETECTION_H
 
 #include <string>
+#include "VoltTrace.h"
 
 namespace HSDetection
 {
@@ -36,7 +37,6 @@ namespace HSDetection
         int *Aglobal;
         int *Slice;
 
-        int iterations;
         int currQmsPosition;
 
         int spikePeakDuration;
@@ -82,6 +82,8 @@ namespace HSDetection
                                          this before calling SpikeHandler. */
         static int t_inc;
 
+        static VoltTrace trace;
+
         Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,
                   int noiseDuration, float noiseAmpPercent, float innerRadius,
@@ -95,13 +97,6 @@ namespace HSDetection
         void FinishDetection();
     };
 
-    class RawData
-    {
-    public:
-        static short *raw_data;     // raw data passed in for current iteration
-        static int index_data;      // The index given to start accessing the raw data. To account for extra data tacked on for cutout purposes.
-        static int iterations;      // Number of current iterations of raw data passed in. User starts this at 0 and increments it for each chunk of data;
-    };
 } // namespace HSDetection
 
 #endif

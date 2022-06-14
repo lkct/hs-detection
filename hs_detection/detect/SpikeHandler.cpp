@@ -11,7 +11,6 @@
 
 using namespace std;
 
-
 int Parameters::aGlobal;
 int **Parameters::baselines;
 int Parameters::index_baselines;
@@ -448,22 +447,14 @@ namespace SpikeHandler
         curr_spike: Spike
                 The current detected spike (now with the waveform stored)
         */
-        int channel = curr_spike.channel;
         int32_t curr_written_reading;
-        int frames_processed = HSDetection::Detection::t_inc * HSDetection::RawData::iterations;
         for (int i = 0; i < cutout_size; i++)
         {
             try
             {
-                int curr_reading_index =
-                    (curr_spike.frame - HSDetection::Detection::cutout_start - frames_processed +
-                     HSDetection::RawData::index_data + i) *
-                        HSDetection::Detection::num_channels +
-                    channel;
-                {
-                    curr_written_reading =
-                        (int32_t)HSDetection::RawData::raw_data[curr_reading_index];
-                }
+                curr_written_reading = HSDetection::Detection::trace.get(
+                    curr_spike.frame - HSDetection::Detection::cutout_start + i,
+                    curr_spike.channel);
             }
             catch (...)
             {
@@ -515,7 +506,6 @@ namespace SpikeHandler
                 exit(EXIT_FAILURE);
             }
             curr_spike.largest_channels.push_back(curr_max_channel);
-            int frames_processed = HSDetection::Detection::t_inc * HSDetection::RawData::iterations;
             for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
                 int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
@@ -538,12 +528,8 @@ namespace SpikeHandler
                     }
                     for (int k = 0; k < amp_cutout_size; k++)
                     {
-                        int curr_reading =
-                            HSDetection::RawData::raw_data[(curr_spike.frame - cutout_start_index -
-                                                  frames_processed +
-                                                  HSDetection::RawData::index_data + k) *
-                                                     HSDetection::Detection::num_channels +
-                                                 curr_neighbor_channel];
+                        int curr_reading = HSDetection::Detection::trace.get(
+                            curr_spike.frame - cutout_start_index + k, curr_neighbor_channel);
                         int curr_amp = ((curr_reading - Parameters::aGlobal) * HSDetection::Detection::ASCALE -
                                         Parameters::baselines[curr_neighbor_channel]
                                                              [Parameters::index_baselines]);
