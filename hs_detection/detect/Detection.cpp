@@ -25,6 +25,13 @@ namespace HSDetection
     int **Detection::outer_neighbor_matrix = nullptr;
     int Detection::t_inc = 0;
 
+    int RawData::index_data;
+    int RawData::iterations;
+    int RawData::before_chunk;
+    int RawData::after_chunk;
+    int RawData::end_raw_data;
+    short *RawData::raw_data;
+
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float innerRadius,
@@ -142,7 +149,14 @@ namespace HSDetection
 
     void Detection::Iterate(short *vm, int t0, int tInc, int tCut, int tCut2)
     {
-        SpikeHandler::loadRawData(vm, tCut, iterations, tCut, tCut2);
+        RawData::raw_data = vm;
+        RawData::index_data = tCut;
+        RawData::iterations = iterations;
+        RawData::before_chunk = tCut;
+        RawData::after_chunk = tCut2;
+        RawData::end_raw_data =
+            (t_inc + RawData::after_chunk + RawData::index_data) * num_channels + num_channels - 1;
+
         iterations++;
 
         // // Does this need to end at tInc + tCut? (Cole+Martino)

@@ -14,13 +14,7 @@ using namespace std;
 
 int Parameters::aGlobal;
 int **Parameters::baselines;
-int Parameters::index_data;
 int Parameters::index_baselines;
-int Parameters::iterations;
-int Parameters::before_chunk;
-int Parameters::after_chunk;
-int Parameters::end_raw_data;
-short *Parameters::raw_data;
 
 deque<Spike> Parameters::spikes_to_be_processed;
 ofstream spikes_filtered_file;
@@ -127,49 +121,7 @@ namespace SpikeHandler
         spikes_filtered_file.open(file_name + ".bin", ios::binary);
         Parameters::spikes_to_be_processed.clear();
     }
-    void loadRawData(short *_raw_data, int _index_data, int _iterations,
-                     int before_chunk, int after_chunk)
-    {
-        /*Every iteration where new raw data is passed in, this sets pointer to new
-        data and gives the
-        index to start accessing the data at
 
-        Parameters
-        ----------
-        _raw_data: short array
-                Stores all the raw data for the iteration. The data is formatted where
-        the current reading for the first frame
-                at every channel (including non-spike detecting channels) is given in
-        order from smallest channel to largest
-                by channel number. Then it gives the reading for the second frame at
-        every channel. For each iteration, buffer
-                data should be provided for the cutout.
-        _index_data: int
-                The index at which the readings for the data start. This allows the
-        spike detection to skip the buffer data used
-                only for cutout data.
-        _iterations: int
-                Number of current iterations of raw data passed in. User starts this
-        at 0 and increments it for each chunk of data
-                passed into loadRawData.
-        maxFramesProcessed: int
-                The max number of frames passed sorting algorithm
-        frames.
-        before_chunk: int
-                The number of buffer frames before tInc
-        after_chunk: int
-                The number of buffer frames after tInc
-        */
-        Parameters::raw_data = _raw_data;
-        Parameters::index_data = _index_data;
-        Parameters::iterations = _iterations;
-        Parameters::before_chunk = before_chunk;
-        Parameters::after_chunk = after_chunk;
-        Parameters::end_raw_data =
-            (HSDetection::Detection::t_inc + Parameters::after_chunk + Parameters::index_data) *
-                HSDetection::Detection::num_channels +
-            HSDetection::Detection::num_channels - 1;
-    }
     void setLocalizationParameters(int _aGlobal, int **_baselines,
                                    int _index_baselines)
     {
@@ -498,25 +450,25 @@ namespace SpikeHandler
         */
         int channel = curr_spike.channel;
         int32_t curr_written_reading;
-        int frames_processed = HSDetection::Detection::t_inc * Parameters::iterations;
+        int frames_processed = HSDetection::Detection::t_inc * HSDetection::RawData::iterations;
         for (int i = 0; i < cutout_size; i++)
         {
             try
             {
                 int curr_reading_index =
                     (curr_spike.frame - HSDetection::Detection::cutout_start - frames_processed +
-                     Parameters::index_data + i) *
+                     HSDetection::RawData::index_data + i) *
                         HSDetection::Detection::num_channels +
                     channel;
                 if (curr_reading_index < 0 ||
-                    curr_reading_index > Parameters::end_raw_data)
+                    curr_reading_index > HSDetection::RawData::end_raw_data)
                 {
                     curr_written_reading = (int32_t)0;
                 }
                 else
                 {
                     curr_written_reading =
-                        (int32_t)Parameters::raw_data[curr_reading_index];
+                        (int32_t)HSDetection::RawData::raw_data[curr_reading_index];
                 }
             }
             catch (...)
@@ -569,7 +521,7 @@ namespace SpikeHandler
                 exit(EXIT_FAILURE);
             }
             curr_spike.largest_channels.push_back(curr_max_channel);
-            int frames_processed = HSDetection::Detection::t_inc * Parameters::iterations;
+            int frames_processed = HSDetection::Detection::t_inc * HSDetection::RawData::iterations;
             for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
                 int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
@@ -593,9 +545,9 @@ namespace SpikeHandler
                     for (int k = 0; k < amp_cutout_size; k++)
                     {
                         int curr_reading =
-                            Parameters::raw_data[(curr_spike.frame - cutout_start_index -
+                            HSDetection::RawData::raw_data[(curr_spike.frame - cutout_start_index -
                                                   frames_processed +
-                                                  Parameters::index_data + k) *
+                                                  HSDetection::RawData::index_data + k) *
                                                      HSDetection::Detection::num_channels +
                                                  curr_neighbor_channel];
                         int curr_amp = ((curr_reading - Parameters::aGlobal) * HSDetection::Detection::ASCALE -
