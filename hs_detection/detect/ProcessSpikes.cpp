@@ -80,13 +80,13 @@ namespace ProcessSpikes
                 max_spike = HSDetection::SpikeFilterer()(&HSDetection::Detection::queue, HSDetection::Detection::queue.begin());
             }
 
-            tuple<float, float> position = LocalizeSpikes::localizeSpike(max_spike);
+            Point position = LocalizeSpikes::localizeSpike(max_spike);
 
             int32_t msc = (int32_t)max_spike.channel;
             int32_t msf = (int32_t)max_spike.frame;
             int32_t msa = (int32_t)max_spike.amplitude;
-            int32_t X = (int32_t)floor(get<0>(position) * 1000 + .5);
-            int32_t Y = (int32_t)floor(get<1>(position) * 1000 + .5);
+            int32_t X = (int32_t)floor(position.x * 1000 + .5);
+            int32_t Y = (int32_t)floor(position.y * 1000 + .5);
 
             HSDetection::Detection::spikes_filtered_file.write((char *)&msc, sizeof(msc));
             HSDetection::Detection::spikes_filtered_file.write((char *)&msf, sizeof(msf));

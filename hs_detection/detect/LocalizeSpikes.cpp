@@ -17,7 +17,7 @@ namespace LocalizeSpikes
         }
     };
 
-    tuple<float, float> localizeSpike(Spike spike_to_be_localized)
+    Point localizeSpike(Spike spike_to_be_localized)
     {
         /*Estimates the X and Y position of where a spike occured on the probe.
 
@@ -34,7 +34,7 @@ namespace LocalizeSpikes
          */
 
         vector<int> waveforms = get<0>(spike_to_be_localized.waveformscounts);
-        deque<tuple<tuple<float, float>, int>> com_positions_amps;
+        vector<tuple<Point, int>> com_positions_amps;
         int matrix_offset = 0;
         int curr_neighbor_channel;
         int sum_amp;
@@ -43,7 +43,7 @@ namespace LocalizeSpikes
         int curr_max_channel;
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
-            deque<tuple<int, int>> amps;
+            vector<tuple<int, int>> amps;
             neighbor_count = get<1>(spike_to_be_localized.waveformscounts)[i];
             cutout_size = HSDetection::Detection::noise_duration * 2;
             curr_max_channel = spike_to_be_localized.largest_channels[i];
@@ -88,7 +88,7 @@ namespace LocalizeSpikes
                 }
             }
             // Correct amplitudes (threshold)
-            deque<tuple<int, int>> centered_amps;
+            vector<tuple<int, int>> centered_amps;
             if (amps_size != 1)
             {
                 for (int i = 0; i < amps_size; i++)
@@ -105,15 +105,15 @@ namespace LocalizeSpikes
                 centered_amps.push_back(amps.at(0));
             }
 
-            tuple<float, float> position = centerOfMass(centered_amps);
-            tuple<tuple<float, float>, int> position_amp_tuple = make_tuple(position, 1);
+            Point position = centerOfMass(centered_amps);
+            tuple<Point, int> position_amp_tuple = make_tuple(position, 1);
             com_positions_amps.push_back(position_amp_tuple);
 
             amps.clear();
             centered_amps.clear();
         }
 
-        tuple<float, float> reweighted_com;
+        Point reweighted_com(0, 0);
         if (com_positions_amps.size() > 1)
         {
             reweighted_com = reweightedCenterOfMass(com_positions_amps);
@@ -126,7 +126,7 @@ namespace LocalizeSpikes
         return reweighted_com;
     }
 
-    tuple<float, float> reweightedCenterOfMass(deque<tuple<tuple<float, float>, int>> com_positions_amps)
+    Point reweightedCenterOfMass(vector<tuple<Point, int>> com_positions_amps)
     {
         float X = 0;
         float Y = 0;
@@ -140,8 +140,8 @@ namespace LocalizeSpikes
 
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
-            X_coordinate = get<0>(get<0>((com_positions_amps[i])));
-            Y_coordinate = get<1>(get<0>((com_positions_amps[i])));
+            X_coordinate = get<0>((com_positions_amps[i])).x;
+            Y_coordinate = get<0>((com_positions_amps[i])).y;
             weight = get<1>(com_positions_amps[i]);
             if (weight < 0)
             {
@@ -157,8 +157,8 @@ namespace LocalizeSpikes
             cerr << "Whopodis" << endl;
             for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
             {
-                X_coordinate = get<0>(get<0>((com_positions_amps[i])));
-                Y_coordinate = get<1>(get<0>((com_positions_amps[i])));
+                X_coordinate = get<0>((com_positions_amps[i])).x;
+                Y_coordinate = get<0>((com_positions_amps[i])).y;
                 weight = get<1>(com_positions_amps[i]);
                 if (weight < 0)
                 {
@@ -173,10 +173,10 @@ namespace LocalizeSpikes
         X = (X_numerator) / (float)(denominator);
         Y = (Y_numerator) / (float)(denominator);
 
-        return make_tuple(X, Y);
+        return Point(X, Y);
     }
 
-    tuple<float, float> centerOfMass(deque<tuple<int, int>> centered_amps)
+    Point centerOfMass(vector<tuple<int, int>> centered_amps)
     {
         /*Calculates the center of mass of a spike to calculate where it occurred
            using a weighted average.
@@ -239,7 +239,7 @@ namespace LocalizeSpikes
             Y = (float)(Y_numerator) / (float)(denominator);
         }
 
-        return make_tuple(X, Y);
+        return Point(X, Y);
     }
 
 }
