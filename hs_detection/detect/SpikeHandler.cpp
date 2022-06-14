@@ -313,80 +313,77 @@ namespace SpikeHandler
         */
         int cutout_size = Parameters::cutout_start + Parameters::cutout_end + 1;
 
-        if (channel < Parameters::num_channels && channel >= 0)
+        Spike spike_to_be_added;
+        spike_to_be_added.channel = channel;
+        spike_to_be_added.frame = frame;
+        spike_to_be_added.amplitude = amplitude;
+
+        if (Parameters::debug)
         {
-            Spike spike_to_be_added;
-            spike_to_be_added.channel = channel;
-            spike_to_be_added.frame = frame;
-            spike_to_be_added.amplitude = amplitude;
-
+            cout << "storing COM cutouts " << endl;
+        }
+        spike_to_be_added = storeWaveformCutout(cutout_size, spike_to_be_added);
+        if (Parameters::debug)
+        {
+            cout << "... done storing COM cutouts " << endl;
+        }
+        if (Parameters::to_localize)
+        {
             if (Parameters::debug)
             {
-                cout << "storing COM cutouts " << endl;
+                cout << "Storing counts..." << endl;
             }
-            spike_to_be_added = storeWaveformCutout(cutout_size, spike_to_be_added);
+            spike_to_be_added = storeCOMWaveformsCounts(spike_to_be_added);
             if (Parameters::debug)
             {
-                cout << "... done storing COM cutouts " << endl;
+                cout << "... done storing counts!" << endl;
             }
-            if (Parameters::to_localize)
-            {
-                if (Parameters::debug)
-                {
-                    cout << "Storing counts..." << endl;
-                }
-                spike_to_be_added = storeCOMWaveformsCounts(spike_to_be_added);
-                if (Parameters::debug)
-                {
-                    cout << "... done storing counts!" << endl;
-                }
-            }
+        }
 
-            bool isAdded = false;
-            while (!isAdded)
+        bool isAdded = false;
+        while (!isAdded)
+        {
+            if (Parameters::spikes_to_be_processed.empty())
             {
-                if (Parameters::spikes_to_be_processed.empty())
+                Parameters::spikes_to_be_processed.push_back(spike_to_be_added);
+                isAdded = true;
+            }
+            else
+            {
+                Spike first_spike = Parameters::spikes_to_be_processed.front();
+                int first_frame = first_spike.frame;
+                int current_frame = spike_to_be_added.frame;
+                if (current_frame > first_frame + (Parameters::spike_peak_duration +
+                                                   Parameters::noise_duration))
                 {
-                    Parameters::spikes_to_be_processed.push_back(spike_to_be_added);
-                    isAdded = true;
-                }
-                else
-                {
-                    Spike first_spike = Parameters::spikes_to_be_processed.front();
-                    int first_frame = first_spike.frame;
-                    int current_frame = spike_to_be_added.frame;
-                    if (current_frame > first_frame + (Parameters::spike_peak_duration +
-                                                       Parameters::noise_duration))
+                    if (Parameters::to_localize)
                     {
-                        if (Parameters::to_localize)
+                        try
                         {
-                            try
+                            if (Parameters::debug)
                             {
-                                if (Parameters::debug)
-                                {
-                                    cout << "spike frame: " << spike_to_be_added.frame << endl;
-                                }
-                                ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file);
+                                cout << "spike frame: " << spike_to_be_added.frame << endl;
                             }
-                            catch (...)
-                            {
-                                spikes_filtered_file.close();
-                                cout << "Baseline matrix or its parameters entered incorrectly. "
-                                        "Terminating SpikeHandler."
-                                     << endl;
-                                exit(EXIT_FAILURE);
-                            }
+                            ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file);
                         }
-                        else
+                        catch (...)
                         {
-                            ProcessSpikes::filterSpikes(spikes_filtered_file);
+                            spikes_filtered_file.close();
+                            cout << "Baseline matrix or its parameters entered incorrectly. "
+                                    "Terminating SpikeHandler."
+                                 << endl;
+                            exit(EXIT_FAILURE);
                         }
                     }
                     else
                     {
-                        Parameters::spikes_to_be_processed.push_back(spike_to_be_added);
-                        isAdded = true;
+                        ProcessSpikes::filterSpikes(spikes_filtered_file);
                     }
+                }
+                else
+                {
+                    Parameters::spikes_to_be_processed.push_back(spike_to_be_added);
+                    isAdded = true;
                 }
             }
         }
