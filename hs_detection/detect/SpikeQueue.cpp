@@ -16,10 +16,8 @@ namespace HSDetection
 
         while (true)
         {
-            Spike firstSpike(0, 0, 0); // TODO: ???
             if (queue.empty() ||
-                spike.frame <= (firstSpike = queue.front()).frame +
-                                   Detection::spike_peak_duration + Detection::noise_duration)
+                spike.frame <= queue.front().frame + Detection::spike_peak_duration + Detection::noise_duration)
             {
                 queue.push_back(spike);
                 break;
