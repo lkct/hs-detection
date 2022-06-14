@@ -11,10 +11,7 @@
 
 using namespace std;
 
-int **Parameters::neighbor_matrix;
-float **Parameters::channel_positions;
-int **Parameters::inner_neighbor_matrix;
-int **Parameters::outer_neighbor_matrix;
+
 int Parameters::aGlobal;
 int **Parameters::baselines;
 int Parameters::index_data;
@@ -25,7 +22,6 @@ int Parameters::before_chunk;
 int Parameters::after_chunk;
 int Parameters::end_raw_data;
 short *Parameters::raw_data;
-int Parameters::event_number;
 
 deque<Spike> Parameters::spikes_to_be_processed;
 ofstream spikes_filtered_file;
@@ -41,8 +37,7 @@ namespace SpikeHandler
         }
     };
 
-    void setInitialParameters(string file_name,
-                              float **_channel_positions, int **_neighbor_matrix)
+    void setInitialParameters(string file_name)
     {
         /*This sets all the initial parameters needed to run the filtering algorithm.
 
@@ -102,12 +97,8 @@ namespace SpikeHandler
       given.
         */
 
-        Parameters::channel_positions = _channel_positions;
-        Parameters::neighbor_matrix = _neighbor_matrix;
-        Parameters::event_number = 0;
-
-        Parameters::inner_neighbor_matrix = createInnerNeighborMatrix();
-        Parameters::outer_neighbor_matrix = createOuterNeighborMatrix();
+        HSDetection::Detection::inner_neighbor_matrix = createInnerNeighborMatrix();
+        HSDetection::Detection::outer_neighbor_matrix = createOuterNeighborMatrix();
         fillNeighborLayerMatrices();
         if (false)
         {
@@ -117,13 +108,13 @@ namespace SpikeHandler
                 cout << "Inner Neighbors: ";
                 for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
                 {
-                    cout << Parameters::inner_neighbor_matrix[i][j] << "  ";
+                    cout << HSDetection::Detection::inner_neighbor_matrix[i][j] << "  ";
                 }
                 cout << endl;
                 cout << "Outer Neighbors: ";
                 for (int k = 0; k < HSDetection::Detection::max_neighbors; k++)
                 {
-                    cout << Parameters::outer_neighbor_matrix[i][k] << "  ";
+                    cout << HSDetection::Detection::outer_neighbor_matrix[i][k] << "  ";
                 }
                 cout << endl;
             }
@@ -346,10 +337,10 @@ namespace SpikeHandler
         float y_displacement;
         float dist;
 
-        start_position_x = Parameters::channel_positions[start_channel][0];
-        start_position_y = Parameters::channel_positions[start_channel][1];
-        end_position_x = Parameters::channel_positions[end_channel][0];
-        end_position_y = Parameters::channel_positions[end_channel][1];
+        start_position_x = HSDetection::Detection::channel_positions[start_channel][0];
+        start_position_y = HSDetection::Detection::channel_positions[start_channel][1];
+        end_position_x = HSDetection::Detection::channel_positions[end_channel][0];
+        end_position_y = HSDetection::Detection::channel_positions[end_channel][1];
         x_displacement = start_position_x - end_position_x;
         y_displacement = start_position_y - end_position_y;
         dist = sqrt(pow(x_displacement, 2) + pow(y_displacement, 2));
@@ -373,7 +364,7 @@ namespace SpikeHandler
             curr_channel = i;
             for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
-                curr_neighbor = Parameters::neighbor_matrix[curr_channel][j];
+                curr_neighbor = HSDetection::Detection::neighbor_matrix[curr_channel][j];
                 if (curr_channel != curr_neighbor && curr_neighbor != -1)
                 {
                     curr_dist = channelsDist(curr_neighbor, curr_channel);
@@ -395,26 +386,26 @@ namespace SpikeHandler
             while (it != inner_neighbors.end())
             {
                 curr_inner_neighbor = *it;
-                Parameters::inner_neighbor_matrix[i][k] = curr_inner_neighbor;
+                HSDetection::Detection::inner_neighbor_matrix[i][k] = curr_inner_neighbor;
                 ++k;
                 ++it;
             }
             while (k < HSDetection::Detection::max_neighbors)
             {
-                Parameters::inner_neighbor_matrix[i][k] = -1;
+                HSDetection::Detection::inner_neighbor_matrix[i][k] = -1;
                 ++k;
             }
             // Fill outer neighbor matrix
             k = 0;
             for (int l = 0; l < HSDetection::Detection::max_neighbors; l++)
             {
-                curr_neighbor = Parameters::neighbor_matrix[i][l];
+                curr_neighbor = HSDetection::Detection::neighbor_matrix[i][l];
                 if (curr_neighbor != -1 && curr_neighbor != i)
                 {
                     bool is_outer_neighbor = true;
                     for (size_t m = 0; m < inner_neighbors.size(); m++)
                     {
-                        if (Parameters::inner_neighbor_matrix[i][m] == curr_neighbor)
+                        if (HSDetection::Detection::inner_neighbor_matrix[i][m] == curr_neighbor)
                         {
                             is_outer_neighbor = false;
                             break;
@@ -422,14 +413,14 @@ namespace SpikeHandler
                     }
                     if (is_outer_neighbor)
                     {
-                        Parameters::outer_neighbor_matrix[i][k] = curr_neighbor;
+                        HSDetection::Detection::outer_neighbor_matrix[i][k] = curr_neighbor;
                         ++k;
                     }
                 }
             }
             while (k < HSDetection::Detection::max_neighbors)
             {
-                Parameters::outer_neighbor_matrix[i][k] = -1;
+                HSDetection::Detection::outer_neighbor_matrix[i][k] = -1;
                 ++k;
             }
             inner_neighbors.clear();
@@ -572,7 +563,7 @@ namespace SpikeHandler
         int channel = curr_spike.channel;
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
-            int curr_max_channel = Parameters::inner_neighbor_matrix[channel][i];
+            int curr_max_channel = HSDetection::Detection::inner_neighbor_matrix[channel][i];
             if (curr_max_channel == -1)
             {
                 cout << "num_com_centers too large. Not enough inner neighbors."
@@ -583,7 +574,7 @@ namespace SpikeHandler
             int frames_processed = Parameters::max_frames_processed * Parameters::iterations;
             for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
-                int curr_neighbor_channel = Parameters::inner_neighbor_matrix[curr_max_channel][j];
+                int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
                 // Out of inner neighbors
                 if (curr_neighbor_channel != -1)
                 {

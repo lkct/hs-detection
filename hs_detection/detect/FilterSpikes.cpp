@@ -254,7 +254,7 @@ namespace FilterSpikes
         int curr_inner_neighbor;
         for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
-            curr_inner_neighbor = Parameters::inner_neighbor_matrix[outer_spike.channel][i];
+            curr_inner_neighbor = HSDetection::Detection::inner_neighbor_matrix[outer_spike.channel][i];
             if (curr_inner_neighbor == -1)
             {
                 break;
@@ -308,7 +308,7 @@ namespace FilterSpikes
         float outer_dist_from_center = channelsDist(outer_spike.channel, max_spike.channel);
         for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
-            int curr_inner_channel = Parameters::inner_neighbor_matrix[outer_spike.channel][i];
+            int curr_inner_channel = HSDetection::Detection::inner_neighbor_matrix[outer_spike.channel][i];
             // out of inner channels
             if (curr_inner_channel == -1)
             {
@@ -358,7 +358,7 @@ namespace FilterSpikes
         int closest_dist = INT_MAX;
         for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
-            int curr_inner_channel = Parameters::inner_neighbor_matrix[outer_channel][i];
+            int curr_inner_channel = HSDetection::Detection::inner_neighbor_matrix[outer_channel][i];
             if (curr_inner_channel == -1)
             {
                 break;
@@ -466,10 +466,10 @@ namespace FilterSpikes
         float y_displacement;
         float dist;
 
-        start_position_x = Parameters::channel_positions[start_channel][0];
-        start_position_y = Parameters::channel_positions[start_channel][1];
-        end_position_x = Parameters::channel_positions[end_channel][0];
-        end_position_y = Parameters::channel_positions[end_channel][1];
+        start_position_x = HSDetection::Detection::channel_positions[start_channel][0];
+        start_position_y = HSDetection::Detection::channel_positions[start_channel][1];
+        end_position_x = HSDetection::Detection::channel_positions[end_channel][0];
+        end_position_y = HSDetection::Detection::channel_positions[end_channel][1];
         x_displacement = start_position_x - end_position_x;
         y_displacement = start_position_y - end_position_y;
         dist = sqrt(pow(x_displacement, 2) + pow(y_displacement, 2));
@@ -499,7 +499,7 @@ namespace FilterSpikes
         int curr_inner_neighbor;
         for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
-            curr_inner_neighbor = Parameters::inner_neighbor_matrix[center_channel][i];
+            curr_inner_neighbor = HSDetection::Detection::inner_neighbor_matrix[center_channel][i];
             if (curr_inner_neighbor == curr_channel)
             {
                 is_inner_neighbor = true;
@@ -534,7 +534,7 @@ namespace FilterSpikes
         int curr_neighbor;
         for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
         {
-            curr_neighbor = Parameters::neighbor_matrix[channel_one][i];
+            curr_neighbor = HSDetection::Detection::neighbor_matrix[channel_one][i];
             if (curr_neighbor == channel_two)
             {
                 are_neighbors = true;

@@ -9,7 +9,7 @@
 namespace SpikeHandler
 {
 
-    void setInitialParameters(std::string file_name, float **_channel_positions, int **_neighbor_matrix);
+    void setInitialParameters(std::string file_name);
     void loadRawData(short *_raw_data, int _index_data, int _iterations, int maxFramesProcessed, int before_chunk, int after_chunk);
     void setLocalizationParameters(int _aGlobal, int **_baselines, int _index_baselines);
     void addSpike(int channel, int frame, int amplitude);

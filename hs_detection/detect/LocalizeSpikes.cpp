@@ -52,7 +52,7 @@ namespace LocalizeSpikes
             for (int j = 0; j < neighbor_count; j++)
             {
                 curr_neighbor_channel =
-                    Parameters::inner_neighbor_matrix[curr_max_channel][j];
+                    HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
                 sum_amp = 0;
                 for (int k = 0; k < cutout_size; k++)
                 {
@@ -226,8 +226,8 @@ namespace LocalizeSpikes
         {
             weight = get<1>(centered_amps.at(i));
             channel = get<0>(centered_amps.at(i));
-            X_coordinate = Parameters::channel_positions[channel][0];
-            Y_coordinate = Parameters::channel_positions[channel][1];
+            X_coordinate = HSDetection::Detection::channel_positions[channel][0];
+            Y_coordinate = HSDetection::Detection::channel_positions[channel][1];
             if (weight < 0)
             {
                 cout << "\ncenterOfMass::weight < 0 - this should not happen\n";
@@ -245,8 +245,8 @@ namespace LocalizeSpikes
                 channel = get<0>(centered_amps.at(i));
                 // cout << " " << get<1>(centered_amps.at(i)) << " "
                 //      << Parameters::channel_positions[channel][0] << "\n";
-                X = Parameters::channel_positions[channel][0];
-                Y = Parameters::channel_positions[channel][1];
+                X = HSDetection::Detection::channel_positions[channel][0];
+                Y = HSDetection::Detection::channel_positions[channel][1];
             }
             cout << "\n";
         }

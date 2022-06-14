@@ -9,20 +9,6 @@
 namespace Parameters
 {
 
-    extern int **neighbor_matrix;       /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
-                                         index contains pointer to another array which contains channel number of all its neighbors.
-                                         User creates this before calling SpikeHandler. Each column has size equal to max neighbors where
-                                         any channels that have less neighbors fills the rest with -1 (important). */
-    extern int **inner_neighbor_matrix; /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
-                                  index contains pointer to another array which contains channel number of all its inner neighbors.
-                                  Created by SpikeHandler; */
-    extern int **outer_neighbor_matrix; /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
-                                        index contains pointer to another array which contains channel number of all its outer neighbors.
-                                        Created by SpikeHandler; */
-
-    extern float **channel_positions;           /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
-                                             index contains pointer to another array which contains X and Y position of the channel. User creates
-                                             this before calling SpikeHandler. */
     extern int aGlobal;                         // Global noise
     extern int **baselines;                     // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
     extern std::deque<Spike> spikes_to_be_processed; // Contains all spikes to be proccessed when spike_peak_duration number of frames is stored.
@@ -35,7 +21,6 @@ namespace Parameters
     extern int after_chunk;                     // The number of buffer frames after chunk
     extern int iterations;                      // Number of current iterations of raw data passed in. User starts this at 0 and increments it for each chunk of data;
     extern int end_raw_data;                    // index of the end of the raw data
-    extern int event_number;
 
 };
 

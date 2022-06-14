@@ -52,7 +52,6 @@ namespace HSDetection
         const int Qdmin = 200; // set minimum value of Qd
         const int Tau_m0 = 4;  // timescale for updating Qm (increment is Qd/Tau_m)
 
-
     public:
         // TODO: from parameters
         static const int ASCALE = -64;  // Scaling on the raw extracellular data
@@ -68,6 +67,19 @@ namespace HSDetection
         static int cutout_start;        // The number of frames before the spike that the cutout starts at
         static int cutout_end;          // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
         static float inner_radius;
+        static int **neighbor_matrix;       /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
+                                             index contains pointer to another array which contains channel number of all its neighbors.
+                                             User creates this before calling SpikeHandler. Each column has size equal to max neighbors where
+                                             any channels that have less neighbors fills the rest with -1 (important). */
+        static int **inner_neighbor_matrix; /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
+                                      index contains pointer to another array which contains channel number of all its inner neighbors.
+                                      Created by SpikeHandler; */
+        static int **outer_neighbor_matrix; /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
+                                            index contains pointer to another array which contains channel number of all its outer neighbors.
+                                            Created by SpikeHandler; */
+        static float **channel_positions;   /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
+                                         index contains pointer to another array which contains X and Y position of the channel. User creates
+                                         this before calling SpikeHandler. */
 
         Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,

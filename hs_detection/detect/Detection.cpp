@@ -19,6 +19,10 @@ namespace HSDetection
     int Detection::cutout_start = 0;
     int Detection::cutout_end = 0;
     float Detection::inner_radius = 0;
+    int **Detection::neighbor_matrix = nullptr;
+    float **Detection::channel_positions = nullptr;
+    int **Detection::inner_neighbor_matrix = nullptr;
+    int **Detection::outer_neighbor_matrix = nullptr;
 
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
@@ -87,8 +91,10 @@ namespace HSDetection
         cutout_start = cutoutStart;
         cutout_end = cutoutEnd;
         inner_radius = innerRadius;
+        channel_positions = channelPosition;
+        neighbor_matrix = channelNeighbor;
 
-        SpikeHandler::setInitialParameters(filename, channelPosition, channelNeighbor);
+        SpikeHandler::setInitialParameters(filename);
     }
 
     Detection::~Detection()
