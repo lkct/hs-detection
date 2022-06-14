@@ -27,7 +27,7 @@ except ImportError:
     print('Not using Cython')
 
 
-PROFILE = 2
+PROFILE = 0
 
 
 def get_version() -> str:
