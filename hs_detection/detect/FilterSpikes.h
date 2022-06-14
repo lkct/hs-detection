@@ -7,7 +7,6 @@ namespace FilterSpikes
 {
 
     Spike filterSpikesDecay(Spike largest_amp_spike);
-    Spike filterSpikesAll(Spike largest_amp_spike);
     void filterOuterNeighbors(Spike max_spike);
     bool filteredOuterSpike(Spike outer_spike, Spike max_spike);
     Spike getSpikeFromChannel(int channel);

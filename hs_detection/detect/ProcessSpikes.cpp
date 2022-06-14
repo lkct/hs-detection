@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cmath>
 #include "Detection.h"
+#include "SpikeFilterer.h"
 
 using namespace std;
 
@@ -14,7 +15,7 @@ namespace ProcessSpikes
     void filterSpikes()
     {
         Spike first_spike = HSDetection::Detection::queue.front();
-        Spike max_spike(0,0,0);
+        Spike max_spike(0, 0, 0);
         bool isProcessed = false;
 
         while (!isProcessed)
@@ -26,7 +27,7 @@ namespace ProcessSpikes
             }
             else
             {
-                max_spike = FilterSpikes::filterSpikesAll(first_spike);
+                max_spike = HSDetection::SpikeFilterer()(&HSDetection::Detection::queue, HSDetection::Detection::queue.begin());
             }
 
             int32_t msc = (int32_t)max_spike.channel;
@@ -64,7 +65,7 @@ namespace ProcessSpikes
     void filterLocalizeSpikes()
     {
         Spike first_spike = HSDetection::Detection::queue.front();
-        Spike max_spike(0,0,0);
+        Spike max_spike(0, 0, 0);
         bool isProcessed = false;
 
         while (!isProcessed)
@@ -76,7 +77,7 @@ namespace ProcessSpikes
             }
             else
             {
-                max_spike = FilterSpikes::filterSpikesAll(first_spike);
+                max_spike = HSDetection::SpikeFilterer()(&HSDetection::Detection::queue, HSDetection::Detection::queue.begin());
             }
 
             tuple<float, float> position = LocalizeSpikes::localizeSpike(max_spike);
