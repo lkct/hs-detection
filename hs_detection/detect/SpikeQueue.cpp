@@ -5,23 +5,23 @@
 
 namespace HSDetection
 {
-    void SpikeQueue::add(Spike spike_to_be_added)
+    void SpikeQueue::add(Spike spike)
     {
         // TODO: move to processing?
-        spike_to_be_added = SpikeHandler::storeWaveformCutout(Detection::cutout_size, spike_to_be_added);
+        spike = SpikeHandler::storeWaveformCutout(Detection::cutout_size, spike);
         if (HSDetection::Detection::to_localize)
         {
-            spike_to_be_added = SpikeHandler::storeCOMWaveformsCounts(spike_to_be_added);
+            spike = SpikeHandler::storeCOMWaveformsCounts(spike);
         }
 
         while (true)
         {
             Spike firstSpike(0, 0, 0); // TODO: ???
             if (queue.empty() ||
-                spike_to_be_added.frame <= (firstSpike = queue.front()).frame +
-                                               Detection::spike_peak_duration + Detection::noise_duration)
+                spike.frame <= (firstSpike = queue.front()).frame +
+                                   Detection::spike_peak_duration + Detection::noise_duration)
             {
-                queue.push_back(spike_to_be_added);
+                queue.push_back(spike);
                 break;
             }
 

@@ -19,7 +19,7 @@ namespace HSDetection
         SpikeQueue() : queue() {}
         ~SpikeQueue() {}
 
-        void add(Spike spike_to_be_added);
+        void add(Spike spike);
         void close();
 
         iterator begin() { return queue.begin(); }
