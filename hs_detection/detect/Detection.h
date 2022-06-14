@@ -84,8 +84,6 @@ namespace HSDetection
                                          index contains pointer to another array which contains X and Y position of the channel. User creates
                                          this before calling SpikeHandler. */
         static int t_inc;
-        static int aGlobal;         // Global noise
-        static int *baselines;     // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
 
         static VoltTrace trace;
 
