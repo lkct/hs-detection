@@ -98,27 +98,27 @@ namespace ProcessSpikes
             {
                 if (false)
                 {
-                    cout << "Filtering..." << endl;
+                    cerr << "Filtering..." << endl;
                 }
                 max_spike = FilterSpikes::filterSpikesAll(first_spike);
                 if (false)
                 {
-                    cout << "done filtering!" << endl;
+                    cerr << "done filtering!" << endl;
                 }
             }
 
             if (false)
             {
-                cout << "Localizing..." << endl;
+                cerr << "Localizing..." << endl;
             }
             tuple<float, float> position = LocalizeSpikes::localizeSpike(max_spike);
             if (false)
             {
-                cout << "done localizing..." << endl;
+                cerr << "done localizing..." << endl;
             }
             if (false)
             {
-                cout << "here?" << endl;
+                cerr << "here?" << endl;
             }
 
             // char* buffer[1024];
@@ -141,12 +141,12 @@ namespace ProcessSpikes
             spikes_filtered_file.write((char *)&max_spike.written_cutout[0], max_spike.written_cutout.size() * sizeof(int32_t));
 
             //     if(X < 0 || Y < 0) {
-            //         cout << "X real: " << get<0>(position)  << endl;
-            //         cout << "Y real: " << get<1>(position)  << endl;
+            //         cerr << "X real: " << get<0>(position)  << endl;
+            //         cerr << "Y real: " << get<1>(position)  << endl;
             //     }
             if (false)
             {
-                cout << "files suck?" << endl;
+                cerr << "files suck?" << endl;
             }
 
             if (Parameters::spikes_to_be_processed.size() == 0)

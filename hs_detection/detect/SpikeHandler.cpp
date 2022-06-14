@@ -97,19 +97,19 @@ namespace SpikeHandler
         {
             for (int i = 0; i < HSDetection::Detection::num_channels; i++)
             {
-                cout << "Channel: " << i << endl;
-                cout << "Inner Neighbors: ";
+                cerr << "Channel: " << i << endl;
+                cerr << "Inner Neighbors: ";
                 for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
                 {
-                    cout << HSDetection::Detection::inner_neighbor_matrix[i][j] << "  ";
+                    cerr << HSDetection::Detection::inner_neighbor_matrix[i][j] << "  ";
                 }
-                cout << endl;
-                cout << "Outer Neighbors: ";
+                cerr << endl;
+                cerr << "Outer Neighbors: ";
                 for (int k = 0; k < HSDetection::Detection::max_neighbors; k++)
                 {
-                    cout << HSDetection::Detection::outer_neighbor_matrix[i][k] << "  ";
+                    cerr << HSDetection::Detection::outer_neighbor_matrix[i][k] << "  ";
                 }
-                cout << endl;
+                cerr << endl;
             }
         }
 
@@ -140,7 +140,7 @@ namespace SpikeHandler
         if (_index_baselines < 0)
         {
             spikes_filtered_file.close();
-            cout << "Index baselines less than 0. Terminating Spike Handler" << endl;
+            cerr << "Index baselines less than 0. Terminating Spike Handler" << endl;
             exit(EXIT_FAILURE);
         }
         Parameters::aGlobal = _aGlobal;
@@ -178,23 +178,23 @@ namespace SpikeHandler
 
         if (false)
         {
-            cout << "storing COM cutouts " << endl;
+            cerr << "storing COM cutouts " << endl;
         }
         spike_to_be_added = storeWaveformCutout(cutout_size, spike_to_be_added);
         if (false)
         {
-            cout << "... done storing COM cutouts " << endl;
+            cerr << "... done storing COM cutouts " << endl;
         }
         if (HSDetection::Detection::to_localize)
         {
             if (false)
             {
-                cout << "Storing counts..." << endl;
+                cerr << "Storing counts..." << endl;
             }
             spike_to_be_added = storeCOMWaveformsCounts(spike_to_be_added);
             if (false)
             {
-                cout << "... done storing counts!" << endl;
+                cerr << "... done storing counts!" << endl;
             }
         }
 
@@ -220,14 +220,14 @@ namespace SpikeHandler
                         {
                             if (false)
                             {
-                                cout << "spike frame: " << spike_to_be_added.frame << endl;
+                                cerr << "spike frame: " << spike_to_be_added.frame << endl;
                             }
                             ProcessSpikes::filterLocalizeSpikes(spikes_filtered_file);
                         }
                         catch (...)
                         {
                             spikes_filtered_file.close();
-                            cout << "Baseline matrix or its parameters entered incorrectly. "
+                            cerr << "Baseline matrix or its parameters entered incorrectly. "
                                     "Terminating SpikeHandler."
                                  << endl;
                             exit(EXIT_FAILURE);
@@ -302,7 +302,7 @@ namespace SpikeHandler
     {
         if (false)
         {
-            cout << "Filling Neighbor Layer Matrix" << endl;
+            cerr << "Filling Neighbor Layer Matrix" << endl;
         }
         int curr_channel;
         int curr_neighbor;
@@ -468,7 +468,7 @@ namespace SpikeHandler
             catch (...)
             {
                 spikes_filtered_file.close();
-                cout << "Raw Data and it parameters entered incorrectly, could not "
+                cerr << "Raw Data and it parameters entered incorrectly, could not "
                         "access data. Terminating SpikeHandler."
                      << endl;
                 exit(EXIT_FAILURE);
@@ -510,7 +510,7 @@ namespace SpikeHandler
             int curr_max_channel = HSDetection::Detection::inner_neighbor_matrix[channel][i];
             if (curr_max_channel == -1)
             {
-                cout << "num_com_centers too large. Not enough inner neighbors."
+                cerr << "num_com_centers too large. Not enough inner neighbors."
                      << endl;
                 exit(EXIT_FAILURE);
             }

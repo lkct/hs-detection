@@ -77,7 +77,7 @@ namespace LocalizeSpikes
             int amps_size = amps.size();
             if (false)
             {
-                cout << "Correction phase..." << endl;
+                cerr << "Correction phase..." << endl;
             }
             if (do_correction == 1)
             {
@@ -85,7 +85,7 @@ namespace LocalizeSpikes
                 // correct = get<1>(amps.at(0))-1;
                 if (false)
                 {
-                    cout << "Amps size: " << amps_size << endl;
+                    cerr << "Amps size: " << amps_size << endl;
                 }
                 if (amps_size % 2 == 0)
                 {
@@ -98,7 +98,7 @@ namespace LocalizeSpikes
             }
             if (false)
             {
-                cout << "Done correcting..." << endl;
+                cerr << "Done correcting..." << endl;
             }
             // Correct amplitudes (threshold)
             deque<tuple<int, int>> centered_amps;
@@ -158,7 +158,7 @@ namespace LocalizeSpikes
             weight = get<1>(com_positions_amps[i]);
             if (weight < 0)
             {
-                cout << "\ncenterOfMass::weight < 0 - this should not happen\n";
+                cerr << "\ncenterOfMass::weight < 0 - this should not happen" << endl;
             }
             X_numerator += weight * X_coordinate;
             Y_numerator += weight * Y_coordinate;
@@ -167,7 +167,7 @@ namespace LocalizeSpikes
 
         if (denominator == 0)
         {
-            cout << "Whopodis" << endl;
+            cerr << "Whopodis" << endl;
             for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
             {
                 X_coordinate = get<0>(get<0>((com_positions_amps[i])));
@@ -175,11 +175,11 @@ namespace LocalizeSpikes
                 weight = get<1>(com_positions_amps[i]);
                 if (weight < 0)
                 {
-                    cout << "\ncenterOfMass::weight < 0 - this should not happen\n";
+                    cerr << "\ncenterOfMass::weight < 0 - this should not happen" << endl;
                 }
-                cout << "Weight" << weight << endl;
-                cout << "X coordinate" << X_coordinate << endl;
-                cout << "Y coordinate" << Y_coordinate << endl;
+                cerr << "Weight" << weight << endl;
+                cerr << "X coordinate" << X_coordinate << endl;
+                cerr << "Y coordinate" << Y_coordinate << endl;
             }
         }
 
@@ -220,7 +220,7 @@ namespace LocalizeSpikes
 
         if (false)
         {
-            cout << "Done localizing..." << endl;
+            cerr << "Done localizing..." << endl;
         }
         for (int i = 0; i < centered_amps_size; i++)
         {
@@ -230,7 +230,7 @@ namespace LocalizeSpikes
             Y_coordinate = HSDetection::Detection::channel_positions[channel][1];
             if (weight < 0)
             {
-                cout << "\ncenterOfMass::weight < 0 - this should not happen\n";
+                cerr << "\ncenterOfMass::weight < 0 - this should not happen" << endl;
             }
             X_numerator += weight * X_coordinate;
             Y_numerator += weight * Y_coordinate;
@@ -239,16 +239,16 @@ namespace LocalizeSpikes
 
         if (denominator == 0) //| (X>10 & X<11))
         {
-            // cout << "\ncenterOfMass::denominator == 0 - This should not happen\n";
+            // cerr << "\ncenterOfMass::denominator == 0 - This should not happen\n";
             for (int i = 0; i < centered_amps_size; i++)
             {
                 channel = get<0>(centered_amps.at(i));
-                // cout << " " << get<1>(centered_amps.at(i)) << " "
+                // cerr << " " << get<1>(centered_amps.at(i)) << " "
                 //      << Parameters::channel_positions[channel][0] << "\n";
                 X = HSDetection::Detection::channel_positions[channel][0];
                 Y = HSDetection::Detection::channel_positions[channel][1];
             }
-            cout << "\n";
+            cerr << endl;
         }
         else
         {
