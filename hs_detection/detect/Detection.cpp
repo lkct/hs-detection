@@ -124,29 +124,29 @@ namespace HSDetection
         delete[] Aglobal;
     }
 
-    void Detection::MedianVoltage(short *vm) // TODO: add, use?
+    void Detection::MedianVoltage(short *traceBuffer) // TODO: add, use?
     {
     }
 
-    void Detection::MeanVoltage(short *vm, int tInc, int tCut)
+    void Detection::MeanVoltage(short *traceBuffer, int tInc, int tCut)
     {
         // // if median takes too long...
         // // or there are only few
         // // channnels (?)
-        for (int t = 0, tVm = tCut; t < tInc; t++, tVm++)
+        for (int t = 0, tTrace = tCut; t < tInc; t++, tTrace++)
         {
             int sum = 0;
             for (int i = 0; i < nChannels; i++)
             {
-                sum += vm[tVm * nChannels + i];
+                sum += traceBuffer[tTrace * nChannels + i];
             }
             Aglobal[t] = sum / (nChannels + 1); // TODO: no need +1
         }
     }
 
-    void Detection::Iterate(short *vm, int t0, int tInc, int tCut, int tCut2)
+    void Detection::Iterate(short *traceBuffer, int t0, int tInc, int tCut, int tCut2)
     {
-        trace.updateChunk(vm);
+        trace.updateChunk(traceBuffer);
 
         // // Does this need to end at tInc + tCut? (Cole+Martino)
         for (int t = tCut; t < tInc; t++)
@@ -156,7 +156,7 @@ namespace HSDetection
             {
                 // // CHANNEL OUT OF LINEAR REGIME
                 // // difference between ADC counts and Qm
-                int a = (vm[t * nChannels + i] - Aglobal[t - tCut]) * Ascale - Qm[i];
+                int a = (traceBuffer[t * nChannels + i] - Aglobal[t - tCut]) * Ascale - Qm[i];
 
                 // TODO: clean `if`s
                 // // UPDATE Qm and Qd
@@ -189,7 +189,7 @@ namespace HSDetection
 
                 // // should tCut be subtracted here??
                 // calc against updated Qm
-                a = (vm[t * nChannels + i] - Aglobal[t - tCut]) * Ascale - Qm[i];
+                a = (traceBuffer[t * nChannels + i] - Aglobal[t - tCut]) * Ascale - Qm[i];
 
                 // // TREATMENT OF THRESHOLD CROSSINGS
                 if (Sl[i] > 0)
