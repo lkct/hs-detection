@@ -17,7 +17,6 @@ int **Parameters::baselines;
 int Parameters::index_data;
 int Parameters::index_baselines;
 int Parameters::iterations;
-int Parameters::max_frames_processed;
 int Parameters::before_chunk;
 int Parameters::after_chunk;
 int Parameters::end_raw_data;
@@ -129,7 +128,7 @@ namespace SpikeHandler
         Parameters::spikes_to_be_processed.clear();
     }
     void loadRawData(short *_raw_data, int _index_data, int _iterations,
-                     int maxFramesProcessed, int before_chunk, int after_chunk)
+                     int before_chunk, int after_chunk)
     {
         /*Every iteration where new raw data is passed in, this sets pointer to new
         data and gives the
@@ -164,11 +163,10 @@ namespace SpikeHandler
         Parameters::raw_data = _raw_data;
         Parameters::index_data = _index_data;
         Parameters::iterations = _iterations;
-        Parameters::max_frames_processed = maxFramesProcessed;
         Parameters::before_chunk = before_chunk;
         Parameters::after_chunk = after_chunk;
         Parameters::end_raw_data =
-            (Parameters::max_frames_processed + Parameters::after_chunk + Parameters::index_data) *
+            (HSDetection::Detection::t_inc + Parameters::after_chunk + Parameters::index_data) *
                 HSDetection::Detection::num_channels +
             HSDetection::Detection::num_channels - 1;
     }
@@ -500,7 +498,7 @@ namespace SpikeHandler
         */
         int channel = curr_spike.channel;
         int32_t curr_written_reading;
-        int frames_processed = Parameters::max_frames_processed * Parameters::iterations;
+        int frames_processed = HSDetection::Detection::t_inc * Parameters::iterations;
         for (int i = 0; i < cutout_size; i++)
         {
             try
@@ -571,7 +569,7 @@ namespace SpikeHandler
                 exit(EXIT_FAILURE);
             }
             curr_spike.largest_channels.push_back(curr_max_channel);
-            int frames_processed = Parameters::max_frames_processed * Parameters::iterations;
+            int frames_processed = HSDetection::Detection::t_inc * Parameters::iterations;
             for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
                 int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];

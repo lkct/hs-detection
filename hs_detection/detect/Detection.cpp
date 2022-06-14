@@ -23,6 +23,7 @@ namespace HSDetection
     float **Detection::channel_positions = nullptr;
     int **Detection::inner_neighbor_matrix = nullptr;
     int **Detection::outer_neighbor_matrix = nullptr;
+    int Detection::t_inc = 0;
 
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
@@ -93,6 +94,7 @@ namespace HSDetection
         inner_radius = innerRadius;
         channel_positions = channelPosition;
         neighbor_matrix = channelNeighbor;
+        t_inc = tInc;
 
         SpikeHandler::setInitialParameters(filename);
     }
@@ -140,7 +142,7 @@ namespace HSDetection
 
     void Detection::Iterate(short *vm, int t0, int tInc, int tCut, int tCut2)
     {
-        SpikeHandler::loadRawData(vm, tCut, iterations, this->tInc, tCut, tCut2);
+        SpikeHandler::loadRawData(vm, tCut, iterations, tCut, tCut2);
         iterations++;
 
         // // Does this need to end at tInc + tCut? (Cole+Martino)

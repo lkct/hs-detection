@@ -80,6 +80,7 @@ namespace HSDetection
         static float **channel_positions;   /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
                                          index contains pointer to another array which contains X and Y position of the channel. User creates
                                          this before calling SpikeHandler. */
+        static int t_inc;
 
         Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,
