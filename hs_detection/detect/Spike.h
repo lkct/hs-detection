@@ -3,7 +3,6 @@
 
 #include <deque>
 #include <vector>
-#include <tuple>
 
 // // Internal representation of a spike. User has no need to use it.
 class Spike
@@ -14,7 +13,8 @@ public:
     int amplitude;
     std::deque<int> largest_channels;
     std::vector<int> written_cutout;
-    std::tuple<std::vector<int>, int *> waveformscounts;
+    std::vector<int> waveforms;
+    std::vector<int> neighbor_counts;
 
     int aGlobal;                // Global noise
     std::vector<int> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.

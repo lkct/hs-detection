@@ -241,12 +241,7 @@ namespace SpikeHandler
         */
 
         vector<int> com_cutouts;
-        int *nearest_neighbor_counts;
-        nearest_neighbor_counts = new int[HSDetection::Detection::num_com_centers];
-        for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
-        {
-            nearest_neighbor_counts[i] = 0;
-        }
+        vector<int> nearest_neighbor_counts(HSDetection::Detection::num_com_centers, 0);
 
         // Get closest channels for COM
         int channel = curr_spike.channel;
@@ -302,7 +297,8 @@ namespace SpikeHandler
                 }
             }
         }
-        curr_spike.waveformscounts = make_tuple(com_cutouts, nearest_neighbor_counts);
+        curr_spike.waveforms = com_cutouts;
+        curr_spike.neighbor_counts = nearest_neighbor_counts;
         return curr_spike;
     }
 
