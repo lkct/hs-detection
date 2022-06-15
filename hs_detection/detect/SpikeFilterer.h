@@ -1,15 +1,14 @@
 #ifndef SPIKEFILTERER_H
 #define SPIKEFILTERER_H
 
-#include "Spike.h"
-#include "SpikeQueue.h"
+#include "QueueProcessor.h"
 
 namespace HSDetection
 {
-    class SpikeFilterer
+    class SpikeFilterer : QueueProcessor
     {
-    public: // TODO: always first???
-        void operator()(SpikeQueue *queue);
+    public:
+        void operator()(SpikeQueue *pQueue);
     };
 
 } // namespace HSDetection
