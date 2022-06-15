@@ -1,13 +1,14 @@
 #ifndef SPIKEWRITER_H
 #define SPIKEWRITER_H
 
-#include "Spike.h"
+#include "SpikeProcessor.h"
 
 namespace HSDetection
 {
-    class SpikeWriter
+    class SpikeWriter : SpikeProcessor
     {
     public:
+        using SpikeProcessor::operator();
         void operator()(Spike *pSpike);
     };
 

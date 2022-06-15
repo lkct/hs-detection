@@ -21,7 +21,7 @@ namespace HSDetection
         {
             process();
         }
-        
+
         queue.push_back(spike);
     }
 
@@ -53,10 +53,10 @@ namespace HSDetection
 
             if (Detection::to_localize)
             {
-                SpikeLocalizer()(&queue.front());
+                SpikeLocalizer()(queue.begin());
             }
 
-            SpikeWriter()(&queue.front());
+            SpikeWriter()(queue.begin());
 
             queue.erase(queue.begin());
         }

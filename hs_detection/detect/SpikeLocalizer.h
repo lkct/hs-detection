@@ -1,13 +1,14 @@
 #ifndef SPIKELOCALIZER_H
 #define SPIKELOCALIZER_H
 
-#include "Spike.h"
+#include "SpikeProcessor.h"
 
 namespace HSDetection
 {
-    class SpikeLocalizer
+    class SpikeLocalizer : SpikeProcessor
     {
     public:
+        using SpikeProcessor::operator();
         void operator()(Spike *pSpike);
     };
 
