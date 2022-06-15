@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <cstring>
-#include "SpikeHandler.h"
+#include "Utils.h"
 #include "Detection.h"
 
 using namespace std;
@@ -106,9 +106,9 @@ namespace HSDetection
 
         spikes_filtered_file.open(filename + ".bin", ios::binary); // // ios::trunc?
 
-        inner_neighbor_matrix = SpikeHandler::createInnerNeighborMatrix();
-        outer_neighbor_matrix = SpikeHandler::createOuterNeighborMatrix();
-        SpikeHandler::fillNeighborLayerMatrices();
+        inner_neighbor_matrix = Utils::createInnerNeighborMatrix();
+        outer_neighbor_matrix = Utils::createOuterNeighborMatrix();
+        Utils::fillNeighborLayerMatrices();
     }
 
     Detection::~Detection()

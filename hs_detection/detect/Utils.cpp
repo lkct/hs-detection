@@ -1,4 +1,4 @@
-#include "SpikeHandler.h"
+#include "Utils.h"
 #include <deque>
 #include <iostream>
 #include <fstream>
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace SpikeHandler
+namespace Utils
 {
 
     struct CustomLessThan

@@ -1,7 +1,7 @@
 #include "SpikeFilterer.h"
 #include "Detection.h"
 #include <utility>
-#include "SpikeHandler.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -18,7 +18,7 @@ namespace HSDetection
              it->frame <= frameBound && it != queue->end();
              ++it)
         {
-            if (SpikeHandler::areNeighbors(it->channel, spikeChannel) && it->amplitude >= maxAmp)
+            if (Utils::areNeighbors(it->channel, spikeChannel) && it->amplitude >= maxAmp)
             {
                 itMax = it;
                 maxAmp = it->amplitude;
@@ -31,7 +31,7 @@ namespace HSDetection
 
         // NOTE: if empty, == end() will immediately hold
         for (SpikeQueue::const_iterator it = queue->begin(); it != queue->end();
-             (SpikeHandler::areNeighbors(it->channel, spikeChannel) && it->amplitude < maxAmp)
+             (Utils::areNeighbors(it->channel, spikeChannel) && it->amplitude < maxAmp)
                  ? (it = queue->erase(it))
                  : (++it))
         {

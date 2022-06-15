@@ -1,11 +1,11 @@
-#ifndef SPIKEHANDLER_H
-#define SPIKEHANDLER_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <vector>
 #include <utility>
 #include "Spike.h"
 
-namespace SpikeHandler
+namespace Utils
 {
 
     // Inner neighbor creation methods

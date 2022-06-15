@@ -1,5 +1,5 @@
 #include "SpikeQueue.h"
-#include "SpikeHandler.h"
+#include "Utils.h"
 #include "Detection.h"
 #include "SpikeFilterer.h"
 #include "SpikeLocalizer.h"
@@ -11,10 +11,10 @@ namespace HSDetection
     {
         // TODO: move to processing?
         // NOTE: currently cannot, rely on trace, break at chunk update
-        spike = SpikeHandler::storeWaveformCutout(Detection::cutout_size, spike);
+        spike = Utils::storeWaveformCutout(Detection::cutout_size, spike);
         if (Detection::to_localize)
         {
-            spike = SpikeHandler::storeCOMWaveformsCounts(spike);
+            spike = Utils::storeCOMWaveformsCounts(spike);
         }
 
         while (true)
