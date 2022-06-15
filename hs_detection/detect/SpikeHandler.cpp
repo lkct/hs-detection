@@ -240,7 +240,7 @@ namespace SpikeHandler
                 The current detected spike (now with the nearest waveforms stored)
         */
 
-        vector<int> com_cutouts;
+        vector<vector<int>> com_cutouts(HSDetection::Detection::num_com_centers, vector<int>());
         vector<int> nearest_neighbor_counts(HSDetection::Detection::num_com_centers, 0);
 
         // Get closest channels for COM
@@ -261,7 +261,6 @@ namespace SpikeHandler
                 // Out of inner neighbors
                 if (curr_neighbor_channel != -1)
                 {
-                    nearest_neighbor_counts[i] += 1;
                     // Check if noise_duration is too large in comparison to the buffer size
                     int amp_cutout_size, cutout_start_index;
                     if (HSDetection::Detection::cutout_start < HSDetection::Detection::noise_duration || HSDetection::Detection::cutout_end < HSDetection::Detection::noise_duration)
@@ -287,11 +286,12 @@ namespace SpikeHandler
                             sum += curr_amp;
                         }
                     }
-                    com_cutouts.push_back(sum);
+                    com_cutouts[i].push_back(sum);
                 }
                 // Out of neighbors to add cutout for
                 else
                 {
+                    nearest_neighbor_counts[i] = j;
                     break;
                 }
             }

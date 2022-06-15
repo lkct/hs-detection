@@ -12,7 +12,7 @@ public:
     int amplitude;
     std::vector<int> largest_channels;
     std::vector<int> written_cutout;
-    std::vector<int> waveforms;
+    std::vector<std::vector<int>> waveforms;
     std::vector<int> neighbor_counts;
 
     int aGlobal;                // Global noise

@@ -33,12 +33,10 @@ namespace LocalizeSpikes
            An X and Y coordinate tuple that corresponds to where the spike occurred.
          */
 
-        vector<int> *waveforms = &spike_to_be_localized.waveforms;
+        vector<vector<int>> *waveforms = &spike_to_be_localized.waveforms;
         vector<int> *neighbor_counts = &spike_to_be_localized.neighbor_counts;
         vector<int> *largest_channels = &spike_to_be_localized.largest_channels;
         vector<tuple<Point, int>> com_positions_amps;
-
-        int offset = 0;
 
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
@@ -46,10 +44,10 @@ namespace LocalizeSpikes
             int curr_max_channel = (*largest_channels)[i];
             vector<tuple<int, int>> amps;
 
-            for (int j = 0; j < neighbor_count; j++, offset++)
+            for (int j = 0; j < neighbor_count; j++)
             {
                 int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
-                amps.push_back(make_tuple(curr_neighbor_channel, (*waveforms)[offset]));
+                amps.push_back(make_tuple(curr_neighbor_channel, (*waveforms)[i][j]));
             }
 
             // compute median, threshold at median
