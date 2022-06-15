@@ -4,6 +4,7 @@
 #include "SpikeFilterer.h"
 #include "SpikeLocalizer.h"
 #include "SpikeWriter.h"
+#include "FirstElemProcessor.h"
 
 namespace HSDetection
 {
@@ -51,12 +52,23 @@ namespace HSDetection
                 SpikeFilterer()(this);
             }
 
+            SpikeProcessor *pSpkProc;
+            QueueProcessor *pQueProc;
+
             if (Detection::to_localize)
             {
-                SpikeLocalizer()(queue.begin());
+                pSpkProc = new SpikeLocalizer();
+                pQueProc = new FirstElemProcessor(pSpkProc);
+                (*pQueProc)(this);
+                delete pQueProc;
+                delete pSpkProc;
             }
 
-            SpikeWriter()(queue.begin());
+            pSpkProc = new SpikeWriter();
+            pQueProc = new FirstElemProcessor(pSpkProc);
+            (*pQueProc)(this);
+            delete pQueProc;
+            delete pSpkProc;
 
             queue.erase(queue.begin());
         }
