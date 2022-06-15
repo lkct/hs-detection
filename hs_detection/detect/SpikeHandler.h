@@ -2,7 +2,7 @@
 #define SPIKEHANDLER_H
 
 #include <vector>
-#include <tuple>
+#include <utility>
 #include "Spike.h"
 
 namespace SpikeHandler
@@ -10,7 +10,7 @@ namespace SpikeHandler
 
     // Inner neighbor creation methods
     void fillNeighborLayerMatrices();
-    std::vector<int> getInnerNeighborsRadius(std::vector<std::tuple<int, float>> distances_neighbors, int central_channel);
+    std::vector<int> getInnerNeighborsRadius(std::vector<std::pair<int, float>> distances_neighbors, int central_channel);
     int **createInnerNeighborMatrix();
     int **createOuterNeighborMatrix();
     Spike storeWaveformCutout(int cutout_size, Spike curr_spike);

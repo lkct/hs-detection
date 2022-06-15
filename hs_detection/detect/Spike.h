@@ -2,7 +2,7 @@
 #define SPIKE_H
 
 #include <vector>
-#include <tuple>
+#include <utility>
 
 // // Internal representation of a spike. User has no need to use it.
 class Spike
@@ -12,7 +12,7 @@ public:
     int frame;
     int amplitude;
     std::vector<int> written_cutout;
-    std::vector<std::vector<std::tuple<int, int>>> waveforms;
+    std::vector<std::vector<std::pair<int, int>>> waveforms;
 
     int aGlobal;                // Global noise
     std::vector<int> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.

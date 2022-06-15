@@ -10,10 +10,10 @@ namespace LocalizeSpikes
 
     struct CustomLessThan
     {
-        bool operator()(tuple<int, int> const &lhs,
-                        tuple<int, int> const &rhs) const
+        bool operator()(pair<int, int> const &lhs,
+                        pair<int, int> const &rhs) const
         {
-            return std::get<1>(lhs) < std::get<1>(rhs);
+            return lhs.second < rhs.second;
         }
     };
 
@@ -29,26 +29,26 @@ namespace LocalizeSpikes
 
            Returns
            -------
-           position: tuple<float, float>
-           An X and Y coordinate tuple that corresponds to where the spike occurred.
+           position: pair<float, float>
+           An X and Y coordinate pair that corresponds to where the spike occurred.
          */
 
-        vector<vector<tuple<int, int>>> *waveforms = &spike_to_be_localized.waveforms;
+        vector<vector<pair<int, int>>> *waveforms = &spike_to_be_localized.waveforms;
 
         Point sumCoM(0, 0);
         int sumWeight = 0;
 
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
-            vector<tuple<int, int>> chAmp = (*waveforms)[i];
+            vector<pair<int, int>> chAmp = (*waveforms)[i];
             int chCount = chAmp.size();
 
             // // compute median, threshold at median
             nth_element(chAmp.begin(), chAmp.begin() + (chCount - 1) / 2, chAmp.end(), CustomLessThan());
-            int correct = get<1>(chAmp[(chCount - 1) / 2]);
+            int correct = chAmp[(chCount - 1) / 2].second;
             if (chCount % 2 == 0)
             {
-                correct = (get<1>(*min_element(chAmp.begin() + chCount / 2, chAmp.end(), CustomLessThan())) + correct) / 2;
+                correct = (min_element(chAmp.begin() + chCount / 2, chAmp.end(), CustomLessThan())->second + correct) / 2;
             }
 
             Point com(0.0f, 0.0f);
@@ -56,8 +56,8 @@ namespace LocalizeSpikes
 
             for (int i = 0; i < chCount; i++)
             {
-                int ch = get<0>(chAmp[i]);
-                int amp = get<1>(chAmp[i]) - correct; // // Correct amplitudes (threshold)
+                int ch = chAmp[i].first;
+                int amp = chAmp[i].second - correct; // // Correct amplitudes (threshold)
                 if (amp > 0)
                 {
                     com += amp * HSDetection::Detection::channel_positions[ch];
@@ -73,8 +73,8 @@ namespace LocalizeSpikes
                 // TODO: really need?
                 for (int i = 0; i < chCount; i++)
                 {
-                    int ch = get<0>(chAmp[i]);
-                    int amp = get<1>(chAmp[i]) - correct;
+                    int ch = chAmp[i].first;
+                    int amp = chAmp[i].second - correct;
                     if (amp == 0) // NOTE: choose any median == max
                     {
                         com = HSDetection::Detection::channel_positions[ch];

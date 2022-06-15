@@ -15,9 +15,9 @@ namespace SpikeHandler
 
     struct CustomLessThan
     {
-        bool operator()(tuple<int, float> const &lhs, tuple<int, float> const &rhs) const
+        bool operator()(pair<int, float> const &lhs, pair<int, float> const &rhs) const
         {
-            return std::get<1>(lhs) < std::get<1>(rhs);
+            return lhs.second < rhs.second;
         }
     };
 
@@ -26,7 +26,7 @@ namespace SpikeHandler
         int curr_channel;
         int curr_neighbor;
         float curr_dist;
-        vector<tuple<int, float>> distances_neighbors;
+        vector<pair<int, float>> distances_neighbors;
         vector<int> inner_neighbors;
         for (int i = 0; i < HSDetection::Detection::num_channels; i++)
         {
@@ -37,7 +37,7 @@ namespace SpikeHandler
                 if (curr_channel != curr_neighbor && curr_neighbor != -1)
                 {
                     curr_dist = FilterSpikes::channelsDist(curr_neighbor, curr_channel);
-                    distances_neighbors.push_back(make_tuple(curr_neighbor, curr_dist));
+                    distances_neighbors.push_back(make_pair(curr_neighbor, curr_dist));
                 }
             }
             if (distances_neighbors.size() != 0)
@@ -98,19 +98,19 @@ namespace SpikeHandler
     }
 
     vector<int>
-    getInnerNeighborsRadius(vector<tuple<int, float>> distances_neighbors,
+    getInnerNeighborsRadius(vector<pair<int, float>> distances_neighbors,
                             int central_channel)
     {
         int curr_neighbor;
         float curr_dist;
         vector<int> inner_channels;
-        vector<tuple<int, float>>::iterator it;
+        vector<pair<int, float>>::iterator it;
         inner_channels.push_back(central_channel);
         it = distances_neighbors.begin();
         while (it != distances_neighbors.end())
         {
-            curr_neighbor = get<0>(*it);
-            curr_dist = get<1>(*it);
+            curr_neighbor = it->first;
+            curr_dist = it->second;
             if (curr_dist <= HSDetection::Detection::inner_radius)
             {
                 inner_channels.push_back(curr_neighbor);
@@ -206,7 +206,7 @@ namespace SpikeHandler
                 The current detected spike (now with the nearest waveforms stored)
         */
 
-        vector<vector<tuple<int, int>>> com_cutouts(HSDetection::Detection::num_com_centers, vector<tuple<int, int>>());
+        vector<vector<pair<int, int>>> com_cutouts(HSDetection::Detection::num_com_centers, vector<pair<int, int>>());
 
         // Get closest channels for COM
         int channel = curr_spike.channel;
@@ -250,7 +250,7 @@ namespace SpikeHandler
                             sum += curr_amp;
                         }
                     }
-                    com_cutouts[i].push_back(make_tuple(curr_neighbor_channel, sum));
+                    com_cutouts[i].push_back(make_pair(curr_neighbor_channel, sum));
                 }
                 // Out of neighbors to add cutout for
                 else
