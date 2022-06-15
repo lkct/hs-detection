@@ -61,35 +61,32 @@ namespace HSDetection
             spike = Utils::storeCOMWaveformsCounts(spike);
         }
 
-        while (!queue.empty() && queue.front().frame < spike.frame - Detection::spike_peak_duration - Detection::noise_duration)
-        {
-            process();
-        }
+        process(spike.frame - Detection::spike_peak_duration - Detection::noise_duration);
 
         queue.push_back(spike);
     }
 
     void SpikeQueue::close()
     {
-        while (!queue.empty())
-        {
-            process();
-        }
+        process();
     }
 
-    void SpikeQueue::process()
+    void SpikeQueue::process(int frameBound)
     {
-        int last_frame = queue.front().frame;
-
-        while (!queue.empty() && queue.front().frame <= last_frame + Detection::noise_duration)
+        while (!queue.empty() && queue.front().frame < frameBound)
         {
-            last_frame = queue.front().frame;
+            int last_frame = queue.front().frame;
 
-            for_each(queProcs.begin(), queProcs.end(),
-                     [this](QueueProcessor *pQueProc)
-                     { (*pQueProc)(this); });
+            while (!queue.empty() && queue.front().frame <= last_frame + Detection::noise_duration)
+            {
+                last_frame = queue.front().frame;
 
-            queue.erase(queue.begin());
+                for_each(queProcs.begin(), queProcs.end(),
+                         [this](QueueProcessor *pQueProc)
+                         { (*pQueProc)(this); });
+
+                queue.erase(queue.begin());
+            }
         }
     }
 

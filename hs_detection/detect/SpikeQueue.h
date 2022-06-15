@@ -1,10 +1,14 @@
 #ifndef SPIKEQUEUE_H
 #define SPIKEQUEUE_H
 
+#include <limits>
 #include <list>
 #include <vector>
 
 #include "Spike.h"
+
+// TODO: batch replace with int32_t?
+#define MAX_INT std::numeric_limits<int>::max()
 
 namespace HSDetection
 {
@@ -27,7 +31,7 @@ namespace HSDetection
 
         void add(Spike &spike);
         void close();
-        void process();
+        void process(int frameBound = MAX_INT);
 
         typedef std::list<Spike>::iterator iterator;
         typedef std::list<Spike>::const_iterator const_iterator;
@@ -45,5 +49,7 @@ namespace HSDetection
     };
 
 } // namespace HSDetection
+
+#undef MAX_INT
 
 #endif
