@@ -4,7 +4,6 @@
 #include <string>
 #include "VoltTrace.h"
 #include "SpikeQueue.h"
-#include <fstream>
 #include "Point.h"
 
 namespace HSDetection
@@ -58,6 +57,9 @@ namespace HSDetection
         SpikeQueue *pQueue;
 
     public:
+        std::string filename;
+
+    public:
         // TODO: from parameters
         static const int ASCALE = -64;  // Scaling on the raw extracellular data
         static int num_com_centers;     // Number of channels used for center of mass
@@ -89,8 +91,6 @@ namespace HSDetection
         static int t_inc;
 
         static VoltTrace trace;
-
-        static std::ofstream spikes_filtered_file;
 
         Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,

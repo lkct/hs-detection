@@ -28,8 +28,6 @@ namespace HSDetection
 
     VoltTrace Detection::trace(0, 0, 0);
 
-    std::ofstream Detection::spikes_filtered_file;
-
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float innerRadius,
@@ -38,7 +36,7 @@ namespace HSDetection
                          int ahpthr, int maxSl, int minSl, bool decayFiltering)
         : nChannels(nChannels), tInc(tInc), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          currQmsPosition(-1), spikePeakDuration(spikePeakDuration)
+          currQmsPosition(-1), spikePeakDuration(spikePeakDuration), filename(filename + ".bin")
     {
         Qd = new int[nChannels];
         Qm = new int[nChannels];
@@ -101,8 +99,6 @@ namespace HSDetection
         t_inc = tInc;
 
         trace = VoltTrace(cutoutStart + maxSl, nChannels, tInc);
-
-        spikes_filtered_file.open(filename + ".bin", ios::binary); // // ios::trunc?
 
         inner_neighbor_matrix = Utils::createInnerNeighborMatrix();
         outer_neighbor_matrix = Utils::createOuterNeighborMatrix();
@@ -274,7 +270,6 @@ namespace HSDetection
     void Detection::FinishDetection()
     {
         pQueue->close();
-        spikes_filtered_file.close();
     }
 
 } // namespace HSDetection

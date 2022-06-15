@@ -38,7 +38,7 @@ namespace HSDetection
             queProcs.push_back(pQueProc);
         }
 
-        pSpkProc = new SpikeWriter();
+        pSpkProc = new SpikeWriter(pDet->filename);
         spkProcs.push_back(pSpkProc);
         pQueProc = new FirstElemProcessor(pSpkProc);
         queProcs.push_back(pQueProc);
