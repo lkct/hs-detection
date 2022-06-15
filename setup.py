@@ -64,10 +64,10 @@ ext_folder = 'hs_detection/detect/'
 sources = ['Detection.cpp',
            'SpikeQueue.cpp',
            'SpikeFilterer.cpp',
+           'SpikeLocalizer.cpp',
            'SpikeHandler.cpp',
            'ProcessSpikes.cpp',
            'FilterSpikes.cpp',
-           'LocalizeSpikes.cpp',
            *ext_src]
 sources = [ext_folder + fn for fn in sources]
 

@@ -1,7 +1,7 @@
 #include "ProcessSpikes.h"
 #include "Spike.h"
 #include "FilterSpikes.h"
-#include "LocalizeSpikes.h"
+#include "SpikeLocalizer.h"
 #include <iostream>
 #include <cmath>
 #include "Detection.h"
@@ -80,7 +80,7 @@ namespace ProcessSpikes
                 max_spike = HSDetection::SpikeFilterer()(&HSDetection::Detection::queue, HSDetection::Detection::queue.begin());
             }
 
-            Point position = LocalizeSpikes::localizeSpike(max_spike);
+            Point position = HSDetection::SpikeLocalizer()(&max_spike);
 
             int32_t msc = (int32_t)max_spike.channel;
             int32_t msf = (int32_t)max_spike.frame;
