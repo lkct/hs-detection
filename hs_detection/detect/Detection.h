@@ -5,6 +5,7 @@
 #include "VoltTrace.h"
 #include "SpikeQueue.h"
 #include <fstream>
+#include "Point.h"
 
 namespace HSDetection
 {
@@ -80,9 +81,9 @@ namespace HSDetection
         static int **outer_neighbor_matrix; /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
                                             index contains pointer to another array which contains channel number of all its outer neighbors.
                                             Created by SpikeHandler; */
-        static float **channel_positions;   /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
-                                         index contains pointer to another array which contains X and Y position of the channel. User creates
-                                         this before calling SpikeHandler. */
+        static Point *channel_positions;    /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
+                                          index contains pointer to another array which contains X and Y position of the channel. User creates
+                                          this before calling SpikeHandler. */
         static int t_inc;
 
         static VoltTrace trace;

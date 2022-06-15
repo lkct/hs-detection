@@ -21,7 +21,7 @@ namespace HSDetection
     int Detection::cutout_size = 0;
     float Detection::inner_radius = 0;
     int **Detection::neighbor_matrix = nullptr;
-    float **Detection::channel_positions = nullptr;
+    Point *Detection::channel_positions = nullptr;
     int **Detection::inner_neighbor_matrix = nullptr;
     int **Detection::outer_neighbor_matrix = nullptr;
     int Detection::t_inc = 0;
@@ -73,15 +73,13 @@ namespace HSDetection
         // TODO: init of Slice?
         memset(Aglobal, 0, tInc * sizeof(int)); // TODO: 0 init?
 
-        float **channelPosition; // TODO: float or int?
+        Point *channelPosition; // TODO: float or int? input is int
         int **channelNeighbor;
-        channelPosition = new float *[nChannels]; // TODO: proper delete?
+        channelPosition = new Point[nChannels];
         channelNeighbor = new int *[nChannels];
         for (int i = 0; i < nChannels; i++)
         {
-            channelPosition[i] = new float[2];
-            channelPosition[i][0] = positionMatrix[i * 2];
-            channelPosition[i][1] = positionMatrix[i * 2 + 1];
+            channelPosition[i] = Point(positionMatrix[i * 2], positionMatrix[i * 2 + 1]);
             channelNeighbor[i] = new int[maxNeighbors];
             memcpy(channelNeighbor[i], neighborMatrix + i * maxNeighbors, maxNeighbors * sizeof(int));
         }
@@ -132,6 +130,13 @@ namespace HSDetection
 
         delete[] Slice;
         delete[] Aglobal;
+
+        delete[] channel_positions;
+        for (int i = 0; i < nChannels; i++)
+        {
+            delete[] neighbor_matrix[i];
+        }
+        delete[] neighbor_matrix;
     }
 
     void Detection::MedianVoltage(short *traceBuffer) // TODO: add, use?

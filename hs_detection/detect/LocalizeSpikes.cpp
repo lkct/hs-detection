@@ -119,8 +119,8 @@ namespace LocalizeSpikes
         {
             weight = get<1>(centered_amps.at(i));
             channel = get<0>(centered_amps.at(i));
-            X_coordinate = HSDetection::Detection::channel_positions[channel][0];
-            Y_coordinate = HSDetection::Detection::channel_positions[channel][1];
+            X_coordinate = HSDetection::Detection::channel_positions[channel].x;
+            Y_coordinate = HSDetection::Detection::channel_positions[channel].y;
             if (weight < 0)
             {
                 cerr << "\ncenterOfMass::weight < 0 - this should not happen" << endl;
@@ -138,8 +138,8 @@ namespace LocalizeSpikes
                 channel = get<0>(centered_amps.at(i));
                 // cerr << " " << get<1>(centered_amps.at(i)) << " "
                 //      << Parameters::channel_positions[channel][0] << "\n";
-                X = HSDetection::Detection::channel_positions[channel][0];
-                Y = HSDetection::Detection::channel_positions[channel][1];
+                X = HSDetection::Detection::channel_positions[channel].x;
+                Y = HSDetection::Detection::channel_positions[channel].y;
             }
             cerr << endl;
         }
