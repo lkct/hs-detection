@@ -206,60 +206,58 @@ namespace SpikeHandler
                 The current detected spike (now with the nearest waveforms stored)
         */
 
-        vector<vector<pair<int, int>>> com_cutouts(HSDetection::Detection::num_com_centers, vector<pair<int, int>>());
+        vector<vector<pair<int, int>>> chAmps(HSDetection::Detection::num_com_centers, vector<pair<int, int>>());
 
         // Get closest channels for COM
-        int channel = curr_spike.channel;
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
-            int curr_max_channel = HSDetection::Detection::inner_neighbor_matrix[channel][i];
-            if (curr_max_channel == -1)
+            int max_channel = HSDetection::Detection::inner_neighbor_matrix[curr_spike.channel][i];
+            if (max_channel == -1)
             {
                 cerr << "num_com_centers too large. Not enough inner neighbors."
                      << endl;
                 exit(EXIT_FAILURE);
             }
+
             for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
-                int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
+                int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[max_channel][j];
                 // Out of inner neighbors
-                if (curr_neighbor_channel != -1)
-                {
-                    // Check if noise_duration is too large in comparison to the buffer size
-                    int amp_cutout_size, cutout_start_index;
-                    if (HSDetection::Detection::cutout_start < HSDetection::Detection::noise_duration || HSDetection::Detection::cutout_end < HSDetection::Detection::noise_duration)
-                    {
-                        // TODO: possible to enter this branch???
-                        amp_cutout_size = HSDetection::Detection::cutout_size;
-                        cutout_start_index = HSDetection::Detection::cutout_start;
-                    }
-                    else
-                    {
-                        amp_cutout_size = HSDetection::Detection::noise_duration * 2;
-                        cutout_start_index = HSDetection::Detection::noise_duration;
-                    }
-                    int sum = 0;
-                    for (int k = 0; k < amp_cutout_size; k++)
-                    {
-                        int curr_reading = HSDetection::Detection::trace.get(
-                            curr_spike.frame - cutout_start_index + k, curr_neighbor_channel);
-                        int curr_amp = (curr_reading - curr_spike.aGlobal) * HSDetection::Detection::ASCALE -
-                                       curr_spike.baselines[curr_neighbor_channel];
-                        if (curr_amp >= 0)
-                        {
-                            sum += curr_amp;
-                        }
-                    }
-                    com_cutouts[i].push_back(make_pair(curr_neighbor_channel, sum));
-                }
-                // Out of neighbors to add cutout for
-                else
+                if (curr_neighbor_channel == -1)
                 {
                     break;
                 }
+
+                // Check if noise_duration is too large in comparison to the buffer size
+                int amp_cutout_size, cutout_start_index;
+                if (HSDetection::Detection::cutout_start < HSDetection::Detection::noise_duration || HSDetection::Detection::cutout_end < HSDetection::Detection::noise_duration)
+                {
+                    // TODO: possible to enter this branch???
+                    amp_cutout_size = HSDetection::Detection::cutout_size;
+                    cutout_start_index = HSDetection::Detection::cutout_start;
+                }
+                else
+                {
+                    amp_cutout_size = HSDetection::Detection::noise_duration * 2;
+                    cutout_start_index = HSDetection::Detection::noise_duration;
+                }
+
+                int sum = 0;
+                for (int k = 0; k < amp_cutout_size; k++)
+                {
+                    int curr_reading = HSDetection::Detection::trace.get(
+                        curr_spike.frame - cutout_start_index + k, curr_neighbor_channel);
+                    int curr_amp = (curr_reading - curr_spike.aGlobal) * HSDetection::Detection::ASCALE -
+                                   curr_spike.baselines[curr_neighbor_channel];
+                    if (curr_amp >= 0)
+                    {
+                        sum += curr_amp;
+                    }
+                }
+                chAmps[i].push_back(make_pair(curr_neighbor_channel, sum));
             }
         }
-        curr_spike.waveforms = com_cutouts;
+        curr_spike.waveforms = chAmps;
         return curr_spike;
     }
 
