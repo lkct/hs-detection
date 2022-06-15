@@ -159,7 +159,7 @@ class HSDetection(object):
             cython.address(neighbor_matrix[0, 0]),
             self.num_channels,
             self.spike_peak_duration,
-            str(out_file.with_suffix('')).encode(),
+            str(out_file).encode(),
             self.noise_duration,
             self.noise_amp_percent,
             self.inner_radius,

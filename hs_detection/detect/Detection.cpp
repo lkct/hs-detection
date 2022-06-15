@@ -36,7 +36,7 @@ namespace HSDetection
                          int ahpthr, int maxSl, int minSl, bool decayFiltering)
         : nChannels(nChannels), tInc(tInc), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          currQmsPosition(-1), spikePeakDuration(spikePeakDuration), filename(filename + ".bin")
+          currQmsPosition(-1), spikePeakDuration(spikePeakDuration), filename(filename)
     {
         Qd = new int[nChannels];
         Qm = new int[nChannels];

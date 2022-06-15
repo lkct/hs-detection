@@ -11,7 +11,7 @@ namespace HSDetection
     class SpikeWriter : public SpikeProcessor
     {
     private:
-        std::ofstream spikes_filtered_file;
+        std::ofstream spikeFile;
 
     public:
         SpikeWriter(const std::string &filename);
