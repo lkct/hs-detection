@@ -67,7 +67,6 @@ sources = ['Detection.cpp',
            'SpikeLocalizer.cpp',
            'SpikeWriter.cpp',
            'SpikeHandler.cpp',
-           'FilterSpikes.cpp',
            *ext_src]
 sources = [ext_folder + fn for fn in sources]
 

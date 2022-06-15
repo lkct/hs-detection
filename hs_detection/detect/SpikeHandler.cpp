@@ -5,7 +5,6 @@
 #include <cmath>
 #include <algorithm>
 #include "Detection.h"
-#include "FilterSpikes.h"
 
 using namespace std;
 
@@ -35,7 +34,7 @@ namespace SpikeHandler
                 curr_neighbor = HSDetection::Detection::neighbor_matrix[curr_channel][j];
                 if (curr_channel != curr_neighbor && curr_neighbor != -1)
                 {
-                    curr_dist = FilterSpikes::channelsDist(curr_neighbor, curr_channel);
+                    curr_dist = channelsDist(curr_neighbor, curr_channel);
                     distances_neighbors.push_back(make_pair(curr_neighbor, curr_dist));
                 }
             }
@@ -267,5 +266,60 @@ namespace SpikeHandler
         curr_spike.waveforms = chAmps;
         return curr_spike;
     }
+
+    float channelsDist(int start_channel, int end_channel)
+    {
+        /*Finds the distance between two channels
+
+        Parameters
+        ----------
+        start_channel: int
+            The start channel where distance measurement begins
+        end_channel: int
+            The end channel where distance measurement ends
+
+        Returns
+        -------
+        dist: float
+            The distance between the two channels
+        */
+        return (HSDetection::Detection::channel_positions[start_channel] - HSDetection::Detection::channel_positions[end_channel]).abs();
+    }
+
+    bool areNeighbors(int channel_one, int channel_two)
+    {
+        /*Determines whether or not two channels are neighbors.
+
+        Parameters
+        ----------
+        channel_one: int
+            The channel number whose neighborhoold is checked.
+        channel_two: int
+            The channel number of the potential neighbor.
+
+        Returns
+        -------
+        are_neighbors: bool
+            True if the channels are neighbors.
+            False if the channels are not neighbors.
+        */
+        bool are_neighbors = false;
+        int curr_neighbor;
+        for (int i = 0; i < HSDetection::Detection::max_neighbors; i++)
+        {
+            curr_neighbor = HSDetection::Detection::neighbor_matrix[channel_one][i];
+            if (curr_neighbor == channel_two)
+            {
+                are_neighbors = true;
+                break;
+            }
+            else if (curr_neighbor == -1)
+            {
+                break;
+            }
+        }
+        return are_neighbors;
+    }
+
 
 }

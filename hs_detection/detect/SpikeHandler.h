@@ -16,6 +16,9 @@ namespace SpikeHandler
     Spike storeWaveformCutout(int cutout_size, Spike curr_spike);
     Spike storeCOMWaveformsCounts(Spike curr_spike);
 
+    float channelsDist(int start_channel, int end_channel);
+    bool areNeighbors(int channel_one, int channel_two);
+
 };
 
 #endif
