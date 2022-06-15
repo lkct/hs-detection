@@ -8,8 +8,8 @@ namespace HSDetection
 {
     class SpikeFilterer
     {
-    public: // TODO: need a input??? or always first
-        Spike operator()(SpikeQueue *queue, SpikeQueue::const_iterator itSpike);
+    public: // TODO: always first???
+        void operator()(SpikeQueue *queue);
     };
 
 } // namespace HSDetection

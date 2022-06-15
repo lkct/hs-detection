@@ -15,7 +15,6 @@ namespace ProcessSpikes
 
     void filterLocalizeSpikes()
     {
-        Spike max_spike(0, 0, 0);
         int last_frame = HSDetection::Detection::queue.front().frame;
 
         while (!HSDetection::Detection::queue.empty() && HSDetection::Detection::queue.front().frame <= last_frame + HSDetection::Detection::noise_duration)
@@ -24,19 +23,22 @@ namespace ProcessSpikes
 
             if (HSDetection::Detection::decay_filtering == true)
             {
-                max_spike = FilterSpikes::filterSpikesDecay(HSDetection::Detection::queue.front());
+                // Spike max_spike = FilterSpikes::filterSpikesDecay(HSDetection::Detection::queue.front());
+                // TODO: undefined
             }
             else
             {
-                max_spike = HSDetection::SpikeFilterer()(&HSDetection::Detection::queue, HSDetection::Detection::queue.begin());
+                HSDetection::SpikeFilterer()(&HSDetection::Detection::queue);
             }
 
             if (HSDetection::Detection::to_localize)
             {
-                HSDetection::SpikeLocalizer()(&max_spike);
+                HSDetection::SpikeLocalizer()(&HSDetection::Detection::queue.front());
             }
 
-            HSDetection::SpikeWriter()(&max_spike);
+            HSDetection::SpikeWriter()(&HSDetection::Detection::queue.front());
+
+            HSDetection::Detection::queue.erase(HSDetection::Detection::queue.begin());
         }
     }
 }

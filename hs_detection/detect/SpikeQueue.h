@@ -30,6 +30,8 @@ namespace HSDetection
         iterator erase(const_iterator position) { return queue.erase(position); }
         Spike &front() { return queue.front(); }
         const Spike &front() const { return queue.front(); }
+        void push_front(const Spike &spike) { queue.push_front(spike); }
+        void push_front(Spike &&spike) { queue.push_front(spike); }
     };
 
 } // namespace HSDetection
