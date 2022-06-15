@@ -6,6 +6,7 @@
 #include <cmath>
 #include "Detection.h"
 #include "SpikeFilterer.h"
+#include "SpikeWriter.h"
 
 using namespace std;
 
@@ -35,18 +36,7 @@ namespace ProcessSpikes
                 HSDetection::SpikeLocalizer()(&max_spike);
             }
 
-            int32_t msc = (int32_t)max_spike.channel;
-            int32_t msf = (int32_t)max_spike.frame;
-            int32_t msa = (int32_t)max_spike.amplitude;
-            int32_t X = (int32_t)floor(max_spike.position.x * 1000 + .5);  // NOTE: default pos w/o localize is 0
-            int32_t Y = (int32_t)floor(max_spike.position.y * 1000 + .5);
-
-            HSDetection::Detection::spikes_filtered_file.write((char *)&msc, sizeof(msc));
-            HSDetection::Detection::spikes_filtered_file.write((char *)&msf, sizeof(msf));
-            HSDetection::Detection::spikes_filtered_file.write((char *)&msa, sizeof(msa));
-            HSDetection::Detection::spikes_filtered_file.write((char *)&X, sizeof(X));
-            HSDetection::Detection::spikes_filtered_file.write((char *)&Y, sizeof(Y));
-            HSDetection::Detection::spikes_filtered_file.write((char *)&max_spike.written_cutout[0], max_spike.written_cutout.size() * sizeof(int32_t));
+            HSDetection::SpikeWriter()(&max_spike);
 
             if (HSDetection::Detection::queue.empty())
             {
