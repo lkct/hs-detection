@@ -5,7 +5,7 @@
 
 namespace HSDetection
 {
-    class SpikeLocalizer : SpikeProcessor
+    class SpikeLocalizer : public SpikeProcessor
     {
     public:
         using SpikeProcessor::operator();

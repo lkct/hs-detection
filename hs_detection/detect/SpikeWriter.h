@@ -5,7 +5,7 @@
 
 namespace HSDetection
 {
-    class SpikeWriter : SpikeProcessor
+    class SpikeWriter : public SpikeProcessor
     {
     public:
         using SpikeProcessor::operator();

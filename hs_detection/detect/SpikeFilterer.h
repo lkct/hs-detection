@@ -5,7 +5,7 @@
 
 namespace HSDetection
 {
-    class SpikeFilterer : QueueProcessor
+    class SpikeFilterer : public QueueProcessor
     {
     public:
         void operator()(SpikeQueue *pQueue);
