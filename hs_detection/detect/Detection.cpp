@@ -30,8 +30,6 @@ namespace HSDetection
 
     std::ofstream Detection::spikes_filtered_file;
 
-    SpikeQueue Detection::queue;
-
     Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float innerRadius,
@@ -109,6 +107,8 @@ namespace HSDetection
         inner_neighbor_matrix = Utils::createInnerNeighborMatrix();
         outer_neighbor_matrix = Utils::createOuterNeighborMatrix();
         Utils::fillNeighborLayerMatrices();
+
+        pQueue = new SpikeQueue();
     }
 
     Detection::~Detection()
@@ -137,6 +137,8 @@ namespace HSDetection
             delete[] neighbor_matrix[i];
         }
         delete[] neighbor_matrix;
+
+        delete pQueue;
     }
 
     void Detection::MedianVoltage(short *traceBuffer) // TODO: add, use?
@@ -240,7 +242,7 @@ namespace HSDetection
                             int *tmp = Qms[(currQmsPosition + 1) % (maxSl + spikePeakDuration)];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
 
-                            queue.add(spike);
+                            pQueue->add(spike);
                         }
                         Sl[i] = 0;
                     }
@@ -271,7 +273,7 @@ namespace HSDetection
     // // write spikes in interval after last recalibration; close file
     void Detection::FinishDetection()
     {
-        queue.close();
+        pQueue->close();
         spikes_filtered_file.close();
     }
 

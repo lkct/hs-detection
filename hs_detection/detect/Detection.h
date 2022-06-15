@@ -55,6 +55,8 @@ namespace HSDetection
         const int Qdmin = 200; // set minimum value of Qd
         const int Tau_m0 = 4;  // timescale for updating Qm (increment is Qd/Tau_m)
 
+        SpikeQueue *pQueue;
+
     public:
         // TODO: from parameters
         static const int ASCALE = -64;  // Scaling on the raw extracellular data
@@ -89,8 +91,6 @@ namespace HSDetection
         static VoltTrace trace;
 
         static std::ofstream spikes_filtered_file;
-
-        static SpikeQueue queue;
 
         Detection(int tInc, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,
