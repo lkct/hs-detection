@@ -4,7 +4,6 @@
 #include <fstream>
 #include <cmath>
 #include <algorithm>
-#include "ProcessSpikes.h"
 #include "Detection.h"
 #include "FilterSpikes.h"
 

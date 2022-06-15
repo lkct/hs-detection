@@ -1,7 +1,9 @@
 #include "SpikeQueue.h"
 #include "SpikeHandler.h"
 #include "Detection.h"
-#include "ProcessSpikes.h"
+#include "SpikeFilterer.h"
+#include "SpikeLocalizer.h"
+#include "SpikeWriter.h"
 
 namespace HSDetection
 {
@@ -24,7 +26,7 @@ namespace HSDetection
                 break;
             }
 
-            ProcessSpikes::filterLocalizeSpikes();
+            process();
         }
     }
 
@@ -32,7 +34,36 @@ namespace HSDetection
     {
         while (!queue.empty())
         {
-            ProcessSpikes::filterLocalizeSpikes();
+            process();
+        }
+    }
+
+    void SpikeQueue::process()
+    {
+        int last_frame = queue.front().frame;
+
+        while (!queue.empty() && queue.front().frame <= last_frame + Detection::noise_duration)
+        {
+            last_frame = queue.front().frame;
+
+            if (Detection::decay_filtering == true)
+            {
+                // Spike max_spike = FilterSpikes::filterSpikesDecay(queue.front());
+                // TODO: undefined
+            }
+            else
+            {
+                SpikeFilterer()(this);
+            }
+
+            if (Detection::to_localize)
+            {
+                SpikeLocalizer()(&queue.front());
+            }
+
+            SpikeWriter()(&queue.front());
+
+            queue.erase(queue.begin());
         }
     }
 

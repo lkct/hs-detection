@@ -21,6 +21,7 @@ namespace HSDetection
 
         void add(Spike spike);
         void close();
+        void process();
 
         iterator begin() { return queue.begin(); }
         const_iterator begin() const { return queue.begin(); }
