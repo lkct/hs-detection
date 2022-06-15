@@ -18,11 +18,12 @@ public:
     Point &operator+=(const Point &other) { return x += other.x, y += other.y, *this; }
     Point &operator-=(const Point &other) { return x -= other.x, y -= other.y, *this; }
     Point &operator*=(float mult) { return x *= mult, y *= mult, *this; }
-    Point &operator/=(float divi) { return x /= divi, y /= divi, *this; }
+    Point &operator/=(float divisor) { return x /= divisor, y /= divisor, *this; }
     friend Point operator+(Point lhs, const Point &rhs) { return lhs += rhs; }
     friend Point operator-(Point lhs, const Point &rhs) { return lhs -= rhs; }
     friend Point operator*(Point pt, float mult) { return pt *= mult; }
     friend Point operator*(float mult, Point pt) { return pt *= mult; }
+    friend Point operator/(Point pt, float divisor) { return pt /= divisor; }
 };
 
 #endif

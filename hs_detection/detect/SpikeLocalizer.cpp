@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include "Detection.h"
+#include "Point.h"
 
 using namespace std;
 
@@ -20,7 +21,7 @@ namespace HSDetection
         };
     } // namespace anon
 
-    Point SpikeLocalizer::operator()(Spike *pSpike)
+    void SpikeLocalizer::operator()(Spike *pSpike)
     {
         // TODO: generate waveform here???
         vector<vector<pair<int, int>>> *waveforms = &pSpike->waveforms;
@@ -83,7 +84,7 @@ namespace HSDetection
             sumWeight += 1;    // TODO: inc amount?
         }
 
-        return sumCoM /= sumWeight;
+        pSpike->position = sumCoM / sumWeight;
     }
 
 } // namespace HSDetection
