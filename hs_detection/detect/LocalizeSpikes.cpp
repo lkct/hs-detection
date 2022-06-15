@@ -35,29 +35,29 @@ namespace LocalizeSpikes
 
         vector<vector<tuple<int, int>>> *waveforms = &spike_to_be_localized.waveforms;
 
-        Point sumPos(0, 0);
+        Point sumCoM(0, 0);
         int sumWeight = 0;
 
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
-            int neighbor_count = (*waveforms)[i].size();
-            vector<tuple<int, int>> amps = (*waveforms)[i];
+            vector<tuple<int, int>> chAmp = (*waveforms)[i];
+            int chCount = chAmp.size();
 
             // // compute median, threshold at median
-            nth_element(amps.begin(), amps.begin() + (neighbor_count - 1) / 2, amps.end(), CustomLessThan());
-            int correct = get<1>(amps[(neighbor_count - 1) / 2]);
-            if (neighbor_count % 2 == 0)
+            nth_element(chAmp.begin(), chAmp.begin() + (chCount - 1) / 2, chAmp.end(), CustomLessThan());
+            int correct = get<1>(chAmp[(chCount - 1) / 2]);
+            if (chCount % 2 == 0)
             {
-                correct = (get<1>(*min_element(amps.begin() + neighbor_count / 2, amps.end(), CustomLessThan())) + correct) / 2;
+                correct = (get<1>(*min_element(chAmp.begin() + chCount / 2, chAmp.end(), CustomLessThan())) + correct) / 2;
             }
 
             Point com(0.0f, 0.0f);
             int sumAmp = 0;
 
-            for (int i = 0; i < neighbor_count; i++)
+            for (int i = 0; i < chCount; i++)
             {
-                int ch = get<0>(amps[i]);
-                int amp = get<1>(amps[i]) - correct; // // Correct amplitudes (threshold)
+                int ch = get<0>(chAmp[i]);
+                int amp = get<1>(chAmp[i]) - correct; // // Correct amplitudes (threshold)
                 if (amp > 0)
                 {
                     com += amp * HSDetection::Detection::channel_positions[ch];
@@ -71,10 +71,10 @@ namespace LocalizeSpikes
                 // NOTE: this iff. max == median, i.e. upper half value all same
                 // NOTE: unlikely, therefore loop again instead of merge into previous
                 // TODO: really need?
-                for (int i = 0; i < neighbor_count; i++)
+                for (int i = 0; i < chCount; i++)
                 {
-                    int ch = get<0>(amps[i]);
-                    int amp = get<1>(amps[i]) - correct;
+                    int ch = get<0>(chAmp[i]);
+                    int amp = get<1>(chAmp[i]) - correct;
                     if (amp == 0) // NOTE: choose any median == max
                     {
                         com = HSDetection::Detection::channel_positions[ch];
@@ -87,12 +87,12 @@ namespace LocalizeSpikes
                 com /= sumAmp;
             }
 
-            sumPos += 1 * com; // TODO: weight?
+            sumCoM += 1 * com; // TODO: weight?
             sumWeight += 1;    // TODO: inc amount?
         }
 
         // TODO: div 0 check???
-        return sumPos /= sumWeight;
+        return sumCoM /= sumWeight;
     }
 
 }
