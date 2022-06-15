@@ -206,12 +206,20 @@ namespace SpikeHandler
                 The current detected spike (now with the nearest waveforms stored)
         */
 
-        vector<vector<pair<int, int>>> chAmps(HSDetection::Detection::num_com_centers, vector<pair<int, int>>());
+        int num_com_centers = HSDetection::Detection::num_com_centers;
+        int **inner_neighbor_matrix = HSDetection::Detection::inner_neighbor_matrix;
+        int max_neighbors = HSDetection::Detection::max_neighbors;
+        int cutout_start = HSDetection::Detection::cutout_start;
+        int cutout_end = HSDetection::Detection::cutout_end;
+        int cutout_size = HSDetection::Detection::cutout_size;
+        int noise_duration = HSDetection::Detection::noise_duration;
+
+        vector<vector<pair<int, int>>> chAmps(num_com_centers, vector<pair<int, int>>());
 
         // Get closest channels for COM
-        for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
+        for (int i = 0; i < num_com_centers; i++)
         {
-            int max_channel = HSDetection::Detection::inner_neighbor_matrix[curr_spike.channel][i];
+            int max_channel = inner_neighbor_matrix[curr_spike.channel][i];
             if (max_channel == -1)
             {
                 cerr << "num_com_centers too large. Not enough inner neighbors."
@@ -219,9 +227,9 @@ namespace SpikeHandler
                 exit(EXIT_FAILURE);
             }
 
-            for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
+            for (int j = 0; j < max_neighbors; j++)
             {
-                int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[max_channel][j];
+                int curr_neighbor_channel = inner_neighbor_matrix[max_channel][j];
                 // Out of inner neighbors
                 if (curr_neighbor_channel == -1)
                 {
@@ -230,16 +238,16 @@ namespace SpikeHandler
 
                 // Check if noise_duration is too large in comparison to the buffer size
                 int amp_cutout_size, cutout_start_index;
-                if (HSDetection::Detection::cutout_start < HSDetection::Detection::noise_duration || HSDetection::Detection::cutout_end < HSDetection::Detection::noise_duration)
+                if (cutout_start < noise_duration || cutout_end < noise_duration)
                 {
                     // TODO: possible to enter this branch???
-                    amp_cutout_size = HSDetection::Detection::cutout_size;
-                    cutout_start_index = HSDetection::Detection::cutout_start;
+                    amp_cutout_size = cutout_size;
+                    cutout_start_index = cutout_start;
                 }
                 else
                 {
-                    amp_cutout_size = HSDetection::Detection::noise_duration * 2;
-                    cutout_start_index = HSDetection::Detection::noise_duration;
+                    amp_cutout_size = noise_duration * 2;
+                    cutout_start_index = noise_duration;
                 }
 
                 int sum = 0;
