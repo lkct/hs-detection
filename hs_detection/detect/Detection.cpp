@@ -102,7 +102,7 @@ namespace HSDetection
         neighbor_matrix = channelNeighbor;
         t_inc = tInc;
 
-        trace = VoltTrace(tInc, cutoutStart + maxSl, nChannels);
+        trace = VoltTrace(cutoutStart + maxSl, nChannels, tInc);
 
         spikes_filtered_file.open(filename + ".bin", ios::binary); // // ios::trunc?
 

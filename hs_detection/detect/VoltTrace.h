@@ -1,22 +1,20 @@
 #ifndef VOLTTRACE_H
 #define VOLTTRACE_H
 
-#include <vector>
-
 namespace HSDetection
 {
     class VoltTrace
     {
     private:
-        short *traceBuffer; // NOTE: passed in, should not release here
-        int numChannels;
+        short *traceBuffer; // passed in, should not release here
         int frameOffset;
+        int numChannels;
         int chunkSize;
 
-    public: // NOTE: simple implementation, inlined
-        VoltTrace(int chunkSize, int cutoutLeft, int numChannels)
-            : traceBuffer(nullptr), numChannels(numChannels),
-              frameOffset(-cutoutLeft - chunkSize), chunkSize(chunkSize) {}
+    public:
+        VoltTrace(int cutoutLeft, int numChannels, int chunkSize)
+            : traceBuffer(nullptr), frameOffset(-cutoutLeft - chunkSize),
+              numChannels(numChannels), chunkSize(chunkSize) {}
         ~VoltTrace() {}
 
         void updateChunk(short *traceBuffer) { this->traceBuffer = traceBuffer, frameOffset += chunkSize; }

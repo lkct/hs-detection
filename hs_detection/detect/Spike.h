@@ -10,13 +10,6 @@ namespace HSDetection
 {
     class Spike
     {
-    public: // TODO: remove?
-        std::vector<int> written_cutout;
-        std::vector<std::vector<std::pair<int, int>>> waveforms;
-
-        int aGlobal = 0;            // Global noise
-        std::vector<int> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
-
     public:
         int frame;
         int channel;
@@ -26,6 +19,13 @@ namespace HSDetection
         Spike(int frame, int channel, int amplitude)
             : frame(frame), channel(channel), amplitude(amplitude), position() {}
         ~Spike() {}
+
+    public: // TODO: remove?
+        std::vector<int> written_cutout;
+        std::vector<std::vector<std::pair<int, int>>> waveforms;
+
+        int aGlobal = 0;            // Global noise
+        std::vector<int> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
     };
 
 } // namespace HSDetection
