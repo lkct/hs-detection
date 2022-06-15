@@ -108,7 +108,7 @@ namespace HSDetection
         outer_neighbor_matrix = Utils::createOuterNeighborMatrix();
         Utils::fillNeighborLayerMatrices();
 
-        pQueue = new SpikeQueue();
+        pQueue = new SpikeQueue(this);
     }
 
     Detection::~Detection()

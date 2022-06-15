@@ -1,13 +1,56 @@
+#include <algorithm>
+
 #include "SpikeQueue.h"
-#include "Utils.h"
 #include "Detection.h"
-#include "QueueProcessor/SpikeFilterer.h"
 #include "QueueProcessor/FirstElemProcessor.h"
+#include "QueueProcessor/SpikeFilterer.h"
 #include "SpikeProcessor/SpikeLocalizer.h"
 #include "SpikeProcessor/SpikeWriter.h"
+#include "Utils.h"
+
+using namespace std;
 
 namespace HSDetection
 {
+    SpikeQueue::SpikeQueue(Detection *pDet) : queue(), queProcs(), spkProcs()
+    {
+        SpikeProcessor *pSpkProc;
+        QueueProcessor *pQueProc;
+
+        if (pDet->decay_filtering)
+        {
+            // TODO: undefined
+        }
+        else
+        {
+            pQueProc = new SpikeFilterer();
+            queProcs.push_back(pQueProc);
+        }
+
+        if (pDet->to_localize)
+        {
+            pSpkProc = new SpikeLocalizer();
+            spkProcs.push_back(pSpkProc);
+            pQueProc = new FirstElemProcessor(pSpkProc);
+            queProcs.push_back(pQueProc);
+        }
+
+        pSpkProc = new SpikeWriter();
+        spkProcs.push_back(pSpkProc);
+        pQueProc = new FirstElemProcessor(pSpkProc);
+        queProcs.push_back(pQueProc);
+    }
+
+    SpikeQueue::~SpikeQueue()
+    {
+        for_each(queProcs.begin(), queProcs.end(),
+                 [](QueueProcessor *pQueProc)
+                 { delete pQueProc; });
+        for_each(spkProcs.begin(), spkProcs.end(),
+                 [](SpikeProcessor *pSpkProc)
+                 { delete pSpkProc; });
+    }
+
     void SpikeQueue::add(Spike &spike)
     {
         // TODO: move to processing?
@@ -42,33 +85,9 @@ namespace HSDetection
         {
             last_frame = queue.front().frame;
 
-            if (Detection::decay_filtering == true)
-            {
-                // Spike max_spike = FilterSpikes::filterSpikesDecay(queue.front());
-                // TODO: undefined
-            }
-            else
-            {
-                SpikeFilterer()(this);
-            }
-
-            SpikeProcessor *pSpkProc;
-            QueueProcessor *pQueProc;
-
-            if (Detection::to_localize)
-            {
-                pSpkProc = new SpikeLocalizer();
-                pQueProc = new FirstElemProcessor(pSpkProc);
-                (*pQueProc)(this);
-                delete pQueProc;
-                delete pSpkProc;
-            }
-
-            pSpkProc = new SpikeWriter();
-            pQueProc = new FirstElemProcessor(pSpkProc);
-            (*pQueProc)(this);
-            delete pQueProc;
-            delete pSpkProc;
+            for_each(queProcs.begin(), queProcs.end(),
+                     [this](QueueProcessor *pQueProc)
+                     { (*pQueProc)(this); });
 
             queue.erase(queue.begin());
         }

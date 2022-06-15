@@ -2,20 +2,28 @@
 #define SPIKEQUEUE_H
 
 #include <list>
+#include <vector>
 
 #include "Spike.h"
 
 namespace HSDetection
 {
+    // cannot include in cycle
+    class QueueProcessor;
+    class SpikeProcessor;
+    class Detection;
+
     class SpikeQueue
     {
     private:
-        // list has constant erase, but forward_list not convenient enough
-        std::list<Spike> queue; // TODO: list of Spike* ???
+        // TODO: list of Spike* ???
+        std::list<Spike> queue; // list has constant erase, but forward_list not convenient enough
+        std::vector<QueueProcessor *> queProcs;
+        std::vector<SpikeProcessor *> spkProcs;
 
     public:
-        SpikeQueue() : queue() {}
-        ~SpikeQueue() {}
+        SpikeQueue(Detection *pDet); // passing everything altogether
+        ~SpikeQueue();
 
         void add(Spike &spike);
         void close();
