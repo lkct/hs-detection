@@ -2,8 +2,8 @@
 #include <utility>
 #include <vector>
 #include <algorithm>
-#include "Detection.h"
-#include "Point.h"
+#include "../Detection.h"
+#include "../Point.h"
 
 using namespace std;
 

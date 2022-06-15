@@ -1,10 +1,10 @@
 #include "SpikeQueue.h"
 #include "Utils.h"
 #include "Detection.h"
-#include "SpikeFilterer.h"
-#include "SpikeLocalizer.h"
-#include "SpikeWriter.h"
-#include "FirstElemProcessor.h"
+#include "QueueProcessor/SpikeFilterer.h"
+#include "QueueProcessor/FirstElemProcessor.h"
+#include "SpikeProcessor/SpikeLocalizer.h"
+#include "SpikeProcessor/SpikeWriter.h"
 
 namespace HSDetection
 {

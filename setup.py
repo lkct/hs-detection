@@ -63,9 +63,9 @@ with open('README.md', 'r', encoding='utf-8') as f:
 ext_folder = 'hs_detection/detect/'
 sources = ['Detection.cpp',
            'SpikeQueue.cpp',
-           'SpikeFilterer.cpp',
-           'SpikeLocalizer.cpp',
-           'SpikeWriter.cpp',
+           'QueueProcessor/SpikeFilterer.cpp',
+           'SpikeProcessor/SpikeLocalizer.cpp',
+           'SpikeProcessor/SpikeWriter.cpp',
            'Utils.cpp',
            *ext_src]
 sources = [ext_folder + fn for fn in sources]
@@ -130,12 +130,13 @@ setup(
         'hs_detection': [
             '.commit_version',
             '../README.md',
-            'detect/*'
+            'detect/**'
         ]
     },
     exclude_package_data={
         'hs_detection': [
-            'detect/*.so'
+            'detect/*.so',
+            '**/__pycache__'
         ]
     },
     ext_modules=detect_ext,

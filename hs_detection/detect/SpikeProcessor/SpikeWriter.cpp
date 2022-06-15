@@ -1,6 +1,6 @@
 #include "SpikeWriter.h"
 #include <cmath>
-#include "Detection.h"
+#include "../Detection.h"
 
 namespace HSDetection
 {

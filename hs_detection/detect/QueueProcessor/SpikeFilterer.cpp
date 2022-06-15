@@ -1,7 +1,7 @@
 #include "SpikeFilterer.h"
-#include "Detection.h"
+#include "../Detection.h"
 #include <utility>
-#include "Utils.h"
+#include "../Utils.h"
 
 using namespace std;
 
