@@ -69,8 +69,7 @@ namespace LocalizeSpikes
                 int amp = get<1>(amps[i]) - correct; // // Correct amplitudes (threshold)
                 if (amp > 0)
                 {
-                    Point tmp = HSDetection::Detection::channel_positions[ch];
-                    com += (tmp *= amp);
+                    com += amp * HSDetection::Detection::channel_positions[ch];
                     sumAmp += amp;
                 }
             }
@@ -88,16 +87,17 @@ namespace LocalizeSpikes
                     if (amp == 0) // NOTE: choose any median == max
                     {
                         com = HSDetection::Detection::channel_positions[ch];
-                        sumAmp = 1;
                         break;
                     }
                 }
             }
+            else
+            {
+                com /= sumAmp;
+            }
 
-            com /= sumAmp;
-
-            sumPos += (com *= 1); // TODO: weight?
-            sumWeight += 1;       // TODO: inc amount?
+            sumPos += 1 * com; // TODO: weight?
+            sumWeight += 1;    // TODO: inc amount?
         }
 
         // TODO: div 0 check???

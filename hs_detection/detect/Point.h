@@ -13,32 +13,16 @@ public:
     Point(float x, float y) : x(x), y(y) {}
     ~Point() {}
 
-    Point &operator+=(const Point &other)
-    {
-        x += other.x;
-        y += other.y;
-        return *this;
-    }
-    Point &operator*=(float mult)
-    {
-        x *= mult;
-        y *= mult;
-        return *this;
-    }
-    Point &operator/=(float divi)
-    {
-        x /= divi;
-        y /= divi;
-        return *this;
-    }
-    friend Point operator-(const Point &lhs, const Point &rhs)
-    {
-        return Point(lhs.x - rhs.x, lhs.y - rhs.y);
-    }
-    static float abs(const Point &pt)
-    {
-        return sqrt(pt.x * pt.x + pt.y * pt.y);
-    }
+    float abs() const { return sqrt(x * x + y * y); }
+
+    Point &operator+=(const Point &other) { return x += other.x, y += other.y, *this; }
+    Point &operator-=(const Point &other) { return x -= other.x, y -= other.y, *this; }
+    Point &operator*=(float mult) { return x *= mult, y *= mult, *this; }
+    Point &operator/=(float divi) { return x /= divi, y /= divi, *this; }
+    friend Point operator+(Point lhs, const Point &rhs) { return lhs += rhs; }
+    friend Point operator-(Point lhs, const Point &rhs) { return lhs -= rhs; }
+    friend Point operator*(Point pt, float mult) { return pt *= mult; }
+    friend Point operator*(float mult, Point pt) { return pt *= mult; }
 };
 
 #endif
