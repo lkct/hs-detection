@@ -50,28 +50,18 @@ namespace LocalizeSpikes
                 amps.push_back(make_tuple(curr_neighbor_channel, (*waveforms)[i][j]));
             }
 
-            // compute median, threshold at median
-            int do_correction = 1;
-            int correct = 0;
-            int amps_size = amps.size();
-            if (do_correction == 1)
-            {
-                sort(begin(amps), end(amps), CustomLessThan()); // sort the array
-                // correct = get<1>(amps.at(0))-1;
-                if (amps_size % 2 == 0)
-                {
-                    correct = (get<1>(amps.at(amps_size / 2 - 1)) + get<1>(amps.at(amps_size / 2))) / 2;
-                }
-                else
-                {
-                    correct = get<1>(amps.at(amps_size / 2));
-                }
+            // // compute median, threshold at median
+            nth_element(amps.begin(), amps.begin() + (neighbor_count - 1) / 2, amps.end(), CustomLessThan());
+            int correct = get<1>(amps[(neighbor_count - 1) / 2]);
+            if (neighbor_count % 2 == 0){
+                correct = (get<1>(*min_element(amps.begin() + neighbor_count / 2, amps.end(), CustomLessThan())) + correct) / 2;
             }
+
             // Correct amplitudes (threshold)
             vector<tuple<int, int>> centered_amps;
-            if (amps_size != 1)
+            if (neighbor_count != 1)
             {
-                for (int i = 0; i < amps_size; i++)
+                for (int i = 0; i < neighbor_count; i++)
                 {
                     if (get<1>(amps.at(i)) - correct > 0)
                     {
