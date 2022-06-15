@@ -43,12 +43,12 @@ namespace LocalizeSpikes
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
             int neighbor_count = (*neighbor_counts)[i];
-            int curr_max_channel = (*largest_channels)[i];
+            int max_channel = (*largest_channels)[i];
             vector<tuple<int, int>> amps;
 
             for (int j = 0; j < neighbor_count; j++)
             {
-                int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
+                int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[max_channel][j];
                 amps.push_back(make_tuple(curr_neighbor_channel, (*waveforms)[i][j]));
             }
 
