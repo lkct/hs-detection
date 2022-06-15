@@ -44,6 +44,7 @@ namespace HSDetection
         const_iterator end() const { return queue.end(); }
         bool empty() const { return queue.empty(); }
         iterator erase(const_iterator position) { return queue.erase(position); }
+        iterator erase(const_iterator first, const_iterator last) { return queue.erase(first, last); }
         Spike &front() { return queue.front(); }
         const Spike &front() const { return queue.front(); }
         void push_front(const Spike &spike) { queue.push_front(spike); }
