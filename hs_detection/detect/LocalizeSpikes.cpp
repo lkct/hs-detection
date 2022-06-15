@@ -36,7 +36,9 @@ namespace LocalizeSpikes
         vector<vector<int>> *waveforms = &spike_to_be_localized.waveforms;
         vector<int> *neighbor_counts = &spike_to_be_localized.neighbor_counts;
         vector<int> *largest_channels = &spike_to_be_localized.largest_channels;
-        vector<tuple<Point, int>> com_positions_amps;
+
+        Point sumPos(0, 0);
+        int sumWeight = 0;
 
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
@@ -53,7 +55,8 @@ namespace LocalizeSpikes
             // // compute median, threshold at median
             nth_element(amps.begin(), amps.begin() + (neighbor_count - 1) / 2, amps.end(), CustomLessThan());
             int correct = get<1>(amps[(neighbor_count - 1) / 2]);
-            if (neighbor_count % 2 == 0){
+            if (neighbor_count % 2 == 0)
+            {
                 correct = (get<1>(*min_element(amps.begin() + neighbor_count / 2, amps.end(), CustomLessThan())) + correct) / 2;
             }
 
@@ -75,75 +78,12 @@ namespace LocalizeSpikes
                 centered_amps.push_back(amps.at(0));
             }
 
-            Point position = centerOfMass(centered_amps);
-            tuple<Point, int> position_amp_tuple = make_tuple(position, 1);
-            com_positions_amps.push_back(position_amp_tuple);
-
-            amps.clear();
-            centered_amps.clear();
+            sumPos += centerOfMass(centered_amps);
+            sumWeight += 1; // TODO: inc amount?
         }
 
-        Point reweighted_com(0, 0);
-        if (com_positions_amps.size() > 1)
-        {
-            reweighted_com = reweightedCenterOfMass(com_positions_amps);
-        }
-        else
-        {
-            reweighted_com = get<0>(com_positions_amps[0]);
-        }
-
-        return reweighted_com;
-    }
-
-    Point reweightedCenterOfMass(vector<tuple<Point, int>> com_positions_amps)
-    {
-        float X = 0;
-        float Y = 0;
-        float X_numerator = 0;
-        float Y_numerator = 0;
-        int denominator = 0;
-        float X_coordinate;
-        float Y_coordinate;
-        int weight; // contains the amplitudes for the center of mass calculation.
-                    // Updated each localization
-
-        for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
-        {
-            X_coordinate = get<0>((com_positions_amps[i])).x;
-            Y_coordinate = get<0>((com_positions_amps[i])).y;
-            weight = get<1>(com_positions_amps[i]);
-            if (weight < 0)
-            {
-                cerr << "\ncenterOfMass::weight < 0 - this should not happen" << endl;
-            }
-            X_numerator += weight * X_coordinate;
-            Y_numerator += weight * Y_coordinate;
-            denominator += weight;
-        }
-
-        if (denominator == 0)
-        {
-            cerr << "Whopodis" << endl;
-            for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
-            {
-                X_coordinate = get<0>((com_positions_amps[i])).x;
-                Y_coordinate = get<0>((com_positions_amps[i])).y;
-                weight = get<1>(com_positions_amps[i]);
-                if (weight < 0)
-                {
-                    cerr << "\ncenterOfMass::weight < 0 - this should not happen" << endl;
-                }
-                cerr << "Weight" << weight << endl;
-                cerr << "X coordinate" << X_coordinate << endl;
-                cerr << "Y coordinate" << Y_coordinate << endl;
-            }
-        }
-
-        X = (X_numerator) / (float)(denominator);
-        Y = (Y_numerator) / (float)(denominator);
-
-        return Point(X, Y);
+        // TODO: div 0 check???
+        return sumPos *= 1 / (float)sumWeight;
     }
 
     Point centerOfMass(vector<tuple<int, int>> centered_amps)
