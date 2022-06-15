@@ -25,6 +25,12 @@ public:
         y *= mult;
         return *this;
     }
+    Point &operator/=(float divi)
+    {
+        x /= divi;
+        y /= divi;
+        return *this;
+    }
     friend Point operator-(const Point &lhs, const Point &rhs)
     {
         return Point(lhs.x - rhs.x, lhs.y - rhs.y);

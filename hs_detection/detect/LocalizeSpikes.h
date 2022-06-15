@@ -10,7 +10,6 @@ namespace LocalizeSpikes
 {
 
     Point localizeSpike(Spike spike_to_be_localized);
-    Point centerOfMass(std::vector<std::tuple<int, int>> centered_amps);
 
 };
 
