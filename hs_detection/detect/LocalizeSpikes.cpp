@@ -45,49 +45,49 @@ namespace LocalizeSpikes
 
             // // compute median, threshold at median
             nth_element(chAmp.begin(), chAmp.begin() + (chCount - 1) / 2, chAmp.end(), CustomLessThan());
-            int correct = chAmp[(chCount - 1) / 2].second;
+            int median = chAmp[(chCount - 1) / 2].second;
             if (chCount % 2 == 0)
             {
-                correct = (min_element(chAmp.begin() + chCount / 2, chAmp.end(), CustomLessThan())->second + correct) / 2;
+                median = (min_element(chAmp.begin() + chCount / 2, chAmp.end(), CustomLessThan())->second + median) / 2;
             }
 
-            Point com(0.0f, 0.0f);
+            Point CoM(0.0f, 0.0f);
             int sumAmp = 0;
 
             for (int i = 0; i < chCount; i++)
             {
                 int ch = chAmp[i].first;
-                int amp = chAmp[i].second - correct; // // Correct amplitudes (threshold)
+                int amp = chAmp[i].second - median; // // Correct amplitudes (threshold)
                 if (amp > 0)
                 {
-                    com += amp * HSDetection::Detection::channel_positions[ch];
+                    CoM += amp * HSDetection::Detection::channel_positions[ch];
                     sumAmp += amp;
                 }
             }
 
             if (sumAmp == 0)
             {
-                // NOTE: apm > 0 not entered, all <= correct, i.e. max <= median
+                // NOTE: apm > 0 not entered, all <= median, i.e. max <= median
                 // NOTE: this iff. max == median, i.e. upper half value all same
                 // NOTE: unlikely, therefore loop again instead of merge into previous
                 // TODO: really need?
                 for (int i = 0; i < chCount; i++)
                 {
                     int ch = chAmp[i].first;
-                    int amp = chAmp[i].second - correct;
+                    int amp = chAmp[i].second - median;
                     if (amp == 0) // NOTE: choose any median == max
                     {
-                        com = HSDetection::Detection::channel_positions[ch];
+                        CoM = HSDetection::Detection::channel_positions[ch];
                         break;
                     }
                 }
             }
             else
             {
-                com /= sumAmp;
+                CoM /= sumAmp;
             }
 
-            sumCoM += 1 * com; // TODO: weight?
+            sumCoM += 1 * CoM; // TODO: weight?
             sumWeight += 1;    // TODO: inc amount?
         }
 
