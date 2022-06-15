@@ -5,6 +5,8 @@
 #include <utility>
 #include "Spike.h"
 
+using HSDetection::Spike;
+
 namespace Utils
 {
 

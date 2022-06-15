@@ -7,7 +7,7 @@
 
 namespace HSDetection
 {
-    void SpikeQueue::add(Spike spike)
+    void SpikeQueue::add(Spike &spike)
     {
         // TODO: move to processing?
         // NOTE: currently cannot, rely on trace, break at chunk update
@@ -17,17 +17,12 @@ namespace HSDetection
             spike = Utils::storeCOMWaveformsCounts(spike);
         }
 
-        while (true)
+        while (!queue.empty() && queue.front().frame < spike.frame - Detection::spike_peak_duration - Detection::noise_duration)
         {
-            if (queue.empty() ||
-                spike.frame <= queue.front().frame + Detection::spike_peak_duration + Detection::noise_duration)
-            {
-                queue.push_back(spike);
-                break;
-            }
-
             process();
         }
+        
+        queue.push_back(spike);
     }
 
     void SpikeQueue::close()

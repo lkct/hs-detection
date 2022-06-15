@@ -1,27 +1,28 @@
 #ifndef SPIKEQUEUE_H
 #define SPIKEQUEUE_H
 
-#include "Spike.h"
 #include <list>
+
+#include "Spike.h"
 
 namespace HSDetection
 {
     class SpikeQueue
     {
     private:
-        // NOTE: list has constant erase, but forward_list not convenient enough
+        // list has constant erase, but forward_list not convenient enough
         std::list<Spike> queue; // TODO: list of Spike* ???
 
     public:
-        typedef std::list<Spike>::iterator iterator;
-        typedef std::list<Spike>::const_iterator const_iterator;
-
         SpikeQueue() : queue() {}
         ~SpikeQueue() {}
 
-        void add(Spike spike);
+        void add(Spike &spike);
         void close();
         void process();
+
+        typedef std::list<Spike>::iterator iterator;
+        typedef std::list<Spike>::const_iterator const_iterator;
 
         iterator begin() { return queue.begin(); }
         const_iterator begin() const { return queue.begin(); }

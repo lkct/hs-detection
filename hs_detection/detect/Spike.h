@@ -3,26 +3,31 @@
 
 #include <vector>
 #include <utility>
+
 #include "Point.h"
 
-// // Internal representation of a spike. User has no need to use it.
-class Spike
+namespace HSDetection
 {
-public:
-    int channel;
-    int frame;
-    int amplitude;
-    Point position;
+    class Spike
+    {
+    public: // TODO: remove?
+        std::vector<int> written_cutout;
+        std::vector<std::vector<std::pair<int, int>>> waveforms;
 
-    std::vector<int> written_cutout;
-    std::vector<std::vector<std::pair<int, int>>> waveforms;
+        int aGlobal = 0;            // Global noise
+        std::vector<int> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
 
-    int aGlobal;                // Global noise
-    std::vector<int> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
+    public:
+        int frame;
+        int channel;
+        int amplitude;
+        Point position;
 
-    Spike(int frame, int channel, int amplitude)
-        : channel(channel), frame(frame), amplitude(amplitude), position() {}
-    ~Spike() {}
-};
+        Spike(int frame, int channel, int amplitude)
+            : frame(frame), channel(channel), amplitude(amplitude), position() {}
+        ~Spike() {}
+    };
+
+} // namespace HSDetection
 
 #endif
