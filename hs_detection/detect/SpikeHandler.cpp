@@ -206,7 +206,7 @@ namespace SpikeHandler
                 The current detected spike (now with the nearest waveforms stored)
         */
 
-        vector<vector<int>> com_cutouts(HSDetection::Detection::num_com_centers, vector<int>());
+        vector<vector<tuple<int, int>>> com_cutouts(HSDetection::Detection::num_com_centers, vector<tuple<int, int>>());
 
         // Get closest channels for COM
         int channel = curr_spike.channel;
@@ -219,7 +219,6 @@ namespace SpikeHandler
                      << endl;
                 exit(EXIT_FAILURE);
             }
-            curr_spike.largest_channels.push_back(curr_max_channel);
             for (int j = 0; j < HSDetection::Detection::max_neighbors; j++)
             {
                 int curr_neighbor_channel = HSDetection::Detection::inner_neighbor_matrix[curr_max_channel][j];
@@ -251,7 +250,7 @@ namespace SpikeHandler
                             sum += curr_amp;
                         }
                     }
-                    com_cutouts[i].push_back(sum);
+                    com_cutouts[i].push_back(make_tuple(curr_neighbor_channel, sum));
                 }
                 // Out of neighbors to add cutout for
                 else
