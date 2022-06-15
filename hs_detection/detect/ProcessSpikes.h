@@ -4,7 +4,6 @@
 namespace ProcessSpikes
 {
 
-    void filterSpikes();
     void filterLocalizeSpikes();
 };
 

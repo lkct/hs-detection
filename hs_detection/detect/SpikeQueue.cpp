@@ -24,14 +24,7 @@ namespace HSDetection
                 break;
             }
 
-            if (Detection::to_localize)
-            {
-                ProcessSpikes::filterLocalizeSpikes();
-            }
-            else
-            {
-                ProcessSpikes::filterSpikes();
-            }
+            ProcessSpikes::filterLocalizeSpikes();
         }
     }
 
@@ -39,14 +32,7 @@ namespace HSDetection
     {
         while (!queue.empty())
         {
-            if (Detection::to_localize)
-            {
-                ProcessSpikes::filterLocalizeSpikes();
-            }
-            else
-            {
-                ProcessSpikes::filterSpikes();
-            }
+            ProcessSpikes::filterLocalizeSpikes();
         }
     }
 
