@@ -207,7 +207,6 @@ namespace SpikeHandler
         */
 
         vector<vector<int>> com_cutouts(HSDetection::Detection::num_com_centers, vector<int>());
-        vector<int> nearest_neighbor_counts(HSDetection::Detection::num_com_centers, 0);
 
         // Get closest channels for COM
         int channel = curr_spike.channel;
@@ -257,13 +256,11 @@ namespace SpikeHandler
                 // Out of neighbors to add cutout for
                 else
                 {
-                    nearest_neighbor_counts[i] = j;
                     break;
                 }
             }
         }
         curr_spike.waveforms = com_cutouts;
-        curr_spike.neighbor_counts = nearest_neighbor_counts;
         return curr_spike;
     }
 

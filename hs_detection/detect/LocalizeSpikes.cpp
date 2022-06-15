@@ -34,7 +34,6 @@ namespace LocalizeSpikes
          */
 
         vector<vector<int>> *waveforms = &spike_to_be_localized.waveforms;
-        vector<int> *neighbor_counts = &spike_to_be_localized.neighbor_counts;
         vector<int> *largest_channels = &spike_to_be_localized.largest_channels;
 
         Point sumPos(0, 0);
@@ -42,7 +41,7 @@ namespace LocalizeSpikes
 
         for (int i = 0; i < HSDetection::Detection::num_com_centers; i++)
         {
-            int neighbor_count = (*neighbor_counts)[i];
+            int neighbor_count = (*waveforms)[i].size();
             int max_channel = (*largest_channels)[i];
             vector<tuple<int, int>> amps;
 
