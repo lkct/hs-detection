@@ -12,7 +12,10 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeQueue::SpikeQueue(Detection *pDet) : queue(), queProcs(), spkProcs()
+    SpikeQueue::SpikeQueue(Detection *pDet)
+        : queue(), queProcs(), spkProcs(),
+          framesInQueue(pDet->noise_duration + pDet->spike_peak_duration),
+          framesToContinue(pDet->noise_duration + 1)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;
@@ -61,7 +64,7 @@ namespace HSDetection
             spike = Utils::storeCOMWaveformsCounts(spike);
         }
 
-        process(spike.frame - Detection::spike_peak_duration - Detection::noise_duration);
+        process(spike.frame - framesInQueue);
 
         queue.push_back(spike);
     }
@@ -77,7 +80,7 @@ namespace HSDetection
         {
             int last_frame = queue.front().frame;
 
-            while (!queue.empty() && queue.front().frame <= last_frame + Detection::noise_duration)
+            while (!queue.empty() && queue.front().frame < last_frame + framesToContinue)
             {
                 last_frame = queue.front().frame;
 

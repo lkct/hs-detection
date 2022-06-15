@@ -12,7 +12,7 @@
 
 namespace HSDetection
 {
-    // cannot include in cycle
+    // cannot have cyclic includes
     class QueueProcessor;
     class SpikeProcessor;
     class Detection;
@@ -24,6 +24,8 @@ namespace HSDetection
         std::list<Spike> queue; // list has constant erase, but forward_list not convenient enough
         std::vector<QueueProcessor *> queProcs;
         std::vector<SpikeProcessor *> spkProcs;
+        int framesInQueue;    // number of frames from where the spikes should be kept in queue
+        int framesToContinue; // TODO: ???
 
     public:
         SpikeQueue(Detection *pDet); // passing everything altogether
