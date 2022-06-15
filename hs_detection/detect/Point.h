@@ -1,6 +1,8 @@
 #ifndef POINT_H
 #define POINT_H
 
+#include <cmath>
+
 class Point
 {
 public:
@@ -22,6 +24,14 @@ public:
         x *= mult;
         y *= mult;
         return *this;
+    }
+    friend Point operator-(const Point &lhs, const Point &rhs)
+    {
+        return Point(lhs.x - rhs.x, lhs.y - rhs.y);
+    }
+    static float abs(const Point &pt)
+    {
+        return sqrt(pt.x * pt.x + pt.y * pt.y);
     }
 };
 

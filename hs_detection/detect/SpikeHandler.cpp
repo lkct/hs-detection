@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "ProcessSpikes.h"
 #include "Detection.h"
+#include "FilterSpikes.h"
 
 using namespace std;
 
@@ -19,41 +20,6 @@ namespace SpikeHandler
             return std::get<1>(lhs) < std::get<1>(rhs);
         }
     };
-
-    float channelsDist(int start_channel, int end_channel)
-    {
-        /*Finds the distance between two channels
-
-            Parameters
-            ----------
-            start_channel: int
-                    The start channel where distance measurement begins
-            end_channel: int
-            The end channel where distance measurement ends
-
-        Returns
-        -------
-            dist: float
-            The distance between the two channels
-            */
-        float start_position_x;
-        float start_position_y;
-        float end_position_x;
-        float end_position_y;
-        float x_displacement;
-        float y_displacement;
-        float dist;
-
-        start_position_x = HSDetection::Detection::channel_positions[start_channel].x;
-        start_position_y = HSDetection::Detection::channel_positions[start_channel].y;
-        end_position_x = HSDetection::Detection::channel_positions[end_channel].x;
-        end_position_y = HSDetection::Detection::channel_positions[end_channel].y;
-        x_displacement = start_position_x - end_position_x;
-        y_displacement = start_position_y - end_position_y;
-        dist = sqrt(pow(x_displacement, 2) + pow(y_displacement, 2));
-
-        return dist;
-    }
 
     void fillNeighborLayerMatrices()
     {
@@ -70,7 +36,7 @@ namespace SpikeHandler
                 curr_neighbor = HSDetection::Detection::neighbor_matrix[curr_channel][j];
                 if (curr_channel != curr_neighbor && curr_neighbor != -1)
                 {
-                    curr_dist = channelsDist(curr_neighbor, curr_channel);
+                    curr_dist = FilterSpikes::channelsDist(curr_neighbor, curr_channel);
                     distances_neighbors.push_back(make_tuple(curr_neighbor, curr_dist));
                 }
             }

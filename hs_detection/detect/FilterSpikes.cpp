@@ -344,23 +344,7 @@ namespace FilterSpikes
         dist: float
             The distance between the two channels
         */
-        float start_position_x;
-        float start_position_y;
-        float end_position_x;
-        float end_position_y;
-        float x_displacement;
-        float y_displacement;
-        float dist;
-
-        start_position_x = HSDetection::Detection::channel_positions[start_channel].x;
-        start_position_y = HSDetection::Detection::channel_positions[start_channel].y;
-        end_position_x = HSDetection::Detection::channel_positions[end_channel].x;
-        end_position_y = HSDetection::Detection::channel_positions[end_channel].y;
-        x_displacement = start_position_x - end_position_x;
-        y_displacement = start_position_y - end_position_y;
-        dist = sqrt(pow(x_displacement, 2) + pow(y_displacement, 2));
-
-        return dist;
+        return Point::abs(HSDetection::Detection::channel_positions[start_channel] - HSDetection::Detection::channel_positions[end_channel]);
     }
 
     bool isInnerNeighbor(int center_channel, int curr_channel)

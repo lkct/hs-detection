@@ -9,7 +9,6 @@ namespace SpikeHandler
 {
 
     // Inner neighbor creation methods
-    float channelsDist(int start_channel, int end_channel);
     void fillNeighborLayerMatrices();
     std::vector<int> getInnerNeighborsRadius(std::vector<std::tuple<int, float>> distances_neighbors, int central_channel);
     int **createInnerNeighborMatrix();
