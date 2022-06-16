@@ -62,6 +62,7 @@ class HSDetection(object):
             params['event_length'] * self.fps / 1000)
         self.noise_duration = int(params['peak_jitter'] * self.fps / 1000)
         self.noise_amp_percent: float = params['noise_amp_percent']
+        self.neighbor_radius: float = params['neighbor_radius']
         self.inner_radius: float = params['inner_radius']
 
         self.cutout_start = int(
@@ -156,14 +157,13 @@ class HSDetection(object):
         det: cython.pointer(Detection) = new Detection(
             t_inc,
             cython.address(position_matrix[0, 0]),
-            cython.address(neighbor_matrix[0, 0]),
             self.num_channels,
             self.spike_peak_duration,
             str(out_file).encode(),
             self.noise_duration,
             self.noise_amp_percent,
+            self.neighbor_radius,
             self.inner_radius,
-            self.max_neighbors,
             self.num_com_centers,
             self.localize,
             self.threshold,

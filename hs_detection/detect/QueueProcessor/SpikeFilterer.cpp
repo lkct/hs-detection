@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "SpikeFilterer.h"
-#include "../Utils.h"
+#include "../Detection.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ namespace HSDetection
              ++it)
         {
             // TODO: get the max of last time/channel?
-            if (Utils::areNeighbors(it->channel, spikeChannel) && it->amplitude >= maxAmp)
+            if (Detection::probeLayout.areNeighbors(it->channel, spikeChannel) && it->amplitude >= maxAmp)
             {
                 itMax = it;
                 maxAmp = it->amplitude;
@@ -39,7 +39,7 @@ namespace HSDetection
         pQueue->erase(
             remove_if(pQueue->begin(), pQueue->end(),
                       [spikeChannel, maxAmp](const Spike &spike)
-                      { return Utils::areNeighbors(spike.channel, spikeChannel) && spike.amplitude < maxAmp; }),
+                      { return Detection::probeLayout.areNeighbors(spike.channel, spikeChannel) && spike.amplitude < maxAmp; }),
             pQueue->end());
 
         pQueue->push_front(move(maxSpike));

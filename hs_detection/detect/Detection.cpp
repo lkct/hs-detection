@@ -12,25 +12,20 @@ namespace HSDetection
     int Detection::spike_peak_duration = 0;
     int Detection::noise_duration = 0;
     float Detection::noise_amp_percent = 0;
-    int Detection::max_neighbors = 0;
     bool Detection::to_localize = 0;
     bool Detection::decay_filtering = 0;
     int Detection::maxsl = 0;
     int Detection::cutout_start = 0;
     int Detection::cutout_end = 0;
     int Detection::cutout_size = 0;
-    float Detection::inner_radius = 0;
-    int **Detection::neighbor_matrix = nullptr;
-    Point *Detection::channel_positions = nullptr;
-    int **Detection::inner_neighbor_matrix = nullptr;
-    int **Detection::outer_neighbor_matrix = nullptr;
 
     VoltTrace Detection::trace(0, 0, 0);
+    ProbeLayout Detection::probeLayout;
 
-    Detection::Detection(int chunkSize, int *positionMatrix, int *neighborMatrix,
+    Detection::Detection(int chunkSize, int *positionMatrix,
                          int nChannels, int spikePeakDuration, string filename,
-                         int noiseDuration, float noiseAmpPercent, float innerRadius,
-                         int maxNeighbors, int numComCenters, bool localize,
+                         int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
+                         int numComCenters, bool localize,
                          int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
                          int ahpthr, int maxSl, int minSl, bool decayFiltering,
                          int framesLeftMargin)
@@ -64,39 +59,22 @@ namespace HSDetection
 
         memset(Aglobal, 0, chunkSize * sizeof(int)); // TODO: 0 init?
 
-        Point *channelPosition; // TODO: float or int? input is int
-        int **channelNeighbor;
-        channelPosition = new Point[nChannels];
-        channelNeighbor = new int *[nChannels];
-        for (int i = 0; i < nChannels; i++)
-        {
-            channelPosition[i] = Point(positionMatrix[i * 2], positionMatrix[i * 2 + 1]);
-            channelNeighbor[i] = new int[maxNeighbors];
-            memcpy(channelNeighbor[i], neighborMatrix + i * maxNeighbors, maxNeighbors * sizeof(int));
-        }
-
         // TODO: error check?
         num_com_centers = numComCenters;
         num_channels = nChannels;
         spike_peak_duration = spikePeakDuration;
         noise_duration = noiseDuration;
         noise_amp_percent = noiseAmpPercent;
-        max_neighbors = maxNeighbors;
         to_localize = localize;
         decay_filtering = decayFiltering;
         maxsl = maxSl;
         cutout_start = cutoutStart;
         cutout_end = cutoutEnd;
         cutout_size = cutoutStart + cutoutEnd + 1;
-        inner_radius = innerRadius;
-        channel_positions = channelPosition;
-        neighbor_matrix = channelNeighbor;
 
         trace = VoltTrace(framesLeftMargin, nChannels, chunkSize);
 
-        inner_neighbor_matrix = Utils::createInnerNeighborMatrix();
-        outer_neighbor_matrix = Utils::createOuterNeighborMatrix();
-        Utils::fillNeighborLayerMatrices();
+        probeLayout = ProbeLayout(nChannels, positionMatrix, neighborRadius, innerRadius);
 
         pQueue = new SpikeQueue(this); // all the params should be ready
     }
@@ -117,13 +95,6 @@ namespace HSDetection
         delete[] SpkArea;
 
         delete[] Aglobal;
-
-        delete[] channel_positions;
-        for (int i = 0; i < nChannels; i++)
-        {
-            delete[] neighbor_matrix[i];
-        }
-        delete[] neighbor_matrix;
 
         delete pQueue;
     }

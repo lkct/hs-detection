@@ -48,7 +48,7 @@ namespace HSDetection
                 int amp = chAmp[i].second - median; // // Correct amplitudes (threshold)
                 if (amp > 0)
                 {
-                    CoM += amp * Detection::channel_positions[chAmp[i].first];
+                    CoM += amp * Detection::probeLayout.getChannelPosition(chAmp[i].first);
                     sumAmp += amp;
                 }
             }
@@ -63,7 +63,7 @@ namespace HSDetection
                 {
                     if (chAmp[i].second == median) // NOTE: choose any median == max
                     {
-                        CoM = Detection::channel_positions[chAmp[i].first];
+                        CoM = Detection::probeLayout.getChannelPosition(chAmp[i].first);
                         break;
                     }
                 }
