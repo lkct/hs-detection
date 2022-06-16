@@ -38,17 +38,22 @@ namespace HSDetection
         typedef std::list<Spike>::iterator iterator;
         typedef std::list<Spike>::const_iterator const_iterator;
 
+        bool empty() const { return queue.empty(); }
+
         iterator begin() { return queue.begin(); }
         const_iterator begin() const { return queue.begin(); }
+
         iterator end() { return queue.end(); }
         const_iterator end() const { return queue.end(); }
-        bool empty() const { return queue.empty(); }
-        iterator erase(const_iterator position) { return queue.erase(position); }
-        iterator erase(const_iterator first, const_iterator last) { return queue.erase(first, last); }
+
         Spike &front() { return queue.front(); }
         const Spike &front() const { return queue.front(); }
+
         void push_front(const Spike &spike) { queue.push_front(spike); }
         void push_front(Spike &&spike) { queue.push_front(spike); }
+
+        iterator erase(const_iterator position) { return queue.erase(position); }
+        iterator erase(const_iterator first, const_iterator last) { return queue.erase(first, last); }
     };
 
 } // namespace HSDetection

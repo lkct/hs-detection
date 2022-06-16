@@ -18,11 +18,12 @@ namespace HSDetection
         ~VoltTrace() {}
 
         void updateChunk(short *traceBuffer) { this->traceBuffer = traceBuffer, frameOffset += chunkSize; }
+
         const short *operator[](int frame) const { return traceBuffer + (frame - frameOffset) * numChannels; }
         short *operator[](int frame) { return traceBuffer + (frame - frameOffset) * numChannels; }
+
         const short &operator()(int frame, int channel) const { return (*this)[frame][channel]; }
         short &operator()(int frame, int channel) { return (*this)[frame][channel]; }
-        // TODO: sliceFrame
     };
 
 } // namespace HSDetection

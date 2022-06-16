@@ -21,6 +21,7 @@ namespace HSDetection
         Point &operator-=(const Point &other) { return x -= other.x, y -= other.y, *this; }
         Point &operator*=(float mult) { return x *= mult, y *= mult, *this; }
         Point &operator/=(float divisor) { return x /= divisor, y /= divisor, *this; }
+        
         // not using reference for cascaded non-inplace ops
         friend Point operator+(Point lhs, const Point &rhs) { return lhs += rhs; }
         friend Point operator-(Point lhs, const Point &rhs) { return lhs -= rhs; }
