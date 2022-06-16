@@ -24,17 +24,16 @@ namespace HSDetection
     Point *Detection::channel_positions = nullptr;
     int **Detection::inner_neighbor_matrix = nullptr;
     int **Detection::outer_neighbor_matrix = nullptr;
-    int Detection::t_inc = 0;
 
     VoltTrace Detection::trace(0, 0, 0);
 
-    Detection::Detection(int tInc, int *positionMatrix, int *neighborMatrix,
+    Detection::Detection(int chunkSize, int *positionMatrix, int *neighborMatrix,
                          int nChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float innerRadius,
                          int maxNeighbors, int numComCenters, bool localize,
                          int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
                          int ahpthr, int maxSl, int minSl, bool decayFiltering)
-        : nChannels(nChannels), tInc(tInc), threshold(threshold), minAvgAmp(minAvgAmp),
+        : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
           currQmsPosition(-1), spikePeakDuration(spikePeakDuration), filename(filename)
     {
@@ -51,7 +50,7 @@ namespace HSDetection
         Amp = new int[nChannels];
         SpkArea = new int[nChannels];
 
-        Aglobal = new int[tInc];
+        Aglobal = new int[chunkSize];
 
         fill_n(Qd, nChannels, 400); // TODO: magic number?
         fill_n(Qm, nChannels, Voffset * Ascale);
@@ -61,7 +60,7 @@ namespace HSDetection
         memset(Amp, 0, nChannels * sizeof(int));     // TODO: 0 init?
         memset(SpkArea, 0, nChannels * sizeof(int)); // TODO: 0 init?
 
-        memset(Aglobal, 0, tInc * sizeof(int)); // TODO: 0 init?
+        memset(Aglobal, 0, chunkSize * sizeof(int)); // TODO: 0 init?
 
         Point *channelPosition; // TODO: float or int? input is int
         int **channelNeighbor;
@@ -90,9 +89,8 @@ namespace HSDetection
         inner_radius = innerRadius;
         channel_positions = channelPosition;
         neighbor_matrix = channelNeighbor;
-        t_inc = tInc;
 
-        trace = VoltTrace(cutoutStart + maxSl, nChannels, tInc);
+        trace = VoltTrace(cutoutStart + maxSl, nChannels, chunkSize);
 
         inner_neighbor_matrix = Utils::createInnerNeighborMatrix();
         outer_neighbor_matrix = Utils::createOuterNeighborMatrix();

@@ -7,7 +7,7 @@ from libcpp.string cimport string
 
 cdef extern from "Detection.h" namespace "HSDetection":
     cdef cppclass Detection:
-        Detection(int tInc, int *positionMatrix, int *neighborMatrix,
+        Detection(int chunkSize, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, string filename,
                   int noiseDuration, float noiseAmpPercent, float innerRadius,
                   int maxNeighbors, int numComCenters, bool localize,

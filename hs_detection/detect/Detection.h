@@ -12,7 +12,6 @@ namespace HSDetection
     {
     private:
         int nChannels; // number of probe channels
-        int tInc;      // chunk size of data reading (the last chunk can be smaller than this)
 
         // Variables for variance and mean
         int *Qd;   // noise amplitude
@@ -83,11 +82,10 @@ namespace HSDetection
         static Point *channel_positions;    /*Indexed by the channel number starting at 0 and going up to num_channels - 1. Each
                                           index contains pointer to another array which contains X and Y position of the channel. User creates
                                           this before calling SpikeHandler. */
-        static int t_inc;
 
         static VoltTrace trace;
 
-        Detection(int tInc, int *positionMatrix, int *neighborMatrix,
+        Detection(int chunkSize, int *positionMatrix, int *neighborMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,
                   int noiseDuration, float noiseAmpPercent, float innerRadius,
                   int maxNeighbors, int numComCenters, bool localize,
