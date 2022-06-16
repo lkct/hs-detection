@@ -222,10 +222,11 @@ namespace HSDetection
                     {
                         if (2 * SpkArea[i] > minSl * minAvgAmp * Qd[i])
                         {
-                            Spike spike = Spike(t - maxSl + 1, i, Amp[i]);
-                            if (t - frameInputStart - maxSl + 1 > 0)
+                            int tSpike = t - maxSl + 1;
+                            Spike spike = Spike(tSpike, i, Amp[i]);
+                            if (tSpike - frameInputStart > 0)
                             {
-                                spike.aGlobal = Aglobal[t - frameInputStart - maxSl + 1];
+                                spike.aGlobal = Aglobal[tSpike - frameInputStart];
                             }
                             else
                             {
