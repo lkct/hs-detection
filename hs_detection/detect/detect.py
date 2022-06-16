@@ -188,8 +188,6 @@ class HSDetection(object):
 
             vm = self.get_traces(segment_index=segment_index,
                                  start_frame=t0 - t_cut, end_frame=t1 + t_cut2)
-            if self.num_channels >= 20:
-                det.MeanVoltage(cython.address(vm[0]), t_inc, t_cut)
             det.Iterate(cython.address(vm[0]), t0, t_inc, t_cut, t_cut2)
 
             t0 += t_inc

@@ -152,6 +152,11 @@ namespace HSDetection
     {
         trace.updateChunk(traceBuffer);
 
+        if (nChannels >= 20) // TODO: magic number?
+        {
+            MeanVoltage(traceBuffer, tInc, tCut);
+        }
+
         // // Does this need to end at tInc + tCut? (Cole+Martino)
         for (int t = tCut; t < tInc; t++)
         {
