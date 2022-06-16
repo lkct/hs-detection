@@ -132,12 +132,12 @@ namespace HSDetection
     {
     }
 
-    void Detection::MeanVoltage(short *traceBuffer, int tInc)
+    void Detection::MeanVoltage(short *traceBuffer, int framesInputLen)
     {
         // // if median takes too long...
         // // or there are only few
         // // channnels (?)
-        for (int t = 0, tTrace = framesLeftMargin; t < tInc; t++, tTrace++)
+        for (int t = 0, tTrace = framesLeftMargin; t < framesInputLen; t++, tTrace++)
         {
             int sum = 0;
             for (int i = 0; i < nChannels; i++)
@@ -148,17 +148,17 @@ namespace HSDetection
         }
     }
 
-    void Detection::Iterate(short *traceBuffer, int t0, int tInc)
+    void Detection::Iterate(short *traceBuffer, int frameInputStart, int framesInputLen)
     {
         trace.updateChunk(traceBuffer);
 
         if (nChannels >= 20) // TODO: magic number?
         {
-            MeanVoltage(traceBuffer, tInc);
+            MeanVoltage(traceBuffer, framesInputLen);
         }
 
-        // // Does this need to end at tInc + framesLeftMargin? (Cole+Martino)
-        for (int t = framesLeftMargin; t < tInc; t++)
+        // // Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
+        for (int t = framesLeftMargin; t < framesInputLen; t++)
         {
             currQmsPosition++;
             for (int i = 0; i < nChannels; i++)
@@ -222,7 +222,7 @@ namespace HSDetection
                     {
                         if (2 * SpkArea[i] > minSl * minAvgAmp * Qd[i])
                         {
-                            Spike spike = Spike(t0 - maxSl + t - framesLeftMargin + 1, i, Amp[i]);
+                            Spike spike = Spike(frameInputStart - maxSl + t - framesLeftMargin + 1, i, Amp[i]);
                             if (t - framesLeftMargin - maxSl + 1 > 0)
                             {
                                 spike.aGlobal = Aglobal[t - framesLeftMargin - maxSl + 1];
