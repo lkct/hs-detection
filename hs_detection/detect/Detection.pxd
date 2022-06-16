@@ -13,6 +13,6 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   int maxNeighbors, int numComCenters, bool localize,
                   int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
                   int ahpthr, int maxSl, int minSl, bool decayFiltering,
-                  int tCut, int tCut2) except +
+                  int tCut) except +
         void Iterate(short *traceBuffer, long t0, int tInc)
         void FinishDetection()

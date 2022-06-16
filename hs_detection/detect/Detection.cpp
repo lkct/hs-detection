@@ -33,11 +33,11 @@ namespace HSDetection
                          int maxNeighbors, int numComCenters, bool localize,
                          int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
                          int ahpthr, int maxSl, int minSl, bool decayFiltering,
-                         int tCut, int tCut2)
+                         int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
           currQmsPosition(-1), spikePeakDuration(spikePeakDuration), filename(filename),
-          tCut(tCut), tCut2(tCut2)
+          framesLeftMargin(framesLeftMargin)
     {
         Qd = new int[nChannels];
         Qm = new int[nChannels];
@@ -92,7 +92,7 @@ namespace HSDetection
         channel_positions = channelPosition;
         neighbor_matrix = channelNeighbor;
 
-        trace = VoltTrace(tCut, nChannels, chunkSize);
+        trace = VoltTrace(framesLeftMargin, nChannels, chunkSize);
 
         inner_neighbor_matrix = Utils::createInnerNeighborMatrix();
         outer_neighbor_matrix = Utils::createOuterNeighborMatrix();
@@ -137,7 +137,7 @@ namespace HSDetection
         // // if median takes too long...
         // // or there are only few
         // // channnels (?)
-        for (int t = 0, tTrace = tCut; t < tInc; t++, tTrace++)
+        for (int t = 0, tTrace = framesLeftMargin; t < tInc; t++, tTrace++)
         {
             int sum = 0;
             for (int i = 0; i < nChannels; i++)
@@ -157,15 +157,15 @@ namespace HSDetection
             MeanVoltage(traceBuffer, tInc);
         }
 
-        // // Does this need to end at tInc + tCut? (Cole+Martino)
-        for (int t = tCut; t < tInc; t++)
+        // // Does this need to end at tInc + framesLeftMargin? (Cole+Martino)
+        for (int t = framesLeftMargin; t < tInc; t++)
         {
             currQmsPosition++;
             for (int i = 0; i < nChannels; i++)
             {
                 // // CHANNEL OUT OF LINEAR REGIME
                 // // difference between ADC counts and Qm
-                int a = (traceBuffer[t * nChannels + i] - Aglobal[t - tCut]) * Ascale - Qm[i];
+                int a = (traceBuffer[t * nChannels + i] - Aglobal[t - framesLeftMargin]) * Ascale - Qm[i];
 
                 // TODO: clean `if`s
                 // // UPDATE Qm and Qd
@@ -196,9 +196,9 @@ namespace HSDetection
 
                 Qms[currQmsPosition % (maxSl + spikePeakDuration)][i] = Qm[i];
 
-                // // should tCut be subtracted here??
+                // // should framesLeftMargin be subtracted here??
                 // calc against updated Qm
-                a = (traceBuffer[t * nChannels + i] - Aglobal[t - tCut]) * Ascale - Qm[i];
+                a = (traceBuffer[t * nChannels + i] - Aglobal[t - framesLeftMargin]) * Ascale - Qm[i];
 
                 // // TREATMENT OF THRESHOLD CROSSINGS
                 if (Sl[i] > 0)
@@ -222,14 +222,14 @@ namespace HSDetection
                     {
                         if (2 * SpkArea[i] > minSl * minAvgAmp * Qd[i])
                         {
-                            Spike spike = Spike(t0 - maxSl + t - tCut + 1, i, Amp[i]);
-                            if (t - tCut - maxSl + 1 > 0)
+                            Spike spike = Spike(t0 - maxSl + t - framesLeftMargin + 1, i, Amp[i]);
+                            if (t - framesLeftMargin - maxSl + 1 > 0)
                             {
-                                spike.aGlobal = Aglobal[t - tCut - maxSl + 1];
+                                spike.aGlobal = Aglobal[t - framesLeftMargin - maxSl + 1];
                             }
                             else
                             {
-                                spike.aGlobal = Aglobal[t - tCut];
+                                spike.aGlobal = Aglobal[t - framesLeftMargin];
                             }
                             int *tmp = Qms[(currQmsPosition + 1) % (maxSl + spikePeakDuration)];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);

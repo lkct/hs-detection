@@ -174,8 +174,7 @@ class HSDetection(object):
             self.maxsl,
             self.minsl,
             self.decay_filtering,
-            t_cut,
-            t_cut2)
+            t_cut)
 
         vm: cython.short[:] = np.zeros(
             self.num_channels * (t_inc + t_cut + t_cut2), dtype=np.int16)

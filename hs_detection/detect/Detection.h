@@ -38,8 +38,7 @@ namespace HSDetection
 
         int spikePeakDuration;
 
-        int tCut;  // num of frames in input as left margin
-        int tCut2; // num of frames in input as right margin
+        int framesLeftMargin;  // num of frames in input as left margin
 
         // TODO: consts
         const int Ascale = -64; // factor to multiply to raw traces to increase
@@ -94,7 +93,7 @@ namespace HSDetection
                   int maxNeighbors, int numComCenters, bool localize,
                   int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
                   int ahpthr, int maxSl, int minSl, bool decayFiltering,
-                  int tCut, int tCut2);
+                  int framesLeftMargin);
         ~Detection();
         void MedianVoltage(short *traceBuffer);
         void MeanVoltage(short *traceBuffer, int tInc);
