@@ -230,6 +230,7 @@ namespace HSDetection
                             }
                             else
                             {
+                                // TODO: what if Sl carried to the next chunk?
                                 spike.aGlobal = Aglobal[t - frameInputStart];
                             }
                             int *tmp = Qms[(currQmsPosition + 1) % (maxSl + spikePeakDuration)];
