@@ -47,17 +47,6 @@ class HSDetection(object):
             positions = positions[:, -2:]
         self.positions = positions.astype(np.int32)
 
-        # using Euclidean distance, also possible to use Manhattan (ord=1)
-        distances: NDArray[np.float64] = np.linalg.norm(
-            positions[:, None] - positions[None, :], axis=2, ord=2)
-        neighbors: list[NDArray[np.int64]] = [
-            np.nonzero(dist < params['neighbor_radius'])[0] for dist in distances]
-        self.max_neighbors = max([n.shape[0] for n in neighbors])
-        self.neighbors: NDArray[np.int32] = np.full(
-            (self.num_channels, self.max_neighbors), -1, dtype=np.int32)
-        for i, n in enumerate(neighbors):
-            self.neighbors[i, :n.shape[0]] = n
-
         self.spike_peak_duration = int(
             params['event_length'] * self.fps / 1000)
         self.noise_duration = int(params['peak_jitter'] * self.fps / 1000)
@@ -150,8 +139,6 @@ class HSDetection(object):
 
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
             self.positions, dtype=np.int32)
-        neighbor_matrix: cython.int[:, :] = np.ascontiguousarray(
-            self.neighbors, dtype=np.int32)
         out_file = self.out_file.with_stem(
             self.out_file.stem + f'-{segment_index}')
         det: cython.pointer(Detection) = new Detection(
