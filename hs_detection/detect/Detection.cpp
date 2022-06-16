@@ -31,8 +31,8 @@ namespace HSDetection
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          currQmsPosition(-1), spikePeakDuration(spikePeakDuration), filename(filename),
-          framesLeftMargin(framesLeftMargin)
+          currQmsPosition(-1), spikePeakDuration(spikePeakDuration),
+          framesLeftMargin(framesLeftMargin), filename(filename)
     {
         Qd = new int[nChannels];
         Qm = new int[nChannels];

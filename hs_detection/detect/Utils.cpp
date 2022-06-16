@@ -26,9 +26,6 @@ namespace Utils
     {
         int num_com_centers = HSDetection::Detection::num_com_centers;
         HSDetection::ProbeLayout &probe = HSDetection::Detection::probeLayout;
-        int cutout_start = HSDetection::Detection::cutout_start;
-        int cutout_end = HSDetection::Detection::cutout_end;
-        int cutout_size = HSDetection::Detection::cutout_size;
         int noise_duration = HSDetection::Detection::noise_duration;
 
         vector<vector<pair<int, int>>> chAmps(num_com_centers, vector<pair<int, int>>());
@@ -41,7 +38,7 @@ namespace Utils
 
             const vector<int> & neib = probe.getInnerNeighbors(max_channel);
 
-            for (int j = 0; j < neib.size(); j++)
+            for (int j = 0; j < (int)neib.size(); j++) // -Wsign-compare
             {
                 int curr_neighbor_channel = neib[j];
 
