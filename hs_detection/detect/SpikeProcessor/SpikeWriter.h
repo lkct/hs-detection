@@ -17,7 +17,7 @@ namespace HSDetection
         SpikeWriter(const std::string &filename);
         ~SpikeWriter();
 
-        using SpikeProcessor::operator();
+        using SpikeProcessor::operator(); // allow call on iterator
         void operator()(Spike *pSpike);
     };
 
