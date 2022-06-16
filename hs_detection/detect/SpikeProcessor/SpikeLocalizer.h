@@ -8,7 +8,7 @@ namespace HSDetection
     class SpikeLocalizer : public SpikeProcessor
     {
     public:
-        using SpikeProcessor::operator();
+        using SpikeProcessor::operator(); // allow call on iterator
         void operator()(Spike *pSpike);
     };
 

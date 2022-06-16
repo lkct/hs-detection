@@ -9,18 +9,6 @@ using namespace std;
 
 namespace HSDetection
 {
-    namespace
-    {
-        struct PairSecondCompare
-        {
-            template <class T, class U>
-            bool operator()(const pair<T, U> &lhs, const pair<T, U> &rhs) const
-            {
-                return lhs.second < rhs.second;
-            }
-        };
-    } // namespace anon
-
     void SpikeLocalizer::operator()(Spike *pSpike)
     {
         // TODO: generate waveform here???
@@ -39,11 +27,16 @@ namespace HSDetection
             {
                 // TODO: extract as a class?
                 vector<pair<int, int>>::iterator mid = chAmp.begin() + (chCount - 1) / 2;
-                nth_element(chAmp.begin(), mid, chAmp.end(), PairSecondCompare());
+                nth_element(chAmp.begin(), mid, chAmp.end(),
+                            [](const pair<int, int> &lhs, const pair<int, int> &rhs)
+                            { return lhs.second < rhs.second; });
                 median = mid->second;
                 if (chCount % 2 == 0)
                 {
-                    int next = min_element(mid + 1, chAmp.end(), PairSecondCompare())->second;
+                    int next = min_element(mid + 1, chAmp.end(),
+                                           [](const pair<int, int> &lhs, const pair<int, int> &rhs)
+                                           { return lhs.second < rhs.second; })
+                                   ->second;
                     median = (median + next) / 2;
                 }
             }
