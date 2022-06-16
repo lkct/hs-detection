@@ -26,7 +26,7 @@ namespace HSDetection
         }
         else
         {
-            pQueProc = new SpikeFilterer();
+            pQueProc = new SpikeFilterer(pDet->noise_duration);
             queProcs.push_back(pQueProc);
         }
 

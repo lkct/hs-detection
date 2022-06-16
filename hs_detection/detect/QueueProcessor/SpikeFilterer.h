@@ -7,7 +7,13 @@ namespace HSDetection
 {
     class SpikeFilterer : public QueueProcessor
     {
+    private:
+        int framesFilter; // TODO: ???
+
     public:
+        SpikeFilterer(int noiseDuration);
+        ~SpikeFilterer();
+
         void operator()(SpikeQueue *pQueue);
     };
 
