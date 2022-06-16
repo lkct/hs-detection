@@ -96,7 +96,7 @@ namespace HSDetection
                   int framesLeftMargin);
         ~Detection();
         void MedianVoltage(short *traceBuffer);
-        void MeanVoltage(short *traceBuffer, int tInc);
+        void MeanVoltage(short *traceBuffer, int t0, int tInc);
         void Iterate(short *traceBuffer, int t0, int tInc);
         void FinishDetection();
     };

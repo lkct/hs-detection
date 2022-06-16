@@ -132,19 +132,19 @@ namespace HSDetection
     {
     }
 
-    void Detection::MeanVoltage(short *traceBuffer, int framesInputLen)
+    void Detection::MeanVoltage(short *traceBuffer, int frameInputStart, int framesInputLen)
     {
         // // if median takes too long...
         // // or there are only few
         // // channnels (?)
-        for (int t = 0, tTrace = framesLeftMargin; t < framesInputLen; t++, tTrace++)
+        for (int t = frameInputStart; t < frameInputStart + framesInputLen; t++)
         {
             int sum = 0;
             for (int i = 0; i < nChannels; i++)
             {
-                sum += traceBuffer[tTrace * nChannels + i];
+                sum += trace(t, i);
             }
-            Aglobal[t] = sum / (nChannels + 1); // TODO: no need +1
+            Aglobal[t - frameInputStart] = sum / (nChannels + 1); // TODO: no need +1
         }
     }
 
@@ -154,18 +154,18 @@ namespace HSDetection
 
         if (nChannels >= 20) // TODO: magic number?
         {
-            MeanVoltage(traceBuffer, framesInputLen);
+            MeanVoltage(traceBuffer, frameInputStart, framesInputLen);
         }
 
-        // // Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = framesLeftMargin; t < framesInputLen; t++)
+        // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
+        for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++)
         {
             currQmsPosition++;
             for (int i = 0; i < nChannels; i++)
             {
                 // // CHANNEL OUT OF LINEAR REGIME
                 // // difference between ADC counts and Qm
-                int a = (traceBuffer[t * nChannels + i] - Aglobal[t - framesLeftMargin]) * Ascale - Qm[i];
+                int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qm[i];
 
                 // TODO: clean `if`s
                 // // UPDATE Qm and Qd
@@ -198,7 +198,7 @@ namespace HSDetection
 
                 // // should framesLeftMargin be subtracted here??
                 // calc against updated Qm
-                a = (traceBuffer[t * nChannels + i] - Aglobal[t - framesLeftMargin]) * Ascale - Qm[i];
+                a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qm[i];
 
                 // // TREATMENT OF THRESHOLD CROSSINGS
                 if (Sl[i] > 0)
@@ -222,14 +222,14 @@ namespace HSDetection
                     {
                         if (2 * SpkArea[i] > minSl * minAvgAmp * Qd[i])
                         {
-                            Spike spike = Spike(frameInputStart - maxSl + t - framesLeftMargin + 1, i, Amp[i]);
-                            if (t - framesLeftMargin - maxSl + 1 > 0)
+                            Spike spike = Spike(t - maxSl + 1, i, Amp[i]);
+                            if (t - frameInputStart - maxSl + 1 > 0)
                             {
-                                spike.aGlobal = Aglobal[t - framesLeftMargin - maxSl + 1];
+                                spike.aGlobal = Aglobal[t - frameInputStart - maxSl + 1];
                             }
                             else
                             {
-                                spike.aGlobal = Aglobal[t - framesLeftMargin];
+                                spike.aGlobal = Aglobal[t - frameInputStart];
                             }
                             int *tmp = Qms[(currQmsPosition + 1) % (maxSl + spikePeakDuration)];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
