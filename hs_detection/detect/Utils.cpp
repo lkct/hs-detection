@@ -11,6 +11,38 @@ using namespace std;
 namespace Utils
 {
 
+    float channelsDist(int start_channel, int end_channel)
+    {
+        return (HSDetection::Detection::channel_positions[start_channel] - HSDetection::Detection::channel_positions[end_channel]).abs();
+    }
+
+    vector<int>
+    getInnerNeighborsRadius(vector<pair<int, float>> distances_neighbors,
+                            int central_channel)
+    {
+        int curr_neighbor;
+        float curr_dist;
+        vector<int> inner_channels;
+        vector<pair<int, float>>::iterator it;
+        inner_channels.push_back(central_channel);
+        it = distances_neighbors.begin();
+        while (it != distances_neighbors.end())
+        {
+            curr_neighbor = it->first;
+            curr_dist = it->second;
+            if (curr_dist <= HSDetection::Detection::inner_radius)
+            {
+                inner_channels.push_back(curr_neighbor);
+                ++it;
+            }
+            else
+            {
+                break;
+            }
+        }
+        return inner_channels;
+    }
+
     struct CustomLessThan
     {
         bool operator()(pair<int, float> const &lhs, pair<int, float> const &rhs) const
@@ -93,33 +125,6 @@ namespace Utils
             inner_neighbors.clear();
             distances_neighbors.clear();
         }
-    }
-
-    vector<int>
-    getInnerNeighborsRadius(vector<pair<int, float>> distances_neighbors,
-                            int central_channel)
-    {
-        int curr_neighbor;
-        float curr_dist;
-        vector<int> inner_channels;
-        vector<pair<int, float>>::iterator it;
-        inner_channels.push_back(central_channel);
-        it = distances_neighbors.begin();
-        while (it != distances_neighbors.end())
-        {
-            curr_neighbor = it->first;
-            curr_dist = it->second;
-            if (curr_dist <= HSDetection::Detection::inner_radius)
-            {
-                inner_channels.push_back(curr_neighbor);
-                ++it;
-            }
-            else
-            {
-                break;
-            }
-        }
-        return inner_channels;
     }
 
     int **createInnerNeighborMatrix()
@@ -265,25 +270,6 @@ namespace Utils
         }
         curr_spike.waveforms = chAmps;
         return curr_spike;
-    }
-
-    float channelsDist(int start_channel, int end_channel)
-    {
-        /*Finds the distance between two channels
-
-        Parameters
-        ----------
-        start_channel: int
-            The start channel where distance measurement begins
-        end_channel: int
-            The end channel where distance measurement ends
-
-        Returns
-        -------
-        dist: float
-            The distance between the two channels
-        */
-        return (HSDetection::Detection::channel_positions[start_channel] - HSDetection::Detection::channel_positions[end_channel]).abs();
     }
 
     bool areNeighbors(int channel_one, int channel_two)
