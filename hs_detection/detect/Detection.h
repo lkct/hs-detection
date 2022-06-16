@@ -32,12 +32,8 @@ namespace HSDetection
         int maxSl;     // dead time in frames after peak, used for further testing
         int minSl;     // length considered for determining avg. spike amplitude
 
-        // Parameters for recalibration events and artefact handling
-        int *A; // control parameter for amplifier effects
-
         // Files to save the spikes etc.
         int *Aglobal;
-        int *Slice;
 
         int currQmsPosition;
 
@@ -48,7 +44,6 @@ namespace HSDetection
                                 // resolution; definition of ADC counts had been
                                 // changed!
         const int Voffset = 0;  // mean ADC counts, as initial value for Qm
-        const int artT = 10;    // to use after artefacts; to update Qm for 10 frames
 
         // Parameters for variance and mean updates
         const int Qdmin = 200; // set minimum value of Qd

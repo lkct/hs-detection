@@ -51,9 +51,6 @@ namespace HSDetection
         Amp = new int[nChannels];
         SpkArea = new int[nChannels];
 
-        A = new int[nChannels];
-
-        Slice = new int[nChannels];
         Aglobal = new int[tInc];
 
         fill_n(Qd, nChannels, 400); // TODO: magic number?
@@ -64,9 +61,6 @@ namespace HSDetection
         memset(Amp, 0, nChannels * sizeof(int));     // TODO: 0 init?
         memset(SpkArea, 0, nChannels * sizeof(int)); // TODO: 0 init?
 
-        fill_n(A, nChannels, artT);
-
-        // TODO: init of Slice?
         memset(Aglobal, 0, tInc * sizeof(int)); // TODO: 0 init?
 
         Point *channelPosition; // TODO: float or int? input is int
@@ -122,9 +116,6 @@ namespace HSDetection
         delete[] Amp;
         delete[] SpkArea;
 
-        delete[] A;
-
-        delete[] Slice;
         delete[] Aglobal;
 
         delete[] channel_positions;
