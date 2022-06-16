@@ -175,7 +175,7 @@ namespace Utils
         {
             try
             {
-                curr_written_reading = HSDetection::Detection::trace.get(
+                curr_written_reading = HSDetection::Detection::trace(
                     curr_spike.frame - HSDetection::Detection::cutout_start + i,
                     curr_spike.channel);
             }
@@ -256,7 +256,7 @@ namespace Utils
                 int sum = 0;
                 for (int k = 0; k < amp_cutout_size; k++)
                 {
-                    int curr_reading = HSDetection::Detection::trace.get(
+                    int curr_reading = HSDetection::Detection::trace(
                         curr_spike.frame - cutout_start_index + k, curr_neighbor_channel);
                     int curr_amp = (curr_reading - curr_spike.aGlobal) * HSDetection::Detection::ASCALE -
                                    curr_spike.baselines[curr_neighbor_channel];
