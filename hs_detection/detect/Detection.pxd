@@ -12,8 +12,7 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   int noiseDuration, float noiseAmpPercent, float innerRadius,
                   int maxNeighbors, int numComCenters, bool localize,
                   int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                  int ahpthr, int maxSl, int minSl, bool decayFiltering) except +
-        void MedianVoltage(short * traceBuffer)
-        void MeanVoltage(short * traceBuffer, int tInc, int tCut)
-        void Iterate(short *traceBuffer, long t0, int tInc, int tCut, int tCut2)
+                  int ahpthr, int maxSl, int minSl, bool decayFiltering,
+                  int tCut, int tCut2) except +
+        void Iterate(short *traceBuffer, long t0, int tInc)
         void FinishDetection()

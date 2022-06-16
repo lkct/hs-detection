@@ -38,6 +38,9 @@ namespace HSDetection
 
         int spikePeakDuration;
 
+        int tCut;  // num of frames in input as left margin
+        int tCut2; // num of frames in input as right margin
+
         // TODO: consts
         const int Ascale = -64; // factor to multiply to raw traces to increase
                                 // resolution; definition of ADC counts had been
@@ -90,11 +93,12 @@ namespace HSDetection
                   int noiseDuration, float noiseAmpPercent, float innerRadius,
                   int maxNeighbors, int numComCenters, bool localize,
                   int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                  int ahpthr, int maxSl, int minSl, bool decayFiltering);
+                  int ahpthr, int maxSl, int minSl, bool decayFiltering,
+                  int tCut, int tCut2);
         ~Detection();
         void MedianVoltage(short *traceBuffer);
-        void MeanVoltage(short *traceBuffer, int tInc, int tCut);
-        void Iterate(short *traceBuffer, int t0, int tInc, int tCut, int tCut2);
+        void MeanVoltage(short *traceBuffer, int tInc);
+        void Iterate(short *traceBuffer, int t0, int tInc);
         void FinishDetection();
     };
 

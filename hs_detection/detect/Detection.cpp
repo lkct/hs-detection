@@ -32,10 +32,12 @@ namespace HSDetection
                          int noiseDuration, float noiseAmpPercent, float innerRadius,
                          int maxNeighbors, int numComCenters, bool localize,
                          int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                         int ahpthr, int maxSl, int minSl, bool decayFiltering)
+                         int ahpthr, int maxSl, int minSl, bool decayFiltering,
+                         int tCut, int tCut2)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          currQmsPosition(-1), spikePeakDuration(spikePeakDuration), filename(filename)
+          currQmsPosition(-1), spikePeakDuration(spikePeakDuration), filename(filename),
+          tCut(tCut), tCut2(tCut2)
     {
         Qd = new int[nChannels];
         Qm = new int[nChannels];
@@ -90,7 +92,7 @@ namespace HSDetection
         channel_positions = channelPosition;
         neighbor_matrix = channelNeighbor;
 
-        trace = VoltTrace(cutoutStart + maxSl, nChannels, chunkSize);
+        trace = VoltTrace(tCut, nChannels, chunkSize);
 
         inner_neighbor_matrix = Utils::createInnerNeighborMatrix();
         outer_neighbor_matrix = Utils::createOuterNeighborMatrix();
@@ -130,7 +132,7 @@ namespace HSDetection
     {
     }
 
-    void Detection::MeanVoltage(short *traceBuffer, int tInc, int tCut)
+    void Detection::MeanVoltage(short *traceBuffer, int tInc)
     {
         // // if median takes too long...
         // // or there are only few
@@ -146,13 +148,13 @@ namespace HSDetection
         }
     }
 
-    void Detection::Iterate(short *traceBuffer, int t0, int tInc, int tCut, int tCut2)
+    void Detection::Iterate(short *traceBuffer, int t0, int tInc)
     {
         trace.updateChunk(traceBuffer);
 
         if (nChannels >= 20) // TODO: magic number?
         {
-            MeanVoltage(traceBuffer, tInc, tCut);
+            MeanVoltage(traceBuffer, tInc);
         }
 
         // // Does this need to end at tInc + tCut? (Cole+Martino)

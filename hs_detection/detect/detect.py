@@ -173,7 +173,9 @@ class HSDetection(object):
             self.ahpthr,
             self.maxsl,
             self.minsl,
-            self.decay_filtering)
+            self.decay_filtering,
+            t_cut,
+            t_cut2)
 
         vm: cython.short[:] = np.zeros(
             self.num_channels * (t_inc + t_cut + t_cut2), dtype=np.int16)
@@ -188,7 +190,7 @@ class HSDetection(object):
 
             vm = self.get_traces(segment_index=segment_index,
                                  start_frame=t0 - t_cut, end_frame=t1 + t_cut2)
-            det.Iterate(cython.address(vm[0]), t0, t_inc, t_cut, t_cut2)
+            det.Iterate(cython.address(vm[0]), t0, t_inc)
 
             t0 += t_inc
             if t0 < self.num_frames[segment_index] - t_cut2:
