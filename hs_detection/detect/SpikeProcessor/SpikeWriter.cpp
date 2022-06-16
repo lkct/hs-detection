@@ -7,9 +7,7 @@ using namespace std;
 namespace HSDetection
 {
     SpikeWriter::SpikeWriter(const string &filename)
-        : spikeFile(filename, ios::binary | ios::trunc)
-    {
-    }
+        : spikeFile(filename, ios::binary | ios::trunc) {}
 
     SpikeWriter::~SpikeWriter()
     {
