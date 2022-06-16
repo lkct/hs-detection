@@ -152,63 +152,19 @@ namespace Utils
         return outer_neighbor_matrix;
     }
 
-    Spike storeWaveformCutout(int cutout_size, Spike curr_spike)
+    Spike storeWaveformCutout(Spike curr_spike)
     {
-        /*Stores the largest waveform in the written_cutout deque of the spike
-
-        Parameters
-        ----------
-        channel: int
-                The channel at which the spike is detected.
-        cutout_size: int
-                The length of the cutout
-        curr_spike: Spike
-                The current detected spike
-
-        Returns
-        ----------
-        curr_spike: Spike
-                The current detected spike (now with the waveform stored)
-        */
-        int32_t curr_written_reading;
-        for (int i = 0; i < cutout_size; i++)
+        for (int t = curr_spike.frame - HSDetection::Detection::cutout_start;
+             t < curr_spike.frame + HSDetection::Detection::cutout_end + 1;
+             t++)
         {
-            try
-            {
-                curr_written_reading = HSDetection::Detection::trace(
-                    curr_spike.frame - HSDetection::Detection::cutout_start + i,
-                    curr_spike.channel);
-            }
-            catch (...)
-            {
-                // spikes_filtered_file.close();
-                cerr << "Raw Data and it parameters entered incorrectly, could not "
-                        "access data. Terminating SpikeHandler."
-                     << endl;
-                exit(EXIT_FAILURE);
-            }
-            curr_spike.written_cutout.push_back(curr_written_reading);
+            curr_spike.written_cutout.push_back(HSDetection::Detection::trace(t, curr_spike.channel));
         }
         return curr_spike;
     }
 
     Spike storeCOMWaveformsCounts(Spike curr_spike)
     {
-        /*Stores the inner neighbor waveforms in the amp_cutouts deque of the spike
-
-        Parameters
-        ----------
-        channel: int
-                The channel at which the spike is detected.
-        curr_spike: Spike
-                The current detected spike
-
-        Returns
-        ----------
-        curr_spike: Spike
-                The current detected spike (now with the nearest waveforms stored)
-        */
-
         int num_com_centers = HSDetection::Detection::num_com_centers;
         int **inner_neighbor_matrix = HSDetection::Detection::inner_neighbor_matrix;
         int max_neighbors = HSDetection::Detection::max_neighbors;
@@ -239,25 +195,12 @@ namespace Utils
                     break;
                 }
 
-                // Check if noise_duration is too large in comparison to the buffer size
-                int amp_cutout_size, cutout_start_index;
-                if (cutout_start < noise_duration || cutout_end < noise_duration)
-                {
-                    // TODO: possible to enter this branch???
-                    amp_cutout_size = cutout_size;
-                    cutout_start_index = cutout_start;
-                }
-                else
-                {
-                    amp_cutout_size = noise_duration * 2;
-                    cutout_start_index = noise_duration;
-                }
+                // TODO: assert (cutout_start >= noise_duration && cutout_end >= noise_duration)
 
                 int sum = 0;
-                for (int k = 0; k < amp_cutout_size; k++)
+                for (int t = curr_spike.frame - noise_duration; t < curr_spike.frame + noise_duration; t++)
                 {
-                    int curr_reading = HSDetection::Detection::trace(
-                        curr_spike.frame - cutout_start_index + k, curr_neighbor_channel);
+                    int curr_reading = HSDetection::Detection::trace(t, curr_neighbor_channel);
                     int curr_amp = (curr_reading - curr_spike.aGlobal) * HSDetection::Detection::ASCALE -
                                    curr_spike.baselines[curr_neighbor_channel];
                     if (curr_amp >= 0)
@@ -306,6 +249,5 @@ namespace Utils
         }
         return are_neighbors;
     }
-
 
 }

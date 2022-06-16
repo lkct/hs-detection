@@ -58,7 +58,7 @@ namespace HSDetection
     {
         // TODO: move to processing?
         // NOTE: currently cannot, rely on trace, break at chunk update
-        spike = Utils::storeWaveformCutout(Detection::cutout_size, spike);
+        spike = Utils::storeWaveformCutout(spike);
         if (Detection::to_localize)
         {
             spike = Utils::storeCOMWaveformsCounts(spike);
