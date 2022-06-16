@@ -2,6 +2,7 @@ import os
 import platform
 import subprocess
 import sys
+from typing import Iterable
 
 from setuptools import Extension, find_packages, setup
 
@@ -22,7 +23,8 @@ try:
     print('Using Cython')
 except ImportError:
     # no cython, use compiled cpp
-    def cythonize(x, **kwargs): return [x]
+    def cythonize(module_list, **kwargs):
+        return list(module_list) if isinstance(module_list, Iterable) else [module_list]
     ext_src = ['detect.cpp']
     print('Not using Cython')
 
