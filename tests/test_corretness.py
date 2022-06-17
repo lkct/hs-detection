@@ -7,7 +7,7 @@ from data_utils import download_small, str2Path
 from run_hs2 import run_herdingspikes, run_hsdet
 
 
-def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
+def test_correctness(data_fn: str = 'mearec_test_10s.h5', filter: bool = True) -> None:
     data_path = str2Path(data_fn)
     if not data_path.exists():
         download_small(data_fn)
@@ -42,15 +42,16 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
-        sihs = run_herdingspikes(recording, output_folder=sihs_path)
-        hsdet = run_hsdet(recording, output_folder=hsdet_path)
+        sihs = run_herdingspikes(
+            recording, output_folder=sihs_path, filter=filter)
+        hsdet = run_hsdet(recording, output_folder=hsdet_path, filter=filter)
     except Exception as e:
         sys.stdout, sys.stderr = stdout, stderr
         raise e
     else:
         sys.stdout, sys.stderr = stdout, stderr
 
-    assert all(hsdet[seg]['channel_ind'].shape[0] == 713
+    assert all(hsdet[seg]['channel_ind'].shape[0] == (713 if filter else 596)
                for seg in range(recording.get_num_segments()))
     for seg in range(recording.get_num_segments()):
         for k in hsdet[seg].keys():
@@ -58,4 +59,5 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
 
 
 if __name__ == '__main__':
-    test_corectness()
+    test_correctness()
+    test_correctness(filter=False)
