@@ -54,7 +54,7 @@ namespace HSDetection
         Amp = new int[nChannels];
         SpkArea = new int[nChannels];
 
-        Aglobal = new int[chunkSize];
+        Aglobal = new int[chunkSize + framesLeftMargin];
 
         fill_n(Qvs[0], nChannels, 400); // TODO: magic number?
         fill_n(Qbs[0], nChannels, Voffset);
@@ -64,7 +64,7 @@ namespace HSDetection
         memset(Amp, 0, nChannels * sizeof(int));     // TODO: 0 init?
         memset(SpkArea, 0, nChannels * sizeof(int)); // TODO: 0 init?
 
-        memset(Aglobal, 0, chunkSize * sizeof(int)); // TODO: 0 init?
+        memset(Aglobal, 0, (chunkSize + framesLeftMargin) * sizeof(int)); // TODO: 0 init? // really need?
 
         // TODO: error check?
         num_com_centers = numComCenters;
@@ -120,14 +120,14 @@ namespace HSDetection
         // // if median takes too long...
         // // or there are only few
         // // channnels (?)
-        for (int t = frameInputStart; t < frameInputStart + framesInputLen; t++)
+        for (int t = frameInputStart - framesLeftMargin; t < frameInputStart + framesInputLen; t++)
         {
             int sum = 0;
             for (int i = 0; i < nChannels; i++)
             {
                 sum += trace(t, i) / 64; // TODO: no need to scale
             }
-            Aglobal[t - frameInputStart] = sum / (nChannels + 1) * 64; // TODO: no need +1
+            Aglobal[t - frameInputStart + framesLeftMargin] = sum / (nChannels + 1) * 64; // TODO: no need +1
         }
     }
 
@@ -150,7 +150,7 @@ namespace HSDetection
             int *QbNext = Qbs[currQbsPosition % QbsLen];
             int *QvNext = Qvs[currQbsPosition % QbsLen];
             short *input = trace[t];
-            int aglobal = Aglobal[t - frameInputStart];
+            int aglobal = Aglobal[t - frameInputStart + framesLeftMargin];
             for (int i = 0; i < nChannels; i++)
             {
                 int a = input[i] - aglobal - Qb[i];
@@ -196,7 +196,7 @@ namespace HSDetection
             {
                 // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
-                int a = trace(t, i) - Aglobal[t - frameInputStart] - Qbs[currQbsPosition % QbsLen][i];
+                int a = trace(t, i) - Aglobal[t - frameInputStart + framesLeftMargin] - Qbs[currQbsPosition % QbsLen][i];
                 int Qvv = Qvs[currQbsPosition % QbsLen][i];
 
                 if (a > threshold * Qvv / 2 && Sl[i] == 0) // TODO: why /2
@@ -232,12 +232,12 @@ namespace HSDetection
                             Spike spike = Spike(tSpike, i, Amp[i]);
                             if (tSpike - frameInputStart > 0)
                             {
-                                spike.aGlobal = Aglobal[tSpike - frameInputStart];
+                                spike.aGlobal = Aglobal[tSpike - frameInputStart + framesLeftMargin];
                             }
                             else
                             {
                                 // TODO: what if Sl carried to the next chunk?
-                                spike.aGlobal = Aglobal[t - frameInputStart];
+                                spike.aGlobal = Aglobal[t - frameInputStart + framesLeftMargin];
                             }
                             int *tmp = Qbs[(currQbsPosition - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
