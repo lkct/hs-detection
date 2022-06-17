@@ -149,40 +149,28 @@ namespace HSDetection
             {
                 int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
 
-                int cases = -1;
+                int dltQb = 0;
                 if (a < -Qv[i])
-                    cases = 0;
-                if (0 < a && a <= Qv[i])
-                    cases = 1;
-                if (Qv[i] < a && a < 5 * Qv[i])
-                    cases = 2;
-                if (5 * Qv[i] <= a && a <= 6 * Qv[i])
-                    cases = 3;
-                if (6 * Qv[i] < a)
-                    cases = 4;
+                {
+                    dltQb = -Qv[i] / (Tau_m0 * 2);
+                }
+                else if (Qv[i] < a)
+                {
+                    dltQb = Qv[i] / Tau_m0;
+                }
 
-                if (cases == 0)
+                int dltQv = 0;
+                if (Qv[i] < a && a < 5 * Qv[i])
                 {
-                    Qb[i] -= Qv[i] / (Tau_m0 * 2);
+                    dltQv = QvChange;
                 }
-                if (cases == 1)
+                else if ((0 < a && a <= Qv[i]) || 6 * Qv[i] < a)
                 {
-                    Qv[i] -= QvChange;
+                    dltQv = -QvChange;
                 }
-                if (cases == 2)
-                {
-                    Qb[i] += Qv[i] / Tau_m0;
-                    Qv[i] += QvChange;
-                }
-                if (cases == 3)
-                {
-                    Qb[i] += Qv[i] / Tau_m0;
-                }
-                if (cases == 4)
-                {
-                    Qb[i] += Qv[i] / Tau_m0;
-                    Qv[i] -= QvChange;
-                }
+
+                Qb[i] += dltQb;
+                Qv[i] += dltQv;
 
                 // set a minimum level for Qv
                 if (Qv[i] < Qvmin)
