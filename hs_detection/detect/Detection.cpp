@@ -143,7 +143,7 @@ namespace HSDetection
         int savedQbsPos = currQbsPosition;
 
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++, currQbsPosition++)
+        for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++, currQbsPosition++)
         {
             int *Qb = Qbs[(currQbsPosition - 1) % QbsLen];
             int *Qv = Qvs[(currQbsPosition - 1) % QbsLen];
@@ -190,7 +190,7 @@ namespace HSDetection
         currQbsPosition = savedQbsPos;
 
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++, currQbsPosition++)
+        for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++, currQbsPosition++)
         {
             for (int i = 0; i < nChannels; i++)
             {
