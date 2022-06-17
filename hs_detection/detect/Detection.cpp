@@ -57,7 +57,7 @@ namespace HSDetection
         Aglobal = new int[chunkSize];
 
         fill_n(Qvs[0], nChannels, 400); // TODO: magic number?
-        fill_n(Qbs[0], nChannels, Voffset * Ascale);
+        fill_n(Qbs[0], nChannels, Voffset * ASCALE);
 
         memset(Sl, 0, nChannels * sizeof(int));      // TODO: 0 init?
         memset(AHP, 0, nChannels * sizeof(bool));    // TODO: 0 init?
@@ -153,7 +153,7 @@ namespace HSDetection
             int aglobal = Aglobal[t - frameInputStart];
             for (int i = 0; i < nChannels; i++)
             {
-                int a = (input[i] - aglobal) * Ascale - Qb[i];
+                int a = (input[i] - aglobal) * ASCALE - Qb[i];
 
                 int dltQb = 0;
                 if (a < -Qv[i])
@@ -196,7 +196,7 @@ namespace HSDetection
             {
                 // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
-                int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qbs[currQbsPosition % QbsLen][i];
+                int a = (trace(t, i) - Aglobal[t - frameInputStart]) * ASCALE - Qbs[currQbsPosition % QbsLen][i];
                 int Qvv = Qvs[currQbsPosition % QbsLen][i];
 
                 if (a > threshold * Qvv / 2 && Sl[i] == 0) // TODO: why /2

@@ -45,9 +45,6 @@ namespace HSDetection
         int framesLeftMargin; // num of frames in input as left margin
 
         // TODO: consts
-        const int Ascale = -64; // factor to multiply to raw traces to increase
-                                // resolution; definition of ADC counts had been
-                                // changed!
         const int Voffset = 0;  // mean ADC counts, as initial value for Qb
 
         // Parameters for variance and mean updates
@@ -68,6 +65,9 @@ namespace HSDetection
     public:
         // TODO: from parameters
         static const int ASCALE = -64;  // Scaling on the raw extracellular data
+                                        // factor to multiply to raw traces to increase
+                                        // resolution; definition of ADC counts had been
+                                        // changed!
         static int num_com_centers;     // Number of channels used for center of mass
         static int num_channels;        // Number of channels on the probe
         static int spike_peak_duration; // The number of frames it takes a spike amplitude to fully decay.
