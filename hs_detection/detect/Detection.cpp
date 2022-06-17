@@ -31,14 +31,15 @@ namespace HSDetection
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          currQmsPosition(-1), spikePeakDuration(spikePeakDuration),
+          currQmsPosition(0), spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
           saveShape(saveShape)
     {
         Qd = new int[nChannels];
         Qm = new int[nChannels];
-        Qms = new int *[spikePeakDuration + maxSl];
-        for (int i = 0; i < spikePeakDuration + maxSl; i++)
+        QmsLen = spikePeakDuration + maxSl + 10000; // TODO: qms setting?
+        Qms = new int *[QmsLen];
+        for (int i = 0; i < QmsLen; i++)
         {
             Qms[i] = new int[nChannels];
         }
@@ -84,7 +85,7 @@ namespace HSDetection
     {
         delete[] Qd;
         delete[] Qm;
-        for (int i = 0; i < spikePeakDuration + maxSl; i++)
+        for (int i = 0; i < QmsLen; i++)
         {
             delete[] Qms[i];
         }
@@ -130,9 +131,8 @@ namespace HSDetection
         }
 
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++)
+        for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++, currQmsPosition++)
         {
-            currQmsPosition++;
             for (int i = 0; i < nChannels; i++)
             {
                 // // CHANNEL OUT OF LINEAR REGIME
@@ -166,7 +166,7 @@ namespace HSDetection
                     Qm[i] -= Qd[i] / (Tau_m0 * 2);
                 }
 
-                Qms[currQmsPosition % (maxSl + spikePeakDuration)][i] = Qm[i];
+                Qms[currQmsPosition % QmsLen][i] = Qm[i];
 
                 // // should framesLeftMargin be subtracted here??
                 // calc against updated Qm
@@ -205,7 +205,7 @@ namespace HSDetection
                                 // TODO: what if Sl carried to the next chunk?
                                 spike.aGlobal = Aglobal[t - frameInputStart];
                             }
-                            int *tmp = Qms[(currQmsPosition + 1) % (maxSl + spikePeakDuration)];
+                            int *tmp = Qms[(currQmsPosition - (maxsl + spikePeakDuration - 1) + QmsLen) % QmsLen];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
 
                             pQueue->add(spike);

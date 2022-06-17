@@ -19,6 +19,8 @@ namespace HSDetection
         int *Qm;   // median
         int **Qms; // stores spike_delay + MaxSl baseline values;
 
+        int QmsLen;
+
         // Variables for the spike detection
         int *Sl;      // counter for spike length
         bool *AHP;    // counter for repolarizing current
