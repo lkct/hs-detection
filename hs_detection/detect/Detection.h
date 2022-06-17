@@ -87,11 +87,13 @@ namespace HSDetection
                   int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
                   int framesLeftMargin);
         ~Detection();
-        void MedianVoltage(short *traceBuffer);
-        void MeanVoltage(short *traceBuffer, int t0, int tInc);
         void Iterate(short *traceBuffer, int t0, int tInc);
         int FinishDetection();
         char *Get();
+
+    private:
+        void MedianVoltage(short *traceBuffer);
+        void MeanVoltage(short *traceBuffer, int t0, int tInc);
     };
 
 } // namespace HSDetection
