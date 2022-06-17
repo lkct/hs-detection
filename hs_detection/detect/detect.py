@@ -139,6 +139,7 @@ class HSDetection(object):
         t_cut2 = self.cutout_end + self.maxsl
         t_inc = min(self.chunk_size,
                     self.num_frames[segment_index] - t_cut - t_cut2)
+        t_cut = 2048  # TODO: can be smaller? effect of band pass?
 
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
             self.positions, dtype=np.int32)
