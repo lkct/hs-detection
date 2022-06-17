@@ -143,7 +143,7 @@ class HSDetection(object):
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
             self.positions, dtype=np.int32)
         out_file = self.out_file.with_stem(
-            self.out_file.stem + f'-{segment_index}') if self.save_shape else None
+            self.out_file.stem + f'-{segment_index}') if self.out_file else None
         det: cython.pointer(Detection) = new Detection(
             t_inc,
             cython.address(position_matrix[0, 0]),
@@ -208,7 +208,7 @@ class HSDetection(object):
 
         del det
 
-        if self.save_shape and out_file.stat().st_size > 0:
+        if self.out_file and out_file.stat().st_size > 0:
             spikes: NDArray[np.int32] = np.memmap(
                 str(out_file), dtype=np.int32, mode='r').reshape(-1, self.cutout_length)
         else:
