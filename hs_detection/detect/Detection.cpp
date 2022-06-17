@@ -139,31 +139,46 @@ namespace HSDetection
                 // // difference between ADC counts and Qb
                 int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
 
-                // TODO: clean `if`s
                 // // UPDATE Qb and Qv
-                if (a > 0)
-                {
-                    if (a > Qv[i])
-                    {
-                        Qb[i] += Qv[i] / Tau_m0;
-                        if (a < 5 * Qv[i])
-                        {
-                            Qv[i]++; // TODO: inc/dec amount (relative to Ascale)
-                        }
-                        else if ((Qv[i] > Qvmin) && (a > 6 * Qv[i]))
-                        {
-                            Qv[i]--;
-                        }
-                    }
-                    else if (Qv[i] > Qvmin)
-                    {
-                        // // set a minimum level for Qv
-                        Qv[i]--;
-                    }
-                }
-                else if (a < -Qv[i])
+                int cases = -1;
+                if (a < -Qv[i])
+                    cases = 0;
+                if (0 < a && a <= Qv[i])
+                    cases = 1;
+                if (Qv[i] < a && a < 5 * Qv[i])
+                    cases = 2;
+                if (5 * Qv[i] <= a && a <= 6 * Qv[i])
+                    cases = 3;
+                if (6 * Qv[i] < a)
+                    cases = 4;
+
+                if (cases == 0)
                 {
                     Qb[i] -= Qv[i] / (Tau_m0 * 2);
+                }
+                if (cases == 1)
+                {
+                    Qv[i] -= QvChange;
+                }
+                if (cases == 2)
+                {
+                    Qb[i] += Qv[i] / Tau_m0;
+                    Qv[i] += QvChange;
+                }
+                if (cases == 3)
+                {
+                    Qb[i] += Qv[i] / Tau_m0;
+                }
+                if (cases == 4)
+                {
+                    Qb[i] += Qv[i] / Tau_m0;
+                    Qv[i] -= QvChange;
+                }
+
+                // // set a minimum level for Qv
+                if (Qv[i] < Qvmin)
+                {
+                    Qv[i] = Qvmin;
                 }
 
                 Qbs[currQmsPosition % QbsLen][i] = Qb[i];

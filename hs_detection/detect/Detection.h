@@ -53,6 +53,8 @@ namespace HSDetection
         const int Qvmin = 200; // set minimum value of Qv
         const int Tau_m0 = 4;  // timescale for updating Qb (increment is Qv/Tau_m)
 
+        const int QvChange = 1; // TODO: Qv change amount?
+
         SpikeQueue *pQueue;
 
     public:
