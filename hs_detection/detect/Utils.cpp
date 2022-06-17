@@ -48,7 +48,7 @@ namespace Utils
                 for (int t = curr_spike.frame - noise_duration; t < curr_spike.frame + noise_duration; t++)
                 {
                     int curr_reading = HSDetection::Detection::trace(t, curr_neighbor_channel);
-                    int curr_amp = (curr_reading - curr_spike.aGlobal) * HSDetection::Detection::ASCALE -
+                    int curr_amp = curr_reading - curr_spike.aGlobal -
                                    curr_spike.baselines[curr_neighbor_channel];
                     if (curr_amp >= 0)
                     {

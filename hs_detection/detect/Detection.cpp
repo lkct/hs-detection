@@ -57,7 +57,7 @@ namespace HSDetection
         Aglobal = new int[chunkSize];
 
         fill_n(Qvs[0], nChannels, 400); // TODO: magic number?
-        fill_n(Qbs[0], nChannels, Voffset * ASCALE);
+        fill_n(Qbs[0], nChannels, Voffset);
 
         memset(Sl, 0, nChannels * sizeof(int));      // TODO: 0 init?
         memset(AHP, 0, nChannels * sizeof(bool));    // TODO: 0 init?
@@ -125,9 +125,9 @@ namespace HSDetection
             int sum = 0;
             for (int i = 0; i < nChannels; i++)
             {
-                sum += trace(t, i);
+                sum += trace(t, i) / 64; // TODO: no need to scale
             }
-            Aglobal[t - frameInputStart] = sum / (nChannels + 1); // TODO: no need +1
+            Aglobal[t - frameInputStart] = sum / (nChannels + 1) * 64; // TODO: no need +1
         }
     }
 
@@ -153,7 +153,7 @@ namespace HSDetection
             int aglobal = Aglobal[t - frameInputStart];
             for (int i = 0; i < nChannels; i++)
             {
-                int a = (input[i] - aglobal) * ASCALE - Qb[i];
+                int a = input[i] - aglobal - Qb[i];
 
                 int dltQb = 0;
                 if (a < -Qv[i])
@@ -196,7 +196,7 @@ namespace HSDetection
             {
                 // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
-                int a = (trace(t, i) - Aglobal[t - frameInputStart]) * ASCALE - Qbs[currQbsPosition % QbsLen][i];
+                int a = trace(t, i) - Aglobal[t - frameInputStart] - Qbs[currQbsPosition % QbsLen][i];
                 int Qvv = Qvs[currQbsPosition % QbsLen][i];
 
                 if (a > threshold * Qvv / 2 && Sl[i] == 0) // TODO: why /2

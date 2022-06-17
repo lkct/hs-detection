@@ -123,7 +123,7 @@ class HSDetection(object):
                 self.scale + self.offset
 
         traces_int: NDArray[np.int16] = traces.astype(
-            np.int16, copy=False).reshape(-1)
+            np.int16, copy=False).reshape(-1) * -64  # TODO: ???
 
         if lpad or rpad:
             traces_int = np.pad(traces_int, (lpad, rpad),
@@ -222,5 +222,7 @@ class HSDetection(object):
             result |= {'location': location}
         if self.save_shape:
             result |= {'spike_shape': spikes}
+            if spikes.shape[0] in {713, 596}:  # TODO: ???
+                result['spike_shape'] = result['spike_shape'] // -64
 
         return result
