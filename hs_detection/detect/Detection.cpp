@@ -184,7 +184,15 @@ namespace HSDetection
                 // calc against updated Qb
                 a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
 
-                if (Sl[i] > 0)
+                if (a > threshold * Qv[i] / 2 && Sl[i] == 0) // TODO: why /2
+                {
+                    // // check for threshold crossings
+                    Sl[i] = 1;
+                    Amp[i] = a;
+                    AHP[i] = false;
+                    SpkArea[i] = a;
+                }
+                else if (Sl[i] > 0)
                 {
                     // // Sl frames after peak value
                     // // increment Sl[i]
@@ -231,14 +239,6 @@ namespace HSDetection
                         AHP[i] = false;  // // reset AHP
                         SpkArea[i] += a; // // not resetting this one (anyway don't need to care if the spike is wide)
                     }
-                }
-                else if (a > threshold * Qv[i] / 2) // TODO: why /2
-                {
-                    // // check for threshold crossings
-                    Sl[i] = 1;
-                    Amp[i] = a;
-                    AHP[i] = false;
-                    SpkArea[i] = a;
                 }
 
             } // for i
