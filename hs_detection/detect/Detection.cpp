@@ -43,6 +43,11 @@ namespace HSDetection
         {
             Qbs[i] = new int[nChannels];
         }
+        Qvs = new int *[QbsLen];
+        for (int i = 0; i < QbsLen; i++)
+        {
+            Qvs[i] = new int[nChannels];
+        }
 
         Sl = new int[nChannels];
         AHP = new bool[nChannels];
@@ -90,6 +95,11 @@ namespace HSDetection
             delete[] Qbs[i];
         }
         delete[] Qbs;
+        for (int i = 0; i < QbsLen; i++)
+        {
+            delete[] Qvs[i];
+        }
+        delete[] Qvs;
 
         delete[] Sl;
         delete[] AHP;
@@ -129,6 +139,8 @@ namespace HSDetection
         {
             MeanVoltage(traceBuffer, frameInputStart, framesInputLen);
         }
+
+        int savedQbsPos = currQbsPosition;
 
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
         for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++, currQbsPosition++)
@@ -179,12 +191,24 @@ namespace HSDetection
                 }
 
                 Qbs[currQbsPosition % QbsLen][i] = Qb[i];
+                Qvs[currQbsPosition % QbsLen][i] = Qv[i];
+            } // for i
 
+        } // for t
+
+        currQbsPosition = savedQbsPos;
+
+        // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
+        for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++, currQbsPosition++)
+        {
+            for (int i = 0; i < nChannels; i++)
+            {
                 // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
-                a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
+                int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qbs[currQbsPosition % QbsLen][i];
+                int Qvv = Qvs[currQbsPosition % QbsLen][i];
 
-                if (a > threshold * Qv[i] / 2 && Sl[i] == 0) // TODO: why /2
+                if (a > threshold * Qvv / 2 && Sl[i] == 0) // TODO: why /2
                 {
                     // // check for threshold crossings
                     Sl[i] = 1;
@@ -203,7 +227,7 @@ namespace HSDetection
                         // after spike
                         SpkArea[i] += a;
                     }
-                    else if (a < AHPthr * Qv[i])
+                    else if (a < AHPthr * Qvv)
                     {
                         // // check whether it does repolarize
                         AHP[i] = true;
@@ -211,7 +235,7 @@ namespace HSDetection
 
                     if ((Sl[i] == maxSl) && AHP[i])
                     {
-                        if (2 * SpkArea[i] > minSl * minAvgAmp * Qv[i])
+                        if (2 * SpkArea[i] > minSl * minAvgAmp * Qvv)
                         {
                             int tSpike = t - maxSl + 1;
                             Spike spike = Spike(tSpike, i, Amp[i]);

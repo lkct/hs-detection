@@ -18,6 +18,7 @@ namespace HSDetection
         int *Qv;   // noise amplitude
         int *Qb;   // median
         int **Qbs; // stores spike_delay + MaxSl baseline values;
+        int **Qvs; // stores spike_delay + MaxSl baseline values;
 
         int QbsLen;
 
