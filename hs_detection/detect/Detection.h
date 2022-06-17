@@ -15,11 +15,11 @@ namespace HSDetection
         int nChannels; // number of probe channels
 
         // Variables for variance and mean
-        int *Qd;   // noise amplitude
-        int *Qm;   // median
-        int **Qms; // stores spike_delay + MaxSl baseline values;
+        int *Qv;   // noise amplitude
+        int *Qb;   // median
+        int **Qbs; // stores spike_delay + MaxSl baseline values;
 
-        int QmsLen;
+        int QbsLen;
 
         // Variables for the spike detection
         int *Sl;      // counter for spike length
@@ -29,7 +29,7 @@ namespace HSDetection
 
         // Parameters for spike detection
         int threshold; // threshold to detect spikes >11 is likely to be real spikes, but can and should be sorted afterwards
-        int minAvgAmp; // minimal avg. amplitude of peak (in units of Qd)
+        int minAvgAmp; // minimal avg. amplitude of peak (in units of Qv)
         int AHPthr;    // signal should go below that threshold within MaxSl-MinSl frames
         int maxSl;     // dead time in frames after peak, used for further testing
         int minSl;     // length considered for determining avg. spike amplitude
@@ -47,11 +47,11 @@ namespace HSDetection
         const int Ascale = -64; // factor to multiply to raw traces to increase
                                 // resolution; definition of ADC counts had been
                                 // changed!
-        const int Voffset = 0;  // mean ADC counts, as initial value for Qm
+        const int Voffset = 0;  // mean ADC counts, as initial value for Qb
 
         // Parameters for variance and mean updates
-        const int Qdmin = 200; // set minimum value of Qd
-        const int Tau_m0 = 4;  // timescale for updating Qm (increment is Qd/Tau_m)
+        const int Qvmin = 200; // set minimum value of Qv
+        const int Tau_m0 = 4;  // timescale for updating Qb (increment is Qv/Tau_m)
 
         SpikeQueue *pQueue;
 

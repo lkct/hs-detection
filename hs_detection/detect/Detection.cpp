@@ -35,13 +35,13 @@ namespace HSDetection
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
           saveShape(saveShape)
     {
-        Qd = new int[nChannels];
-        Qm = new int[nChannels];
-        QmsLen = spikePeakDuration + maxSl + 10000; // TODO: qms setting?
-        Qms = new int *[QmsLen];
-        for (int i = 0; i < QmsLen; i++)
+        Qv = new int[nChannels];
+        Qb = new int[nChannels];
+        QbsLen = spikePeakDuration + maxSl + 10000; // TODO: qms setting?
+        Qbs = new int *[QbsLen];
+        for (int i = 0; i < QbsLen; i++)
         {
-            Qms[i] = new int[nChannels];
+            Qbs[i] = new int[nChannels];
         }
 
         Sl = new int[nChannels];
@@ -51,8 +51,8 @@ namespace HSDetection
 
         Aglobal = new int[chunkSize];
 
-        fill_n(Qd, nChannels, 400); // TODO: magic number?
-        fill_n(Qm, nChannels, Voffset * Ascale);
+        fill_n(Qv, nChannels, 400); // TODO: magic number?
+        fill_n(Qb, nChannels, Voffset * Ascale);
 
         memset(Sl, 0, nChannels * sizeof(int));      // TODO: 0 init?
         memset(AHP, 0, nChannels * sizeof(bool));    // TODO: 0 init?
@@ -83,13 +83,13 @@ namespace HSDetection
 
     Detection::~Detection()
     {
-        delete[] Qd;
-        delete[] Qm;
-        for (int i = 0; i < QmsLen; i++)
+        delete[] Qv;
+        delete[] Qb;
+        for (int i = 0; i < QbsLen; i++)
         {
-            delete[] Qms[i];
+            delete[] Qbs[i];
         }
-        delete[] Qms;
+        delete[] Qbs;
 
         delete[] Sl;
         delete[] AHP;
@@ -136,41 +136,41 @@ namespace HSDetection
             for (int i = 0; i < nChannels; i++)
             {
                 // // CHANNEL OUT OF LINEAR REGIME
-                // // difference between ADC counts and Qm
-                int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qm[i];
+                // // difference between ADC counts and Qb
+                int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
 
                 // TODO: clean `if`s
-                // // UPDATE Qm and Qd
+                // // UPDATE Qb and Qv
                 if (a > 0)
                 {
-                    if (a > Qd[i])
+                    if (a > Qv[i])
                     {
-                        Qm[i] += Qd[i] / Tau_m0;
-                        if (a < 5 * Qd[i])
+                        Qb[i] += Qv[i] / Tau_m0;
+                        if (a < 5 * Qv[i])
                         {
-                            Qd[i]++; // TODO: inc/dec amount (relative to Ascale)
+                            Qv[i]++; // TODO: inc/dec amount (relative to Ascale)
                         }
-                        else if ((Qd[i] > Qdmin) && (a > 6 * Qd[i]))
+                        else if ((Qv[i] > Qvmin) && (a > 6 * Qv[i]))
                         {
-                            Qd[i]--;
+                            Qv[i]--;
                         }
                     }
-                    else if (Qd[i] > Qdmin)
+                    else if (Qv[i] > Qvmin)
                     {
-                        // // set a minimum level for Qd
-                        Qd[i]--;
+                        // // set a minimum level for Qv
+                        Qv[i]--;
                     }
                 }
-                else if (a < -Qd[i])
+                else if (a < -Qv[i])
                 {
-                    Qm[i] -= Qd[i] / (Tau_m0 * 2);
+                    Qb[i] -= Qv[i] / (Tau_m0 * 2);
                 }
 
-                Qms[currQmsPosition % QmsLen][i] = Qm[i];
+                Qbs[currQmsPosition % QbsLen][i] = Qb[i];
 
                 // // should framesLeftMargin be subtracted here??
-                // calc against updated Qm
-                a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qm[i];
+                // calc against updated Qb
+                a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
 
                 // // TREATMENT OF THRESHOLD CROSSINGS
                 if (Sl[i] > 0)
@@ -184,7 +184,7 @@ namespace HSDetection
                         // after spike
                         SpkArea[i] += a;
                     }
-                    else if (a < AHPthr * Qd[i])
+                    else if (a < AHPthr * Qv[i])
                     {
                         // // check whether it does repolarize
                         AHP[i] = true;
@@ -192,7 +192,7 @@ namespace HSDetection
 
                     if ((Sl[i] == maxSl) && AHP[i])
                     {
-                        if (2 * SpkArea[i] > minSl * minAvgAmp * Qd[i])
+                        if (2 * SpkArea[i] > minSl * minAvgAmp * Qv[i])
                         {
                             int tSpike = t - maxSl + 1;
                             Spike spike = Spike(tSpike, i, Amp[i]);
@@ -205,7 +205,7 @@ namespace HSDetection
                                 // TODO: what if Sl carried to the next chunk?
                                 spike.aGlobal = Aglobal[t - frameInputStart];
                             }
-                            int *tmp = Qms[(currQmsPosition - (maxsl + spikePeakDuration - 1) + QmsLen) % QmsLen];
+                            int *tmp = Qbs[(currQmsPosition - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
 
                             pQueue->add(spike);
@@ -221,7 +221,7 @@ namespace HSDetection
                         SpkArea[i] += a; // // not resetting this one (anyway don't need to care if the spike is wide)
                     }
                 }
-                else if (a > threshold * Qd[i] / 2)
+                else if (a > threshold * Qv[i] / 2)
                 {
                     // // check for threshold crossings
                     Sl[i] = 1;
