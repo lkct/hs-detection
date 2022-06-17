@@ -15,8 +15,8 @@ namespace HSDetection
         int nChannels; // number of probe channels
 
         // Variables for variance and mean
-        int *Qv;   // noise amplitude
-        int *Qb;   // median
+        // int *Qv;   // noise amplitude
+        // int *Qb;   // median
         int **Qbs; // stores spike_delay + MaxSl baseline values;
         int **Qvs; // stores spike_delay + MaxSl baseline values;
 

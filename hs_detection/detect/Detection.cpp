@@ -31,12 +31,12 @@ namespace HSDetection
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          currQbsPosition(0), spikePeakDuration(spikePeakDuration),
+          currQbsPosition(1), spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
           saveShape(saveShape)
     {
-        Qv = new int[nChannels];
-        Qb = new int[nChannels];
+        // Qv = new int[nChannels];
+        // Qb = new int[nChannels];
         QbsLen = spikePeakDuration + maxSl + framesLeftMargin + chunkSize; // TODO: cann be smaller?
         Qbs = new int *[QbsLen];
         for (int i = 0; i < QbsLen; i++)
@@ -56,8 +56,8 @@ namespace HSDetection
 
         Aglobal = new int[chunkSize];
 
-        fill_n(Qv, nChannels, 400); // TODO: magic number?
-        fill_n(Qb, nChannels, Voffset * Ascale);
+        fill_n(Qvs[0], nChannels, 400); // TODO: magic number?
+        fill_n(Qbs[0], nChannels, Voffset * Ascale);
 
         memset(Sl, 0, nChannels * sizeof(int));      // TODO: 0 init?
         memset(AHP, 0, nChannels * sizeof(bool));    // TODO: 0 init?
@@ -88,8 +88,8 @@ namespace HSDetection
 
     Detection::~Detection()
     {
-        delete[] Qv;
-        delete[] Qb;
+        // delete[] Qv;
+        // delete[] Qb;
         for (int i = 0; i < QbsLen; i++)
         {
             delete[] Qbs[i];
@@ -145,9 +145,15 @@ namespace HSDetection
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
         for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++, currQbsPosition++)
         {
+            int *Qb = Qbs[(currQbsPosition - 1) % QbsLen];
+            int *Qv = Qvs[(currQbsPosition - 1) % QbsLen];
+            int *QbNext = Qbs[currQbsPosition % QbsLen];
+            int *QvNext = Qvs[currQbsPosition % QbsLen];
+            short *input = trace[t];
+            int aglobal = Aglobal[t - frameInputStart];
             for (int i = 0; i < nChannels; i++)
             {
-                int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
+                int a = (input[i] - aglobal) * Ascale - Qb[i];
 
                 int dltQb = 0;
                 if (a < -Qv[i])
@@ -169,17 +175,14 @@ namespace HSDetection
                     dltQv = -QvChange;
                 }
 
-                Qb[i] += dltQb;
-                Qv[i] += dltQv;
+                QbNext[i] = Qb[i] + dltQb;
+                QvNext[i] = Qv[i] + dltQv;
 
                 // set a minimum level for Qv
-                if (Qv[i] < Qvmin)
+                if (QvNext[i] < Qvmin)
                 {
-                    Qv[i] = Qvmin;
+                    QvNext[i] = Qvmin;
                 }
-
-                Qbs[currQbsPosition % QbsLen][i] = Qb[i];
-                Qvs[currQbsPosition % QbsLen][i] = Qv[i];
             } // for i
 
         } // for t
