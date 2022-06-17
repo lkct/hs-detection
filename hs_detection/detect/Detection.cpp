@@ -31,13 +31,13 @@ namespace HSDetection
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          currQmsPosition(0), spikePeakDuration(spikePeakDuration),
+          currQbsPosition(0), spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
           saveShape(saveShape)
     {
         Qv = new int[nChannels];
         Qb = new int[nChannels];
-        QbsLen = spikePeakDuration + maxSl + 10000; // TODO: qms setting?
+        QbsLen = spikePeakDuration + maxSl + framesLeftMargin + chunkSize; // TODO: cann be smaller?
         Qbs = new int *[QbsLen];
         for (int i = 0; i < QbsLen; i++)
         {
@@ -131,7 +131,7 @@ namespace HSDetection
         }
 
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++, currQmsPosition++)
+        for (int t = frameInputStart; t - frameInputStart + framesLeftMargin < framesInputLen; t++, currQbsPosition++)
         {
             for (int i = 0; i < nChannels; i++)
             {
@@ -178,7 +178,7 @@ namespace HSDetection
                     Qv[i] = Qvmin;
                 }
 
-                Qbs[currQmsPosition % QbsLen][i] = Qb[i];
+                Qbs[currQbsPosition % QbsLen][i] = Qb[i];
 
                 // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
@@ -224,7 +224,7 @@ namespace HSDetection
                                 // TODO: what if Sl carried to the next chunk?
                                 spike.aGlobal = Aglobal[t - frameInputStart];
                             }
-                            int *tmp = Qbs[(currQmsPosition - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
+                            int *tmp = Qbs[(currQbsPosition - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
 
                             pQueue->add(spike);

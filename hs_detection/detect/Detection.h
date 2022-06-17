@@ -37,7 +37,7 @@ namespace HSDetection
         // Files to save the spikes etc.
         int *Aglobal;
 
-        int currQmsPosition;
+        int currQbsPosition;
 
         int spikePeakDuration;
 
