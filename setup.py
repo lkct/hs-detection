@@ -68,6 +68,7 @@ sources = ['Detection.cpp',
            'SpikeQueue.cpp',
            'QueueProcessor/SpikeFilterer.cpp',
            'SpikeProcessor/SpikeLocalizer.cpp',
+           'SpikeProcessor/SpikeSaver.cpp',
            'SpikeProcessor/SpikeWriter.cpp',
            'Utils.cpp',
            *ext_src]

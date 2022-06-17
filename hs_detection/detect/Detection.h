@@ -56,6 +56,10 @@ namespace HSDetection
     public:
         std::string filename;
 
+        std::vector<char> result;
+
+        bool saveShape;
+
     public:
         // TODO: from parameters
         static const int ASCALE = -64;  // Scaling on the raw extracellular data
@@ -80,13 +84,14 @@ namespace HSDetection
                   int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
                   int numComCenters, bool localize,
                   int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                  int ahpthr, int maxSl, int minSl, bool decayFiltering,
+                  int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
                   int framesLeftMargin);
         ~Detection();
         void MedianVoltage(short *traceBuffer);
         void MeanVoltage(short *traceBuffer, int t0, int tInc);
         void Iterate(short *traceBuffer, int t0, int tInc);
-        void FinishDetection();
+        int FinishDetection();
+        char *Get();
     };
 
 } // namespace HSDetection

@@ -73,13 +73,16 @@ class HSDetection(object):
         self.save_shape: bool = params['save_shape']
         self.verbose: bool = params['verbose']
 
-        out_file: Union[str, Path] = params['out_file']
-        if isinstance(out_file, str):
-            out_file = Path(out_file)
-        out_file.parent.mkdir(parents=True, exist_ok=True)
-        if out_file.suffix != '.bin':
-            out_file = out_file.with_suffix('.bin')
-        self.out_file = out_file
+        if self.save_shape:
+            out_file: Union[str, Path] = params['out_file']
+            if isinstance(out_file, str):
+                out_file = Path(out_file)
+            out_file.parent.mkdir(parents=True, exist_ok=True)
+            if out_file.suffix != '.bin':
+                out_file = out_file.with_suffix('.bin')
+            self.out_file = out_file
+        else:
+            self.out_file = None
 
     @staticmethod
     def get_random_data_chunks(recording: Recording,
@@ -140,7 +143,7 @@ class HSDetection(object):
         position_matrix: cython.int[:, :] = np.ascontiguousarray(
             self.positions, dtype=np.int32)
         out_file = self.out_file.with_stem(
-            self.out_file.stem + f'-{segment_index}')
+            self.out_file.stem + f'-{segment_index}') if self.save_shape else None
         det: cython.pointer(Detection) = new Detection(
             t_inc,
             cython.address(position_matrix[0, 0]),
@@ -161,6 +164,7 @@ class HSDetection(object):
             self.maxsl,
             self.minsl,
             self.decay_filtering,
+            self.save_shape,
             t_cut)
 
         vm: cython.short[:] = np.zeros(
@@ -183,22 +187,40 @@ class HSDetection(object):
                 t_inc = min(
                     t_inc, self.num_frames[segment_index] - t_cut2 - t0)
 
-        det.FinishDetection()
+        det_len = det.FinishDetection()
+        assert det_len % 20 == 0
+        det_len //= 20
+        det_int: cython.p_int = cython.cast(cython.p_int, det.Get())
+        det_float: cython.p_float = cython.cast(cython.p_float, det.Get())
+
+        channel_ind = np.empty(det_len, dtype=np.int32)
+        sample_ind = np.empty(det_len, dtype=np.int32)
+        amplitude = np.empty(det_len, dtype=np.int32)
+        position = np.empty((det_len, 2), dtype=np.float32)
+        for i in range(det_len):
+            channel_ind[i] = det_int[i * 5 + 0]
+            sample_ind[i] = det_int[i * 5 + 1]
+            amplitude[i] = det_int[i * 5 + 2]
+            position[i, 0] = det_float[i * 5 + 3]
+            position[i, 1] = det_float[i * 5 + 4]
+
+        location = np.floor(position * 1000 + 0.5).astype(np.int32) / 1000
+
         del det
 
-        if out_file.stat().st_size == 0:
-            spikes: NDArray[np.int32] = np.empty(
-                (0, 5 + self.cutout_length), dtype=np.int32)
-        else:
+        if self.save_shape and out_file.stat().st_size > 0:
             spikes: NDArray[np.int32] = np.memmap(
-                str(out_file), dtype=np.int32, mode='r').reshape(-1, 5 + self.cutout_length)
+                str(out_file), dtype=np.int32, mode='r').reshape(-1, self.cutout_length)
+        else:
+            spikes: NDArray[np.int32] = np.empty(
+                (0, self.cutout_length), dtype=np.int32)
 
-        result: dict[str, RealArray] = {'channel_ind': spikes[:, 0],
-                                        'sample_ind': spikes[:, 1],
-                                        'amplitude': spikes[:, 2]}
+        result: dict[str, RealArray] = {'channel_ind': channel_ind,
+                                        'sample_ind': sample_ind,
+                                        'amplitude': amplitude}
         if self.localize:
-            result |= {'location': spikes[:, 3:5] / 1000}
+            result |= {'location': location}
         if self.save_shape:
-            result |= {'spike_shape': spikes[:, 5:]}
+            result |= {'spike_shape': spikes}
 
         return result

@@ -12,7 +12,8 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
                   int numComCenters, bool localize,
                   int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                  int ahpthr, int maxSl, int minSl, bool decayFiltering,
+                  int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
                   int tCut) except +
         void Iterate(short *traceBuffer, long t0, int tInc)
-        void FinishDetection()
+        int FinishDetection()
+        char *Get()

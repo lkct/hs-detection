@@ -27,12 +27,13 @@ namespace HSDetection
                          int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
                          int numComCenters, bool localize,
                          int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                         int ahpthr, int maxSl, int minSl, bool decayFiltering,
+                         int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
           currQmsPosition(-1), spikePeakDuration(spikePeakDuration),
-          framesLeftMargin(framesLeftMargin), filename(filename)
+          framesLeftMargin(framesLeftMargin), filename(filename), result(),
+          saveShape(saveShape)
     {
         Qd = new int[nChannels];
         Qm = new int[nChannels];
@@ -236,9 +237,15 @@ namespace HSDetection
     } // Detection::Iterate
 
     // // write spikes in interval after last recalibration; close file
-    void Detection::FinishDetection()
+    int Detection::FinishDetection()
     {
         pQueue->close();
+        return result.size();
+    }
+
+    char *Detection::Get()
+    {
+        return result.data();
     }
 
 } // namespace HSDetection

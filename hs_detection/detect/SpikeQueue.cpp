@@ -5,6 +5,7 @@
 #include "QueueProcessor/FirstElemProcessor.h"
 #include "QueueProcessor/SpikeFilterer.h"
 #include "SpikeProcessor/SpikeLocalizer.h"
+#include "SpikeProcessor/SpikeSaver.h"
 #include "SpikeProcessor/SpikeWriter.h"
 #include "Utils.h"
 
@@ -38,10 +39,18 @@ namespace HSDetection
             queProcs.push_back(pQueProc);
         }
 
-        pSpkProc = new SpikeWriter(pDet->filename);
+        pSpkProc = new SpikerSaver(&pDet->result);
         spkProcs.push_back(pSpkProc);
         pQueProc = new FirstElemProcessor(pSpkProc);
         queProcs.push_back(pQueProc);
+
+        if (pDet->saveShape)
+        {
+            pSpkProc = new SpikeWriter(pDet->filename);
+            spkProcs.push_back(pSpkProc);
+            pQueProc = new FirstElemProcessor(pSpkProc);
+            queProcs.push_back(pQueProc);
+        }
     }
 
     SpikeQueue::~SpikeQueue()
