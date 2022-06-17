@@ -135,11 +135,8 @@ namespace HSDetection
         {
             for (int i = 0; i < nChannels; i++)
             {
-                // // CHANNEL OUT OF LINEAR REGIME
-                // // difference between ADC counts and Qb
                 int a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
 
-                // // UPDATE Qb and Qv
                 int cases = -1;
                 if (a < -Qv[i])
                     cases = 0;
@@ -175,7 +172,7 @@ namespace HSDetection
                     Qv[i] -= QvChange;
                 }
 
-                // // set a minimum level for Qv
+                // set a minimum level for Qv
                 if (Qv[i] < Qvmin)
                 {
                     Qv[i] = Qvmin;
@@ -183,11 +180,10 @@ namespace HSDetection
 
                 Qbs[currQmsPosition % QbsLen][i] = Qb[i];
 
-                // // should framesLeftMargin be subtracted here??
+                // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
                 a = (trace(t, i) - Aglobal[t - frameInputStart]) * Ascale - Qb[i];
 
-                // // TREATMENT OF THRESHOLD CROSSINGS
                 if (Sl[i] > 0)
                 {
                     // // Sl frames after peak value
@@ -236,7 +232,7 @@ namespace HSDetection
                         SpkArea[i] += a; // // not resetting this one (anyway don't need to care if the spike is wide)
                     }
                 }
-                else if (a > threshold * Qv[i] / 2)
+                else if (a > threshold * Qv[i] / 2) // TODO: why /2
                 {
                     // // check for threshold crossings
                     Sl[i] = 1;
