@@ -235,7 +235,7 @@ namespace HSDetection
                         {
                             int tSpike = t - maxSl + 1;
                             Spike spike = Spike(tSpike, i, Amp[i]);
-                            int *tmp = Qbs[((t + 1) - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
+                            int *tmp = Qbs[((tSpike + 1) - spikePeakDuration) % QbsLen]; // TODO: tSpike > peakDur?
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
 
                             pQueue->add(spike);
