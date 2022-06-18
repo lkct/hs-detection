@@ -11,15 +11,14 @@ using namespace std;
 namespace Utils
 {
 
-    Spike storeWaveformCutout(Spike curr_spike)
+    void storeWaveformCutout(std::vector<int>&written_cutout, int frame, int channel)
     {
-        for (int t = curr_spike.frame - HSDetection::Detection::cutout_start;
-             t < curr_spike.frame + HSDetection::Detection::cutout_end + 1;
+        for (int t = frame - HSDetection::Detection::cutout_start;
+             t < frame + HSDetection::Detection::cutout_end + 1;
              t++)
         {
-            curr_spike.written_cutout.push_back(HSDetection::Detection::trace(t, curr_spike.channel));
+            written_cutout.push_back(HSDetection::Detection::trace(t, channel));
         }
-        return curr_spike;
     }
 
     Spike storeCOMWaveformsCounts(Spike curr_spike)
