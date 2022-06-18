@@ -60,6 +60,9 @@ namespace HSDetection
 
         bool saveShape;
 
+        int cutout_start; // The number of frames before the spike that the cutout starts at
+        int cutout_end;   // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
+
     public:
         // TODO: from parameters
         static int num_com_centers;     // Number of channels used for center of mass
@@ -69,10 +72,6 @@ namespace HSDetection
         static float noise_amp_percent; // Amplitude percentage allowed to differentiate between decreasing amplitude duplicate spike
         static bool to_localize;        // True: filter and localize the spike, False: just filter the spike.
         static bool decay_filtering;    // if true, then tries to filter by decay (more effective for less dense arrays)
-        static int maxsl;               // Number of frames after a detection that a spike is accepted
-        static int cutout_start;        // The number of frames before the spike that the cutout starts at
-        static int cutout_end;          // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
-        static int cutout_size;
 
         static VoltTrace trace;
 

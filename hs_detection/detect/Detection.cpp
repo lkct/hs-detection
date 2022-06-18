@@ -14,10 +14,6 @@ namespace HSDetection
     float Detection::noise_amp_percent = 0;
     bool Detection::to_localize = 0;
     bool Detection::decay_filtering = 0;
-    int Detection::maxsl = 0;
-    int Detection::cutout_start = 0;
-    int Detection::cutout_end = 0;
-    int Detection::cutout_size = 0;
 
     VoltTrace Detection::trace(0, 0, 0);
     VoltTrace Detection::AGlobal(0, 0, 0);
@@ -34,7 +30,7 @@ namespace HSDetection
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
           spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
-          saveShape(saveShape)
+          saveShape(saveShape), cutout_start(cutoutStart), cutout_end(cutoutEnd)
     {
         // Qv = new int[nChannels];
         // Qb = new int[nChannels];
@@ -76,10 +72,6 @@ namespace HSDetection
         noise_amp_percent = noiseAmpPercent;
         to_localize = localize;
         decay_filtering = decayFiltering;
-        maxsl = maxSl;
-        cutout_start = cutoutStart;
-        cutout_end = cutoutEnd;
-        cutout_size = cutoutStart + cutoutEnd + 1;
 
         trace = VoltTrace(framesLeftMargin, nChannels, chunkSize);
 
