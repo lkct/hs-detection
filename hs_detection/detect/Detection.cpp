@@ -32,7 +32,7 @@ namespace HSDetection
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          currQbsPosition(1), spikePeakDuration(spikePeakDuration),
+          spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
           saveShape(saveShape)
     {
@@ -149,15 +149,13 @@ namespace HSDetection
             MeanVoltage(traceBuffer, frameInputStart, framesInputLen);
         }
 
-        int savedQbsPos = currQbsPosition;
-
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++, currQbsPosition++)
+        for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++)
         {
-            int *Qb = Qbs[(currQbsPosition - 1) % QbsLen];
-            int *Qv = Qvs[(currQbsPosition - 1) % QbsLen];
-            int *QbNext = Qbs[currQbsPosition % QbsLen];
-            int *QvNext = Qvs[currQbsPosition % QbsLen];
+            int *Qb = Qbs[((t + 1) - 1) % QbsLen];
+            int *Qv = Qvs[((t + 1) - 1) % QbsLen];
+            int *QbNext = Qbs[(t + 1) % QbsLen];
+            int *QvNext = Qvs[(t + 1) % QbsLen];
             short *input = trace[t];
             int aglobal = AGlobal(t, 0);
             for (int i = 0; i < nChannels; i++)
@@ -196,17 +194,15 @@ namespace HSDetection
 
         } // for t
 
-        currQbsPosition = savedQbsPos;
-
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++, currQbsPosition++)
+        for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++)
         {
             for (int i = 0; i < nChannels; i++)
             {
                 // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
-                int a = trace(t, i) - AGlobal(t, 0) - Qbs[currQbsPosition % QbsLen][i];
-                int Qvv = Qvs[currQbsPosition % QbsLen][i];
+                int a = trace(t, i) - AGlobal(t, 0) - Qbs[(t + 1) % QbsLen][i];
+                int Qvv = Qvs[(t + 1) % QbsLen][i];
 
                 if (a > threshold * Qvv / 2 && Sl[i] == 0) // TODO: why /2
                 {
@@ -239,7 +235,7 @@ namespace HSDetection
                         {
                             int tSpike = t - maxSl + 1;
                             Spike spike = Spike(tSpike, i, Amp[i]);
-                            int *tmp = Qbs[(currQbsPosition - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
+                            int *tmp = Qbs[((t + 1) - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
 
                             pQueue->add(spike);

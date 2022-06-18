@@ -38,8 +38,6 @@ namespace HSDetection
         // Files to save the spikes etc.
         short *_Aglobal;
 
-        int currQbsPosition;
-
         int spikePeakDuration;
 
         int framesLeftMargin; // num of frames in input as left margin
