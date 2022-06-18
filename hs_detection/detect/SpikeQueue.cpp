@@ -7,7 +7,6 @@
 #include "SpikeProcessor/SpikeLocalizer.h"
 #include "SpikeProcessor/SpikeSaver.h"
 #include "SpikeProcessor/SpikeWriter.h"
-#include "Utils.h"
 
 using namespace std;
 

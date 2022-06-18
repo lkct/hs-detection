@@ -19,9 +19,6 @@ namespace HSDetection
         Spike(int frame, int channel, int amplitude)
             : frame(frame), channel(channel), amplitude(amplitude), position() {}
         ~Spike() {}
-
-    public: // TODO: remove?
-        std::vector<std::vector<std::pair<int, int>>> waveforms;
     };
 
 } // namespace HSDetection

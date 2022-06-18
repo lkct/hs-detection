@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cstring>
 #include <utility>
-#include "Utils.h"
 #include "Detection.h"
 
 using namespace std;

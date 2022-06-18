@@ -4,24 +4,64 @@
 #include <algorithm>
 #include "../Detection.h"
 #include "../Point.h"
-#include "../Utils.h"
 
 using namespace std;
 
 namespace HSDetection
 {
+
+    void storeCOMWaveformsCounts(vector<vector<pair<int, int>>> &chAmps, int frame, int channel)
+    {
+        int num_com_centers = Detection::num_com_centers;
+        ProbeLayout &probe = Detection::probeLayout;
+        int noise_duration = Detection::noise_duration;
+
+        chAmps = vector<vector<pair<int, int>>>(num_com_centers, vector<pair<int, int>>());
+
+        // Get closest channels for COM
+        for (int i = 0; i < num_com_centers; i++)
+        {
+            int max_channel = probe.getInnerNeighbors(channel)[i];
+            // TODO: check i in innerneighbor range (numCoM not too large)
+
+            const vector<int> &neib = probe.getInnerNeighbors(max_channel);
+
+            for (int j = 0; j < (int)neib.size(); j++) // -Wsign-compare
+            {
+                int curr_neighbor_channel = neib[j];
+
+                // TODO: assert (cutout_start >= noise_duration && cutout_end >= noise_duration)
+
+                int sum = 0;
+                for (int t = frame - noise_duration; t < frame + noise_duration; t++)
+                {
+                    int curr_reading = Detection::trace(t, curr_neighbor_channel);
+                    int curr_amp = curr_reading - Detection::AGlobal(frame, 0) -
+                                   Detection::QBs(
+                                       frame - Detection::spike_peak_duration, // TODO: tSpike > peakDur?
+                                       curr_neighbor_channel);
+                    if (curr_amp >= 0)
+                    {
+                        sum += curr_amp;
+                    }
+                }
+                chAmps[i].push_back(make_pair(curr_neighbor_channel, sum));
+            }
+        }
+    }
+
     void SpikeLocalizer::operator()(Spike *pSpike)
     {
         // TODO: generate waveform here???
-        Utils::storeCOMWaveformsCounts(pSpike->waveforms, pSpike->frame, pSpike->channel);
-        vector<vector<pair<int, int>>> *waveforms = &pSpike->waveforms;
+        vector<vector<pair<int, int>>> waveforms;
+        storeCOMWaveformsCounts(waveforms, pSpike->frame, pSpike->channel);
 
         Point sumCoM(0, 0);
         int sumWeight = 0;
 
         for (int i = 0; i < Detection::num_com_centers; i++)
         {
-            vector<pair<int, int>> chAmp = (*waveforms)[i];
+            vector<pair<int, int>> &chAmp = waveforms[i];
             int chCount = chAmp.size();
 
             int median;
