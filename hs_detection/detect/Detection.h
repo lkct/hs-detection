@@ -50,7 +50,7 @@ namespace HSDetection
 
         SpikeQueue *pQueue;
 
-        void MedianVoltage(short *traceBuffer);
+        void MedianVoltage(short *traceBuffer, int t0, int tInc);
         void MeanVoltage(short *traceBuffer, int t0, int tInc);
 
     public:

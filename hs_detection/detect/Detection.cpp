@@ -58,7 +58,7 @@ namespace HSDetection
         delete pQueue;
     }
 
-    void Detection::MedianVoltage(short *traceBuffer) // TODO: add, use?
+    void Detection::MedianVoltage(short *traceBuffer, int frameInputStart, int framesInputLen) // TODO: add, use?
     {
     }
 
