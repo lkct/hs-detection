@@ -25,7 +25,7 @@ namespace Utils
             int max_channel = probe.getInnerNeighbors(curr_spike.channel)[i];
             // TODO: check i in innerneighbor range (numCoM not too large)
 
-            const vector<int> & neib = probe.getInnerNeighbors(max_channel);
+            const vector<int> &neib = probe.getInnerNeighbors(max_channel);
 
             for (int j = 0; j < (int)neib.size(); j++) // -Wsign-compare
             {
@@ -38,7 +38,9 @@ namespace Utils
                 {
                     int curr_reading = HSDetection::Detection::trace(t, curr_neighbor_channel);
                     int curr_amp = curr_reading - HSDetection::Detection::AGlobal(curr_spike.frame, 0) -
-                                   curr_spike.baselines[curr_neighbor_channel];
+                                   HSDetection::Detection::QBs(
+                                       curr_spike.frame - HSDetection::Detection::spike_peak_duration, // TODO: tSpike > peakDur?
+                                       curr_neighbor_channel);
                     if (curr_amp >= 0)
                     {
                         sum += curr_amp;

@@ -206,11 +206,7 @@ namespace HSDetection
                     {
                         if (2 * SpkArea[i] > minSl * minAvgAmp * Qvv)
                         {
-                            int tSpike = t - maxSl + 1;
-                            Spike spike = Spike(tSpike, i, Amp[i]);
-                            short *tmp = QBs[tSpike - spikePeakDuration]; // TODO: tSpike > peakDur?
-                            spike.baselines = vector<short>(tmp, tmp + nChannels);
-
+                            Spike spike = Spike(t - maxSl + 1, i, Amp[i]);
                             pQueue->add(spike);
                         }
                         Sl[i] = 0;
