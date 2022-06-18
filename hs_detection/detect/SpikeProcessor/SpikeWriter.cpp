@@ -6,17 +6,28 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeWriter::SpikeWriter(const string &filename)
-        : spikeFile(filename, ios::binary | ios::trunc) {}
+    SpikeWriter::SpikeWriter(const string &filename, VoltTrace *pTrace,
+                             int cutout_start, int cutout_end)
+        : spikeFile(filename, ios::binary | ios::trunc), pTrace(pTrace),
+          cutoutLeft(cutout_start), cutoutLength(cutout_start + cutout_end + 1) // TODO: +1?
+    {
+        buffer = new char[cutoutLength * sizeof(int)];
+    }
 
     SpikeWriter::~SpikeWriter()
     {
         spikeFile.close();
+        delete[] buffer;
     }
 
     void SpikeWriter::operator()(Spike *pSpike)
     {
-        spikeFile.write((const char *)&pSpike->written_cutout[0], pSpike->written_cutout.size() * sizeof(int));
+        int tStart = pSpike->frame - cutoutLeft;
+        for (int i = 0; i < cutoutLength; i++)
+        {
+            ((int *)buffer)[i] = (*pTrace)(tStart + i, pSpike->channel);
+        }
+        spikeFile.write(buffer, cutoutLength * sizeof(int));
     }
 
 } // namespace HSDetection

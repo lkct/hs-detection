@@ -11,16 +11,6 @@ using namespace std;
 namespace Utils
 {
 
-    void storeWaveformCutout(std::vector<int>&written_cutout, int frame, int channel)
-    {
-        for (int t = frame - HSDetection::Detection::cutout_start;
-             t < frame + HSDetection::Detection::cutout_end + 1;
-             t++)
-        {
-            written_cutout.push_back(HSDetection::Detection::trace(t, channel));
-        }
-    }
-
     Spike storeCOMWaveformsCounts(Spike curr_spike)
     {
         int num_com_centers = HSDetection::Detection::num_com_centers;

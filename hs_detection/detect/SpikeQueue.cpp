@@ -46,7 +46,7 @@ namespace HSDetection
 
         if (pDet->saveShape)
         {
-            pSpkProc = new SpikeWriter(pDet->filename);
+            pSpkProc = new SpikeWriter(pDet->filename, &pDet->trace, pDet->cutout_start, pDet->cutout_end);
             spkProcs.push_back(pSpkProc);
             pQueProc = new FirstElemProcessor(pSpkProc);
             queProcs.push_back(pQueProc);
@@ -67,7 +67,6 @@ namespace HSDetection
     {
         // TODO: move to processing?
         // NOTE: currently cannot, rely on trace, break at chunk update
-        Utils::storeWaveformCutout(spike.written_cutout, spike.frame, spike.channel);
         if (Detection::to_localize)
         {
             spike = Utils::storeCOMWaveformsCounts(spike);

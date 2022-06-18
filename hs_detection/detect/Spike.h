@@ -21,7 +21,6 @@ namespace HSDetection
         ~Spike() {}
 
     public: // TODO: remove?
-        std::vector<int> written_cutout;
         std::vector<std::vector<std::pair<int, int>>> waveforms;
 
         std::vector<int> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
