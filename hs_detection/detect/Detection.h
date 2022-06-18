@@ -36,7 +36,8 @@ namespace HSDetection
         int minSl;     // length considered for determining avg. spike amplitude
 
         // Files to save the spikes etc.
-        int *Aglobal;
+        short *_Aglobal;
+        VoltTrace AGlobal;
 
         int currQbsPosition;
 

@@ -30,7 +30,7 @@ namespace HSDetection
                          int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
-          AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
+          AHPthr(ahpthr), maxSl(maxSl), minSl(minSl), AGlobal(0, 0, 0),
           currQbsPosition(1), spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
           saveShape(saveShape)
@@ -54,7 +54,7 @@ namespace HSDetection
         Amp = new int[nChannels];
         SpkArea = new int[nChannels];
 
-        Aglobal = new int[chunkSize + framesLeftMargin];
+        _Aglobal = new short[chunkSize + framesLeftMargin];
 
         fill_n(Qvs[0], nChannels, 400); // TODO: magic number?
         fill_n(Qbs[0], nChannels, Voffset);
@@ -64,7 +64,8 @@ namespace HSDetection
         memset(Amp, 0, nChannels * sizeof(int));     // TODO: 0 init?
         memset(SpkArea, 0, nChannels * sizeof(int)); // TODO: 0 init?
 
-        memset(Aglobal, 0, (chunkSize + framesLeftMargin) * sizeof(int)); // TODO: 0 init? // really need?
+        memset(_Aglobal, 0, (chunkSize + framesLeftMargin) * sizeof(short)); // TODO: 0 init? // really need?
+        AGlobal = VoltTrace(framesLeftMargin, 1, chunkSize);
 
         // TODO: error check?
         num_com_centers = numComCenters;
@@ -106,7 +107,7 @@ namespace HSDetection
         delete[] Amp;
         delete[] SpkArea;
 
-        delete[] Aglobal;
+        delete[] _Aglobal;
 
         delete pQueue;
     }
@@ -127,13 +128,14 @@ namespace HSDetection
             {
                 sum += trace(t, i) / 64; // TODO: no need to scale
             }
-            Aglobal[t - frameInputStart + framesLeftMargin] = sum / (nChannels + 1) * 64; // TODO: no need +1
+            AGlobal(t, 0) = sum / (nChannels + 1) * 64; // TODO: no need +1
         }
     }
 
     void Detection::Iterate(short *traceBuffer, int frameInputStart, int framesInputLen)
     {
         trace.updateChunk(traceBuffer);
+        AGlobal.updateChunk(_Aglobal);
 
         if (nChannels >= 20) // TODO: magic number?
         {
@@ -150,7 +152,7 @@ namespace HSDetection
             int *QbNext = Qbs[currQbsPosition % QbsLen];
             int *QvNext = Qvs[currQbsPosition % QbsLen];
             short *input = trace[t];
-            int aglobal = Aglobal[t - frameInputStart + framesLeftMargin];
+            int aglobal = AGlobal(t, 0);
             for (int i = 0; i < nChannels; i++)
             {
                 int a = input[i] - aglobal - Qb[i];
@@ -196,7 +198,7 @@ namespace HSDetection
             {
                 // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
-                int a = trace(t, i) - Aglobal[t - frameInputStart + framesLeftMargin] - Qbs[currQbsPosition % QbsLen][i];
+                int a = trace(t, i) - AGlobal(t, 0) - Qbs[currQbsPosition % QbsLen][i];
                 int Qvv = Qvs[currQbsPosition % QbsLen][i];
 
                 if (a > threshold * Qvv / 2 && Sl[i] == 0) // TODO: why /2
@@ -232,12 +234,12 @@ namespace HSDetection
                             Spike spike = Spike(tSpike, i, Amp[i]);
                             if (tSpike - frameInputStart > 0)
                             {
-                                spike.aGlobal = Aglobal[tSpike - frameInputStart + framesLeftMargin];
+                                spike.aGlobal = AGlobal(tSpike, 0);
                             }
                             else
                             {
                                 // TODO: what if Sl carried to the next chunk?
-                                spike.aGlobal = Aglobal[t - frameInputStart + framesLeftMargin];
+                                spike.aGlobal = AGlobal(t, 0);
                             }
                             int *tmp = Qbs[(currQbsPosition - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
