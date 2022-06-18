@@ -11,9 +11,8 @@ namespace HSDetection
         SpikeProcessor() {}
         virtual ~SpikeProcessor() {}
 
-        virtual void operator()(Spike *pSpike) = 0;
-
         void operator()(SpikeQueue::iterator itSpike) { (*this)(&*itSpike); };
+        virtual void operator()(Spike *pSpike) = 0;
     };
 
 } // namespace HSDetection
