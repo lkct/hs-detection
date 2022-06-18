@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "../Detection.h"
 #include "../Point.h"
+#include "../Utils.h"
 
 using namespace std;
 
@@ -12,6 +13,7 @@ namespace HSDetection
     void SpikeLocalizer::operator()(Spike *pSpike)
     {
         // TODO: generate waveform here???
+        Utils::storeCOMWaveformsCounts(pSpike->waveforms, pSpike->frame, pSpike->channel);
         vector<vector<pair<int, int>>> *waveforms = &pSpike->waveforms;
 
         Point sumCoM(0, 0);

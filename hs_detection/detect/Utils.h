@@ -10,7 +10,7 @@ using HSDetection::Spike;
 namespace Utils
 {
 
-    Spike storeCOMWaveformsCounts(Spike curr_spike);
+    void storeCOMWaveformsCounts(std::vector<std::vector<std::pair<int, int>>> &chAmps, int frame, int channel);
 
 };
 

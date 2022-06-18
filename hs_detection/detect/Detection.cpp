@@ -102,12 +102,13 @@ namespace HSDetection
             }
             AGlobal(t, 0) = sum / (nChannels + 1) * 64; // TODO: no need +1
         }
-        for (int t = frameInputStart - 1; t >= frameInputStart - framesLeftMargin; t--)
-        {
-            // TODO: why? but keep behaviour
-            // TODO: but exactly kept at t==frameInputStart
-            AGlobal(t, 0) = AGlobal(t + maxSl - 1, 0);
-        }
+        // TODO: ???
+        // for (int t = frameInputStart - 1; t >= frameInputStart - framesLeftMargin; t--)
+        // {
+        //     // TODO: why? but keep behaviour
+        //     // TODO: but exactly kept at t==frameInputStart
+        //     AGlobal(t, 0) = AGlobal(t + maxSl - 1, 0);
+        // }
     }
 
     void Detection::Iterate(short *traceBuffer, int frameInputStart, int framesInputLen)

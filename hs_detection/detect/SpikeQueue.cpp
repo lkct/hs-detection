@@ -65,13 +65,6 @@ namespace HSDetection
 
     void SpikeQueue::add(Spike &spike)
     {
-        // TODO: move to processing?
-        // NOTE: currently cannot, rely on trace, break at chunk update
-        if (Detection::to_localize)
-        {
-            spike = Utils::storeCOMWaveformsCounts(spike);
-        }
-
         process(spike.frame - framesInQueue);
 
         queue.push_back(spike);

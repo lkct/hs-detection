@@ -11,18 +11,18 @@ using namespace std;
 namespace Utils
 {
 
-    Spike storeCOMWaveformsCounts(Spike curr_spike)
+    void storeCOMWaveformsCounts(std::vector<std::vector<std::pair<int, int>>> &chAmps, int frame, int channel)
     {
         int num_com_centers = HSDetection::Detection::num_com_centers;
         HSDetection::ProbeLayout &probe = HSDetection::Detection::probeLayout;
         int noise_duration = HSDetection::Detection::noise_duration;
 
-        vector<vector<pair<int, int>>> chAmps(num_com_centers, vector<pair<int, int>>());
+        chAmps = vector<vector<pair<int, int>>>(num_com_centers, vector<pair<int, int>>());
 
         // Get closest channels for COM
         for (int i = 0; i < num_com_centers; i++)
         {
-            int max_channel = probe.getInnerNeighbors(curr_spike.channel)[i];
+            int max_channel = probe.getInnerNeighbors(channel)[i];
             // TODO: check i in innerneighbor range (numCoM not too large)
 
             const vector<int> &neib = probe.getInnerNeighbors(max_channel);
@@ -34,12 +34,12 @@ namespace Utils
                 // TODO: assert (cutout_start >= noise_duration && cutout_end >= noise_duration)
 
                 int sum = 0;
-                for (int t = curr_spike.frame - noise_duration; t < curr_spike.frame + noise_duration; t++)
+                for (int t = frame - noise_duration; t < frame + noise_duration; t++)
                 {
                     int curr_reading = HSDetection::Detection::trace(t, curr_neighbor_channel);
-                    int curr_amp = curr_reading - HSDetection::Detection::AGlobal(curr_spike.frame, 0) -
+                    int curr_amp = curr_reading - HSDetection::Detection::AGlobal(frame, 0) -
                                    HSDetection::Detection::QBs(
-                                       curr_spike.frame - HSDetection::Detection::spike_peak_duration, // TODO: tSpike > peakDur?
+                                       frame - HSDetection::Detection::spike_peak_duration, // TODO: tSpike > peakDur?
                                        curr_neighbor_channel);
                     if (curr_amp >= 0)
                     {
@@ -49,8 +49,6 @@ namespace Utils
                 chAmps[i].push_back(make_pair(curr_neighbor_channel, sum));
             }
         }
-        curr_spike.waveforms = chAmps;
-        return curr_spike;
     }
 
 }
