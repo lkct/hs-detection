@@ -19,7 +19,6 @@ namespace HSDetection
         float channelDistance(int channel1, int channel2) const { return (positions[channel1] - positions[channel2]).abs(); }
 
     public:
-        ProbeLayout();                                      // TODO: remove this when not static
         ProbeLayout(int numChannels, int *channelPositions, // TODO: pass in float position?
                     float neighborRadius, float innerRadius);
         ~ProbeLayout();

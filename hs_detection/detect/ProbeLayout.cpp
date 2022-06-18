@@ -4,8 +4,6 @@ using namespace std;
 
 namespace HSDetection
 {
-    ProbeLayout::ProbeLayout() {} // TODO: remove this when not static
-
     ProbeLayout::ProbeLayout(int numChannels, int *channelPositions,
                              float neighborRadius, float innerRadius)
         : numChannels(numChannels), positions(numChannels),

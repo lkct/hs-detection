@@ -21,17 +21,6 @@ namespace HSDetection
         RollingArray(const RollingArray &) = delete;
         RollingArray &operator=(const RollingArray &) = delete;
 
-        // TODO: no need?
-        RollingArray &operator=(RollingArray &&other)
-        {
-            if (this != &other)
-            {
-                std::swap(arrayBuffer, other.arrayBuffer);
-                std::swap(numChannels, other.numChannels);
-            }
-            return *this;
-        }
-
         const short *operator[](int frame) const { return arrayBuffer + (frame + length) % length * numChannels; }
         short *operator[](int frame) { return arrayBuffer + (frame + length) % length * numChannels; }
 
