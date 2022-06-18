@@ -55,9 +55,9 @@ def test_correctness(data_fn: str = 'mearec_test_10s.h5', filter: bool = True) -
                for seg in range(recording.get_num_segments()))
     for seg in range(recording.get_num_segments()):
         for k in hsdet[seg].keys():
-            assert np.all(sihs[seg][k] == hsdet[seg][k])
+            assert np.all(sihs[seg][k] == hsdet[seg][k]), k
 
 
 if __name__ == '__main__':
-    test_correctness()
     test_correctness(filter=False)
+    test_correctness()
