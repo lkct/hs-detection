@@ -2,14 +2,17 @@
 #include <utility>
 #include <vector>
 #include <algorithm>
-#include "../Detection.h"
 #include "../Point.h"
 
 using namespace std;
 
 namespace HSDetection
 {
-    SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout) : pLayout(pLayout) {}
+    SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout, int noiseDuration,
+                                   int spikePeakDuration, int numCoMCenters,
+                                   VoltTrace *pTrace, VoltTrace *pAGlobal, RollingArray *pBaseline)
+        : pLayout(pLayout), noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration),
+          numCoMCenters(numCoMCenters), pTrace(pTrace), pAGlobal(pAGlobal), pBaseline(pBaseline) {}
 
     SpikeLocalizer::~SpikeLocalizer() {}
 
@@ -18,15 +21,15 @@ namespace HSDetection
         Point sumCoM(0, 0);
         int sumWeight = 0;
 
-        int frameLeft = pSpike->frame - Detection::noise_duration;
-        int frameRight = pSpike->frame + Detection::noise_duration;
+        int frameLeft = pSpike->frame - noiseDuration;
+        int frameRight = pSpike->frame + noiseDuration;
         // TODO: assert (cutout_start >= noise_duration && cutout_end >= noise_duration)
 
         vector<pair<int, int>> chAmp;
 
-        const short *baselines = Detection::QBs[pSpike->frame - Detection::spike_peak_duration]; // TODO: tSpike > peakDur?
+        const short *baselines = (*pBaseline)[pSpike->frame - spikePeakDuration]; // TODO: tSpike > peakDur?
 
-        for (int i = 0; i < Detection::num_com_centers; i++)
+        for (int i = 0; i < numCoMCenters; i++)
         {
             chAmp.clear();
 
@@ -35,11 +38,11 @@ namespace HSDetection
 
             for (int curr_neighbor_channel : pLayout->getInnerNeighbors(centerChannel))
             {
-                int offset = Detection::AGlobal(pSpike->frame, 0) + baselines[curr_neighbor_channel];
+                int offset = (*pAGlobal)(pSpike->frame, 0) + baselines[curr_neighbor_channel];
                 int sum = 0;
                 for (int t = frameLeft; t < frameRight; t++)
                 {
-                    int curr_amp = Detection::trace(t, curr_neighbor_channel) - offset;
+                    int curr_amp = (*pTrace)(t, curr_neighbor_channel) - offset;
                     if (curr_amp >= 0)
                     {
                         sum += curr_amp;

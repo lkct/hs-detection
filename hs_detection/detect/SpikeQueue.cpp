@@ -32,7 +32,9 @@ namespace HSDetection
 
         if (pDet->to_localize)
         {
-            pSpkProc = new SpikeLocalizer(&pDet->probeLayout);
+            pSpkProc = new SpikeLocalizer(&pDet->probeLayout, pDet->noise_duration,
+                                          pDet->spike_peak_duration, pDet->num_com_centers,
+                                          &pDet->trace, &pDet->AGlobal, &pDet->QBs);
             spkProcs.push_back(pSpkProc);
             pQueProc = new FirstElemProcessor(pSpkProc);
             queProcs.push_back(pQueProc);

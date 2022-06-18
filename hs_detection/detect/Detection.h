@@ -37,8 +37,6 @@ namespace HSDetection
         // Files to save the spikes etc.
         short *_Aglobal;
 
-        int spikePeakDuration;
-
         int framesLeftMargin; // num of frames in input as left margin
 
         // TODO: consts
@@ -52,34 +50,34 @@ namespace HSDetection
 
         SpikeQueue *pQueue;
 
+        void MedianVoltage(short *traceBuffer);
+        void MeanVoltage(short *traceBuffer, int t0, int tInc);
+
     public:
         std::string filename;
 
         std::vector<char> result;
 
+        bool to_localize; // True: filter and localize the spike, False: just filter the spike.
         bool saveShape;
 
-        int cutout_start; // The number of frames before the spike that the cutout starts at
-        int cutout_end;   // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
+        int cutout_start;        // The number of frames before the spike that the cutout starts at
+        int cutout_end;          // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
+        int noise_duration;      // The number of frames that the true spike can occur after the first detection.
+        int spike_peak_duration; // The number of frames it takes a spike amplitude to fully decay.
+        int num_com_centers;     // Number of channels used for center of mass
 
         ProbeLayout probeLayout;
 
-    public:
-        // TODO: from parameters
-        static int num_com_centers;     // Number of channels used for center of mass
-        static int num_channels;        // Number of channels on the probe
-        static int spike_peak_duration; // The number of frames it takes a spike amplitude to fully decay.
-        static int noise_duration;      // The number of frames that the true spike can occur after the first detection.
-        static float noise_amp_percent; // Amplitude percentage allowed to differentiate between decreasing amplitude duplicate spike
-        static bool to_localize;        // True: filter and localize the spike, False: just filter the spike.
-        static bool decay_filtering;    // if true, then tries to filter by decay (more effective for less dense arrays)
+        VoltTrace trace;
+        VoltTrace AGlobal;
 
-        static VoltTrace trace;
+        RollingArray QBs;
+        RollingArray QVs;
 
-        static VoltTrace AGlobal;
-
-        static RollingArray QBs;
-        static RollingArray QVs;
+        // TODO: decay filtering
+        bool decay_filtering;    // if true, then tries to filter by decay (more effective for less dense arrays)
+        float noise_amp_percent; // Amplitude percentage allowed to differentiate between decreasing amplitude duplicate spike
 
         Detection(int chunkSize, int *positionMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,
@@ -89,13 +87,10 @@ namespace HSDetection
                   int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
                   int framesLeftMargin);
         ~Detection();
+
         void Iterate(short *traceBuffer, int t0, int tInc);
         int FinishDetection();
         char *Get();
-
-    private:
-        void MedianVoltage(short *traceBuffer);
-        void MeanVoltage(short *traceBuffer, int t0, int tInc);
     };
 
 } // namespace HSDetection

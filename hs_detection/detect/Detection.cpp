@@ -7,19 +7,6 @@ using namespace std;
 
 namespace HSDetection
 {
-    int Detection::num_com_centers = 0;
-    int Detection::num_channels = 0;
-    int Detection::spike_peak_duration = 0;
-    int Detection::noise_duration = 0;
-    float Detection::noise_amp_percent = 0;
-    bool Detection::to_localize = 0;
-    bool Detection::decay_filtering = 0;
-
-    VoltTrace Detection::trace(0, 0, 0);
-    VoltTrace Detection::AGlobal(0, 0, 0);
-    RollingArray Detection::QBs(0);
-    RollingArray Detection::QVs(0);
-
     Detection::Detection(int chunkSize, int *positionMatrix,
                          int nChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
@@ -29,14 +16,16 @@ namespace HSDetection
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
-          saveShape(saveShape), cutout_start(cutoutStart), cutout_end(cutoutEnd),
-          probeLayout(nChannels, positionMatrix, neighborRadius, innerRadius)
+          to_localize(localize), saveShape(saveShape), cutout_start(cutoutStart), cutout_end(cutoutEnd),
+          noise_duration(noiseDuration), spike_peak_duration(spikePeakDuration),
+          num_com_centers(numComCenters),
+          probeLayout(nChannels, positionMatrix, neighborRadius, innerRadius),
+          trace(framesLeftMargin, nChannels, chunkSize),
+          AGlobal(framesLeftMargin, 1, chunkSize),
+          QBs(nChannels), QVs(nChannels),
+          decay_filtering(decayFiltering), noise_amp_percent(noiseAmpPercent)
     {
-        QBs = move(RollingArray(nChannels));
-        QVs = move(RollingArray(nChannels));
-
         Sl = new int[nChannels];
         AHP = new bool[nChannels];
         Amp = new int[nChannels];
@@ -53,18 +42,6 @@ namespace HSDetection
         memset(SpkArea, 0, nChannels * sizeof(int)); // TODO: 0 init?
 
         memset(_Aglobal, 0, (chunkSize + framesLeftMargin) * sizeof(short)); // TODO: 0 init? // really need?
-        AGlobal = VoltTrace(framesLeftMargin, 1, chunkSize);
-
-        // TODO: error check?
-        num_com_centers = numComCenters;
-        num_channels = nChannels;
-        spike_peak_duration = spikePeakDuration;
-        noise_duration = noiseDuration;
-        noise_amp_percent = noiseAmpPercent;
-        to_localize = localize;
-        decay_filtering = decayFiltering;
-
-        trace = VoltTrace(framesLeftMargin, nChannels, chunkSize);
 
         pQueue = new SpikeQueue(this); // all the params should be ready
     }

@@ -3,6 +3,8 @@
 
 #include "SpikeProcessor.h"
 #include "../ProbeLayout.h"
+#include "../VoltTrace.h"
+#include "../RollingArray.h"
 
 namespace HSDetection
 {
@@ -10,9 +12,16 @@ namespace HSDetection
     {
     private:
         ProbeLayout *pLayout; // passed in, should not release here
+        int noiseDuration;
+        int spikePeakDuration;
+        int numCoMCenters;
+        VoltTrace *pTrace;
+        VoltTrace *pAGlobal;
+        RollingArray *pBaseline;
 
     public:
-        SpikeLocalizer(ProbeLayout *pLayout);
+        SpikeLocalizer(ProbeLayout *pLayout, int noiseDuration, int spikePeakDuration, int numCoMCenters,
+                       VoltTrace *pTrace, VoltTrace *pAGlobal, RollingArray *pBaseline);
         ~SpikeLocalizer();
 
     public:
