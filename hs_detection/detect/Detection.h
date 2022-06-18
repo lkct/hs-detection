@@ -37,7 +37,6 @@ namespace HSDetection
 
         // Files to save the spikes etc.
         short *_Aglobal;
-        VoltTrace AGlobal;
 
         int currQbsPosition;
 
@@ -78,6 +77,8 @@ namespace HSDetection
         static int cutout_size;
 
         static VoltTrace trace;
+
+        static VoltTrace AGlobal;
 
         static ProbeLayout probeLayout;
 

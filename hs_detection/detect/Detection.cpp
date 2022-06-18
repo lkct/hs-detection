@@ -20,6 +20,7 @@ namespace HSDetection
     int Detection::cutout_size = 0;
 
     VoltTrace Detection::trace(0, 0, 0);
+    VoltTrace Detection::AGlobal(0, 0, 0);
     ProbeLayout Detection::probeLayout;
 
     Detection::Detection(int chunkSize, int *positionMatrix,
@@ -30,7 +31,7 @@ namespace HSDetection
                          int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
                          int framesLeftMargin)
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
-          AHPthr(ahpthr), maxSl(maxSl), minSl(minSl), AGlobal(0, 0, 0),
+          AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
           currQbsPosition(1), spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
           saveShape(saveShape)
@@ -238,7 +239,6 @@ namespace HSDetection
                         {
                             int tSpike = t - maxSl + 1;
                             Spike spike = Spike(tSpike, i, Amp[i]);
-                            spike.aGlobal = AGlobal(tSpike, 0);
                             int *tmp = Qbs[(currQbsPosition - (maxsl + spikePeakDuration - 1) + QbsLen) % QbsLen];
                             spike.baselines = vector<int>(tmp, tmp + nChannels);
 
