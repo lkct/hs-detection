@@ -24,7 +24,6 @@ namespace HSDetection
             vector<pair<int, int>> chAmp = (*waveforms)[i];
             int chCount = chAmp.size();
 
-            // // compute median, threshold at median
             int median;
             {
                 // TODO: extract as a class?
@@ -47,7 +46,7 @@ namespace HSDetection
             int sumAmp = 0;
             for (int i = 0; i < chCount; i++)
             {
-                int amp = chAmp[i].second - median; // // Correct amplitudes (threshold)
+                int amp = chAmp[i].second - median; // correction and threshold
                 if (amp > 0)
                 {
                     CoM += amp * Detection::probeLayout.getChannelPosition(chAmp[i].first);

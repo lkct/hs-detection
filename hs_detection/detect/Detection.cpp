@@ -90,7 +90,7 @@ namespace HSDetection
 
     void Detection::MeanVoltage(short *traceBuffer, int frameInputStart, int framesInputLen)
     {
-        // // if median takes too long...
+        // // TODO: if median takes too long...
         // // or there are only few
         // // channnels (?)
         for (int t = frameInputStart - framesLeftMargin; t < frameInputStart + framesInputLen; t++)
@@ -193,8 +193,8 @@ namespace HSDetection
                     Sl[i]++;
                     if (Sl[i] < minSl)
                     {
-                        // calculate area under first and second frame
-                        // after spike
+                        // // calculate area under first and second frame
+                        // // after spike
                         SpkArea[i] += a;
                     }
                     else if (a < AHPthr * Qvv)
@@ -228,7 +228,6 @@ namespace HSDetection
 
     } // Detection::Iterate
 
-    // // write spikes in interval after last recalibration; close file
     int Detection::FinishDetection()
     {
         pQueue->close();
