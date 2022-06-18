@@ -17,7 +17,6 @@ namespace HSDetection
 
     VoltTrace Detection::trace(0, 0, 0);
     VoltTrace Detection::AGlobal(0, 0, 0);
-    ProbeLayout Detection::probeLayout;
     RollingArray Detection::QBs(0);
     RollingArray Detection::QVs(0);
 
@@ -32,7 +31,8 @@ namespace HSDetection
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
           spikePeakDuration(spikePeakDuration),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
-          saveShape(saveShape), cutout_start(cutoutStart), cutout_end(cutoutEnd)
+          saveShape(saveShape), cutout_start(cutoutStart), cutout_end(cutoutEnd),
+          probeLayout(nChannels, positionMatrix, neighborRadius, innerRadius)
     {
         QBs = move(RollingArray(nChannels));
         QVs = move(RollingArray(nChannels));
@@ -65,8 +65,6 @@ namespace HSDetection
         decay_filtering = decayFiltering;
 
         trace = VoltTrace(framesLeftMargin, nChannels, chunkSize);
-
-        probeLayout = ProbeLayout(nChannels, positionMatrix, neighborRadius, innerRadius);
 
         pQueue = new SpikeQueue(this); // all the params should be ready
     }

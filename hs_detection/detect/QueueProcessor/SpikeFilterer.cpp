@@ -1,13 +1,13 @@
 #include <algorithm>
 
 #include "SpikeFilterer.h"
-#include "../Detection.h"
 
 using namespace std;
 
 namespace HSDetection
 {
-    SpikeFilterer::SpikeFilterer(int noiseDuration) : framesFilter(noiseDuration + 1) {}
+    SpikeFilterer::SpikeFilterer(ProbeLayout *pLayout, int noiseDuration)
+        : pLayout(pLayout), framesFilter(noiseDuration + 1) {}
 
     SpikeFilterer::~SpikeFilterer() {}
 
@@ -24,7 +24,7 @@ namespace HSDetection
              ++it)
         {
             // TODO: get the max of last time/channel?
-            if (Detection::probeLayout.areNeighbors(it->channel, spikeChannel) && it->amplitude >= maxAmp)
+            if (pLayout->areNeighbors(it->channel, spikeChannel) && it->amplitude >= maxAmp)
             {
                 itMax = it;
                 maxAmp = it->amplitude;
@@ -38,8 +38,8 @@ namespace HSDetection
 
         pQueue->erase(
             remove_if(pQueue->begin(), pQueue->end(),
-                      [spikeChannel, maxAmp](const Spike &spike)
-                      { return Detection::probeLayout.areNeighbors(spike.channel, spikeChannel) && spike.amplitude < maxAmp; }),
+                      [this, spikeChannel, maxAmp](const Spike &spike)
+                      { return pLayout->areNeighbors(spike.channel, spikeChannel) && spike.amplitude < maxAmp; }),
             pQueue->end());
 
         pQueue->push_front(move(maxSpike));

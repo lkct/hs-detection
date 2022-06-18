@@ -26,13 +26,13 @@ namespace HSDetection
         }
         else
         {
-            pQueProc = new SpikeFilterer(pDet->noise_duration);
+            pQueProc = new SpikeFilterer(&pDet->probeLayout, pDet->noise_duration);
             queProcs.push_back(pQueProc);
         }
 
         if (pDet->to_localize)
         {
-            pSpkProc = new SpikeLocalizer();
+            pSpkProc = new SpikeLocalizer(&pDet->probeLayout);
             spkProcs.push_back(pSpkProc);
             pQueProc = new FirstElemProcessor(pSpkProc);
             queProcs.push_back(pQueProc);

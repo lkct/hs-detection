@@ -62,6 +62,8 @@ namespace HSDetection
         int cutout_start; // The number of frames before the spike that the cutout starts at
         int cutout_end;   // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
 
+        ProbeLayout probeLayout;
+
     public:
         // TODO: from parameters
         static int num_com_centers;     // Number of channels used for center of mass
@@ -75,8 +77,6 @@ namespace HSDetection
         static VoltTrace trace;
 
         static VoltTrace AGlobal;
-
-        static ProbeLayout probeLayout;
 
         static RollingArray QBs;
         static RollingArray QVs;

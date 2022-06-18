@@ -9,6 +9,10 @@ using namespace std;
 
 namespace HSDetection
 {
+    SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout) : pLayout(pLayout) {}
+
+    SpikeLocalizer::~SpikeLocalizer() {}
+
     void SpikeLocalizer::operator()(Spike *pSpike)
     {
         Point sumCoM(0, 0);
@@ -27,9 +31,9 @@ namespace HSDetection
             chAmp.clear();
 
             // TODO: check i in inner neighbor range (numCoM not too large)
-            int centerChannel = Detection::probeLayout.getInnerNeighbors(pSpike->channel)[i];
+            int centerChannel = pLayout->getInnerNeighbors(pSpike->channel)[i];
 
-            for (int curr_neighbor_channel : Detection::probeLayout.getInnerNeighbors(centerChannel))
+            for (int curr_neighbor_channel : pLayout->getInnerNeighbors(centerChannel))
             {
                 int offset = Detection::AGlobal(pSpike->frame, 0) + baselines[curr_neighbor_channel];
                 int sum = 0;
@@ -71,7 +75,7 @@ namespace HSDetection
                 int amp = chAmp[i].second - median; // correction and threshold
                 if (amp > 0)
                 {
-                    CoM += amp * Detection::probeLayout.getChannelPosition(chAmp[i].first);
+                    CoM += amp * pLayout->getChannelPosition(chAmp[i].first);
                     sumAmp += amp;
                 }
             }
@@ -86,7 +90,7 @@ namespace HSDetection
                 vector<pair<int, int>>::iterator it = find_if(chAmp.begin(), chAmp.end(),
                                                               [median](const pair<int, int> &x)
                                                               { return x.second == median; });
-                CoM = Detection::probeLayout.getChannelPosition(it->first);
+                CoM = pLayout->getChannelPosition(it->first);
             }
             else
             {
