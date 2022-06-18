@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstring>
+#include <utility>
 #include "Utils.h"
 #include "Detection.h"
 
@@ -18,6 +19,8 @@ namespace HSDetection
     VoltTrace Detection::trace(0, 0, 0);
     VoltTrace Detection::AGlobal(0, 0, 0);
     ProbeLayout Detection::probeLayout;
+    RollingArray Detection::QBs(0);
+    RollingArray Detection::QVs(0);
 
     Detection::Detection(int chunkSize, int *positionMatrix,
                          int nChannels, int spikePeakDuration, string filename,
@@ -32,19 +35,8 @@ namespace HSDetection
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
           saveShape(saveShape), cutout_start(cutoutStart), cutout_end(cutoutEnd)
     {
-        // Qv = new int[nChannels];
-        // Qb = new int[nChannels];
-        QbsLen = spikePeakDuration + maxSl + framesLeftMargin + chunkSize; // TODO: cann be smaller?
-        Qbs = new int *[QbsLen];
-        for (int i = 0; i < QbsLen; i++)
-        {
-            Qbs[i] = new int[nChannels];
-        }
-        Qvs = new int *[QbsLen];
-        for (int i = 0; i < QbsLen; i++)
-        {
-            Qvs[i] = new int[nChannels];
-        }
+        QBs = move(RollingArray(nChannels));
+        QVs = move(RollingArray(nChannels));
 
         Sl = new int[nChannels];
         AHP = new bool[nChannels];
@@ -53,8 +45,8 @@ namespace HSDetection
 
         _Aglobal = new short[chunkSize + framesLeftMargin];
 
-        fill_n(Qvs[0], nChannels, 400); // TODO: magic number?
-        fill_n(Qbs[0], nChannels, Voffset);
+        fill_n(QBs[-1], nChannels, Voffset);
+        fill_n(QVs[-1], nChannels, 400); // TODO: magic number?
 
         memset(Sl, 0, nChannels * sizeof(int));      // TODO: 0 init?
         memset(AHP, 0, nChannels * sizeof(bool));    // TODO: 0 init?
@@ -82,19 +74,6 @@ namespace HSDetection
 
     Detection::~Detection()
     {
-        // delete[] Qv;
-        // delete[] Qb;
-        for (int i = 0; i < QbsLen; i++)
-        {
-            delete[] Qbs[i];
-        }
-        delete[] Qbs;
-        for (int i = 0; i < QbsLen; i++)
-        {
-            delete[] Qvs[i];
-        }
-        delete[] Qvs;
-
         delete[] Sl;
         delete[] AHP;
         delete[] Amp;
@@ -144,43 +123,43 @@ namespace HSDetection
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
         for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++)
         {
-            int *Qb = Qbs[((t + 1) - 1) % QbsLen];
-            int *Qv = Qvs[((t + 1) - 1) % QbsLen];
-            int *QbNext = Qbs[(t + 1) % QbsLen];
-            int *QvNext = Qvs[(t + 1) % QbsLen];
+            short *QbPrev = QBs[t - 1];
+            short *QvPrev = QVs[t - 1];
+            short *Qb = QBs[t];
+            short *Qv = QVs[t];
             short *input = trace[t];
             int aglobal = AGlobal(t, 0);
             for (int i = 0; i < nChannels; i++)
             {
-                int a = input[i] - aglobal - Qb[i];
+                int a = input[i] - aglobal - QbPrev[i];
 
                 int dltQb = 0;
-                if (a < -Qv[i])
+                if (a < -QvPrev[i])
                 {
-                    dltQb = -Qv[i] / (Tau_m0 * 2);
+                    dltQb = -QvPrev[i] / (Tau_m0 * 2);
                 }
-                else if (Qv[i] < a)
+                else if (QvPrev[i] < a)
                 {
-                    dltQb = Qv[i] / Tau_m0;
+                    dltQb = QvPrev[i] / Tau_m0;
                 }
 
                 int dltQv = 0;
-                if (Qv[i] < a && a < 5 * Qv[i])
+                if (QvPrev[i] < a && a < 5 * QvPrev[i])
                 {
                     dltQv = QvChange;
                 }
-                else if ((0 < a && a <= Qv[i]) || 6 * Qv[i] < a)
+                else if ((0 < a && a <= QvPrev[i]) || 6 * QvPrev[i] < a)
                 {
                     dltQv = -QvChange;
                 }
 
-                QbNext[i] = Qb[i] + dltQb;
-                QvNext[i] = Qv[i] + dltQv;
+                Qb[i] = QbPrev[i] + dltQb;
+                Qv[i] = QvPrev[i] + dltQv;
 
                 // set a minimum level for Qv
-                if (QvNext[i] < Qvmin)
+                if (Qv[i] < Qvmin)
                 {
-                    QvNext[i] = Qvmin;
+                    Qv[i] = Qvmin;
                 }
             } // for i
 
@@ -189,12 +168,14 @@ namespace HSDetection
         // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
         for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++)
         {
+            short *Qb = QBs[t];
+            short *Qv = QVs[t];
             for (int i = 0; i < nChannels; i++)
             {
                 // // TODO: should framesLeftMargin be subtracted here??
                 // calc against updated Qb
-                int a = trace(t, i) - AGlobal(t, 0) - Qbs[(t + 1) % QbsLen][i];
-                int Qvv = Qvs[(t + 1) % QbsLen][i];
+                int a = trace(t, i) - AGlobal(t, 0) - Qb[i];
+                int Qvv = Qv[i];
 
                 if (a > threshold * Qvv / 2 && Sl[i] == 0) // TODO: why /2
                 {
@@ -227,8 +208,8 @@ namespace HSDetection
                         {
                             int tSpike = t - maxSl + 1;
                             Spike spike = Spike(tSpike, i, Amp[i]);
-                            int *tmp = Qbs[((tSpike + 1) - spikePeakDuration) % QbsLen]; // TODO: tSpike > peakDur?
-                            spike.baselines = vector<int>(tmp, tmp + nChannels);
+                            short *tmp = QBs[tSpike - spikePeakDuration]; // TODO: tSpike > peakDur?
+                            spike.baselines = vector<short>(tmp, tmp + nChannels);
 
                             pQueue->add(spike);
                         }

@@ -23,7 +23,7 @@ namespace HSDetection
     public: // TODO: remove?
         std::vector<std::vector<std::pair<int, int>>> waveforms;
 
-        std::vector<int> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
+        std::vector<short> baselines; // Contains spike_delay number of frames of median baseline values. Updated by user at every frame.
     };
 
 } // namespace HSDetection

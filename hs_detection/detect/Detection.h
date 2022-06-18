@@ -6,6 +6,7 @@
 #include "SpikeQueue.h"
 #include "Point.h"
 #include "ProbeLayout.h"
+#include "RollingArray.h"
 
 namespace HSDetection
 {
@@ -17,10 +18,8 @@ namespace HSDetection
         // Variables for variance and mean
         // int *Qv;   // noise amplitude
         // int *Qb;   // median
-        int **Qbs; // stores spike_delay + MaxSl baseline values;
-        int **Qvs; // stores spike_delay + MaxSl baseline values;
-
-        int QbsLen;
+        // int **Qbs; // stores spike_delay + MaxSl baseline values;
+        // int **Qvs; // stores spike_delay + MaxSl baseline values;
 
         // Variables for the spike detection
         int *Sl;      // counter for spike length
@@ -78,6 +77,9 @@ namespace HSDetection
         static VoltTrace AGlobal;
 
         static ProbeLayout probeLayout;
+
+        static RollingArray QBs;
+        static RollingArray QVs;
 
         Detection(int chunkSize, int *positionMatrix,
                   int nChannels, int spikePeakDuration, std::string filename,
