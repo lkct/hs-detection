@@ -4,7 +4,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeDecayFilterer::SpikeDecayFilterer(ProbeLayout *pLayout, int noiseDuration, int noiseAmpPercent)
+    SpikeDecayFilterer::SpikeDecayFilterer(ProbeLayout *pLayout, int noiseDuration, float noiseAmpPercent)
         : pLayout(pLayout), noiseDuration(noiseDuration), noiseAmpPercent(noiseAmpPercent) {}
 
     SpikeDecayFilterer::~SpikeDecayFilterer() {}

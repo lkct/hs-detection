@@ -12,10 +12,10 @@ namespace HSDetection
     private:
         ProbeLayout *pLayout; // passed in, should not release here
         int noiseDuration;
-        int noiseAmpPercent;
+        float noiseAmpPercent;
 
     public:
-        SpikeDecayFilterer(ProbeLayout *pLayout, int noiseDuration, int noiseAmpPercent);
+        SpikeDecayFilterer(ProbeLayout *pLayout, int noiseDuration, float noiseAmpPercent);
         ~SpikeDecayFilterer();
 
         void operator()(SpikeQueue *pQueue);
