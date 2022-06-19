@@ -3,6 +3,7 @@
 #include "SpikeQueue.h"
 #include "Detection.h"
 #include "QueueProcessor/FirstElemProcessor.h"
+#include "QueueProcessor/SpikeDecayFilterer.h"
 #include "QueueProcessor/SpikeFilterer.h"
 #include "SpikeProcessor/SpikeLocalizer.h"
 #include "SpikeProcessor/SpikeSaver.h"
@@ -22,7 +23,8 @@ namespace HSDetection
 
         if (pDet->decay_filtering)
         {
-            // TODO: undefined
+            pQueProc = new SpikeDecayFilterer(&pDet->probeLayout, pDet->noise_duration, pDet->noise_amp_percent);
+            queProcs.push_back(pQueProc);
         }
         else
         {

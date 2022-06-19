@@ -66,6 +66,7 @@ ext_folder = 'hs_detection/detect/'
 sources = ['Detection.cpp',
            'ProbeLayout.cpp',
            'SpikeQueue.cpp',
+           'QueueProcessor/SpikeDecayFilterer.cpp',
            'QueueProcessor/SpikeFilterer.cpp',
            'SpikeProcessor/SpikeLocalizer.cpp',
            'SpikeProcessor/SpikeSaver.cpp',
