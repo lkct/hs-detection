@@ -12,19 +12,21 @@ namespace HSDetection
     {
     private:
         ProbeLayout *pLayout; // passed in, should not release here
+
+        TraceWrapper *pTrace;    // passed in, should not release here
+        TraceWrapper *pAGlobal;  // passed in, should not release here
+        RollingArray *pBaseline; // passed in, should not release here
+
+        int numCoMCenters; // TODO: name???
         int noiseDuration;
         int spikePeakDuration;
-        int numCoMCenters;
-        TraceWrapper *pTrace;
-        TraceWrapper *pAGlobal;
-        RollingArray *pBaseline;
 
     public:
-        SpikeLocalizer(ProbeLayout *pLayout, int noiseDuration, int spikePeakDuration, int numCoMCenters,
-                       TraceWrapper *pTrace, TraceWrapper *pAGlobal, RollingArray *pBaseline);
+        SpikeLocalizer(ProbeLayout *pLayout, TraceWrapper *pTrace,
+                       TraceWrapper *pAGlobal, RollingArray *pBaseline,
+                       int numCoMCenters, int noiseDuration, int spikePeakDuration);
         ~SpikeLocalizer();
 
-    public:
         using SpikeProcessor::operator(); // allow call on iterator
         void operator()(Spike *pSpike);
     };

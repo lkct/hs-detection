@@ -1,15 +1,17 @@
-#include "SpikeLocalizer.h"
 #include <algorithm>
+#include <numeric>
+
+#include "SpikeLocalizer.h"
 
 using namespace std;
 
 namespace HSDetection
 {
-    SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout, int noiseDuration,
-                                   int spikePeakDuration, int numCoMCenters,
-                                   TraceWrapper *pTrace, TraceWrapper *pAGlobal, RollingArray *pBaseline)
-        : pLayout(pLayout), noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration),
-          numCoMCenters(numCoMCenters), pTrace(pTrace), pAGlobal(pAGlobal), pBaseline(pBaseline) {}
+    SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout, TraceWrapper *pTrace,
+                                   TraceWrapper *pAGlobal, RollingArray *pBaseline,
+                                   int numCoMCenters, int noiseDuration, int spikePeakDuration)
+        : pLayout(pLayout), pTrace(pTrace), pAGlobal(pAGlobal), pBaseline(pBaseline),
+          numCoMCenters(numCoMCenters), noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration) {}
 
     SpikeLocalizer::~SpikeLocalizer() {}
 
@@ -24,6 +26,7 @@ namespace HSDetection
 
         vector<pair<int, int>> chAmp;
 
+        int aGlobal = (*pAGlobal)(pSpike->frame, 0);
         const short *baselines = (*pBaseline)[pSpike->frame - spikePeakDuration]; // TODO: tSpike > peakDur?
 
         for (int i = 0; i < numCoMCenters; i++)
@@ -33,22 +36,22 @@ namespace HSDetection
             // TODO: check i in inner neighbor range (numCoM not too large)
             int centerChannel = pLayout->getInnerNeighbors(pSpike->channel)[i];
 
-            for (int curr_neighbor_channel : pLayout->getInnerNeighbors(centerChannel))
+            for (int neighborChannel : pLayout->getInnerNeighbors(centerChannel))
             {
-                int offset = (*pAGlobal)(pSpike->frame, 0) + baselines[curr_neighbor_channel];
+                int offset = aGlobal + baselines[neighborChannel];
                 int sum = 0;
                 for (int t = frameLeft; t < frameRight; t++)
                 {
-                    int curr_amp = (*pTrace)(t, curr_neighbor_channel) - offset;
-                    if (curr_amp >= 0)
+                    int a = (*pTrace)(t, neighborChannel) - offset;
+                    if (a > 0)
                     {
-                        sum += curr_amp;
+                        sum += a;
                     }
                 }
-                chAmp.push_back(make_pair(curr_neighbor_channel, sum));
+                chAmp.push_back(make_pair(neighborChannel, sum));
             }
 
-            int chCount = chAmp.size();
+            int chCount = pLayout->getInnerNeighbors(centerChannel).size();
 
             int median;
             {
