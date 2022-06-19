@@ -6,7 +6,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeWriter::SpikeWriter(const string &filename, VoltTrace *pTrace,
+    SpikeWriter::SpikeWriter(const string &filename, TraceWrapper *pTrace,
                              int cutout_start, int cutout_end)
         : spikeFile(filename, ios::binary | ios::trunc), pTrace(pTrace),
           cutoutLeft(cutout_start), cutoutLength(cutout_start + cutout_end + 1) // TODO: +1?

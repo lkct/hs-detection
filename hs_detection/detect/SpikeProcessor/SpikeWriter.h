@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "SpikeProcessor.h"
-#include "../VoltTrace.h"
+#include "../TraceWrapper.h"
 
 namespace HSDetection
 {
@@ -13,13 +13,13 @@ namespace HSDetection
     {
     private:
         std::ofstream spikeFile;
-        VoltTrace *pTrace; // passed in, should not release here
+        TraceWrapper *pTrace; // passed in, should not release here
         char *buffer;      // created and released here
         int cutoutLeft;
         int cutoutLength;
 
     public:
-        SpikeWriter(const std::string &filename, VoltTrace *pTrace,
+        SpikeWriter(const std::string &filename, TraceWrapper *pTrace,
                     int cutout_start, int cutout_end);
         ~SpikeWriter();
 

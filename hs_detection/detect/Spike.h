@@ -1,9 +1,6 @@
 #ifndef SPIKE_H
 #define SPIKE_H
 
-#include <vector>
-#include <utility>
-
 #include "Point.h"
 
 namespace HSDetection
@@ -14,7 +11,7 @@ namespace HSDetection
         int frame;
         int channel;
         int amplitude;
-        Point position;
+        Point position; // default to (0,0) if not localized
 
         Spike(int frame, int channel, int amplitude)
             : frame(frame), channel(channel), amplitude(amplitude), position() {}

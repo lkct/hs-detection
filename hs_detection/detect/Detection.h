@@ -2,7 +2,7 @@
 #define DETECTION_H
 
 #include <string>
-#include "VoltTrace.h"
+#include "TraceWrapper.h"
 #include "SpikeQueue.h"
 #include "Point.h"
 #include "ProbeLayout.h"
@@ -69,8 +69,8 @@ namespace HSDetection
 
         ProbeLayout probeLayout;
 
-        VoltTrace trace;
-        VoltTrace AGlobal;
+        TraceWrapper trace;
+        TraceWrapper AGlobal;
 
         RollingArray QBs;
         RollingArray QVs;

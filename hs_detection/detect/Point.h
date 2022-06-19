@@ -27,6 +27,7 @@ namespace HSDetection
         friend Point operator*(Point pt, float mult) { return pt *= mult; }
         friend Point operator*(float mult, Point pt) { return pt *= mult; }
         friend Point operator/(Point pt, float divisor) { return pt /= divisor; }
+        // pass by value to allow optimization on chained ops
     };
 
 } // namespace HSDetection

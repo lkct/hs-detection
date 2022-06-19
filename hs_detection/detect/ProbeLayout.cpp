@@ -6,8 +6,7 @@ namespace HSDetection
 {
     ProbeLayout::ProbeLayout(int numChannels, int *channelPositions,
                              float neighborRadius, float innerRadius)
-        : numChannels(numChannels), positions(numChannels),
-          neighborList(numChannels), innerNeighborList(numChannels)
+        : positions(numChannels), neighborList(numChannels), innerNeighborList(numChannels)
     {
         for (int i = 0; i < numChannels; i++)
         {

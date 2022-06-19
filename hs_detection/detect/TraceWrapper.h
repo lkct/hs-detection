@@ -1,22 +1,24 @@
-#ifndef VOLTTRACE_H
-#define VOLTTRACE_H
+#ifndef TRACEWRAPPER_H
+#define TRACEWRAPPER_H
 
 namespace HSDetection
 {
-    class VoltTrace
+    class TraceWrapper
     {
     private:
         short *traceBuffer; // passed in, should not release here
-        int frameOffset;
+
+        int frameOffset; // offset of current chunk
         int numChannels;
-        int chunkSize;
+        int chunkSize; // offset advenced by this size with each new chunk
 
     public:
-        VoltTrace(int cutoutLeft, int numChannels, int chunkSize)
-            : traceBuffer(nullptr), frameOffset(-cutoutLeft - chunkSize),
+        TraceWrapper(int leftMargin, int numChannels, int chunkSize)
+            : traceBuffer(nullptr), frameOffset(-leftMargin - chunkSize),
               numChannels(numChannels), chunkSize(chunkSize) {}
-        ~VoltTrace() {}
+        ~TraceWrapper() {}
 
+        // should be called to both provide a buffer and advance the offset
         void updateChunk(short *traceBuffer) { this->traceBuffer = traceBuffer, frameOffset += chunkSize; }
 
         const short *operator[](int frame) const { return traceBuffer + (frame - frameOffset) * numChannels; }

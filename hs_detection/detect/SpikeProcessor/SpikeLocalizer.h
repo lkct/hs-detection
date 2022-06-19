@@ -3,7 +3,7 @@
 
 #include "SpikeProcessor.h"
 #include "../ProbeLayout.h"
-#include "../VoltTrace.h"
+#include "../TraceWrapper.h"
 #include "../RollingArray.h"
 
 namespace HSDetection
@@ -15,13 +15,13 @@ namespace HSDetection
         int noiseDuration;
         int spikePeakDuration;
         int numCoMCenters;
-        VoltTrace *pTrace;
-        VoltTrace *pAGlobal;
+        TraceWrapper *pTrace;
+        TraceWrapper *pAGlobal;
         RollingArray *pBaseline;
 
     public:
         SpikeLocalizer(ProbeLayout *pLayout, int noiseDuration, int spikePeakDuration, int numCoMCenters,
-                       VoltTrace *pTrace, VoltTrace *pAGlobal, RollingArray *pBaseline);
+                       TraceWrapper *pTrace, TraceWrapper *pAGlobal, RollingArray *pBaseline);
         ~SpikeLocalizer();
 
     public:

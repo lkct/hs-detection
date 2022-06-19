@@ -10,7 +10,7 @@ namespace HSDetection
 {
     SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout, int noiseDuration,
                                    int spikePeakDuration, int numCoMCenters,
-                                   VoltTrace *pTrace, VoltTrace *pAGlobal, RollingArray *pBaseline)
+                                   TraceWrapper *pTrace, TraceWrapper *pAGlobal, RollingArray *pBaseline)
         : pLayout(pLayout), noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration),
           numCoMCenters(numCoMCenters), pTrace(pTrace), pAGlobal(pAGlobal), pBaseline(pBaseline) {}
 
