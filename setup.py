@@ -1,3 +1,4 @@
+import glob
 import os
 import platform
 import subprocess
@@ -62,17 +63,9 @@ with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 
-ext_folder = 'hs_detection/detect/'
-sources = ['Detection.cpp',
-           'ProbeLayout.cpp',
-           'SpikeQueue.cpp',
-           'QueueProcessor/SpikeDecayFilterer.cpp',
-           'QueueProcessor/SpikeFilterer.cpp',
-           'SpikeProcessor/SpikeLocalizer.cpp',
-           'SpikeProcessor/SpikeSaver.cpp',
-           'SpikeProcessor/SpikeShapeSaver.cpp',
-           *ext_src]
-sources = [ext_folder + fn for fn in sources]
+# should only have capital started cpp, except for cython generated
+sources = glob.glob('hs_detection/detect/**/[A-Z]*.cpp', recursive=True)
+sources += [os.path.join('hs_detection/detect', fn) for fn in ext_src]
 
 extra_compile_args = ['-std=c++11', '-O3']
 link_extra_args = []
