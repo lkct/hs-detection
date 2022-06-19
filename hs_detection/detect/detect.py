@@ -209,7 +209,7 @@ class HSDetection(object):
 
         del det
 
-        if self.out_file and out_file.stat().st_size > 0:
+        if out_file and out_file.stat().st_size > 0:
             spikes: NDArray[np.int32] = np.memmap(
                 str(out_file), dtype=np.int32, mode='r').reshape(-1, self.cutout_length)
         else:
