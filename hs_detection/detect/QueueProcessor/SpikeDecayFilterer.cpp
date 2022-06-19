@@ -211,10 +211,10 @@ namespace HSDetection
         }
         // for(int i = 0; i < Parameters::max_neighbors; i++) {
         float curr_dist;
-        float outer_dist_from_center = pLayout->channelDistance(outer_spike.channel, max_spike.channel);
+        float outer_dist_from_center = pLayout->getChannelDistance(outer_spike.channel, max_spike.channel);
         for (int curr_inner_channel : pLayout->getInnerNeighbors(outer_spike.channel))
         {
-            curr_dist = pLayout->channelDistance(curr_inner_channel, max_spike.channel);
+            curr_dist = pLayout->getChannelDistance(curr_inner_channel, max_spike.channel);
             if (curr_dist < outer_dist_from_center)
             {
                 Spike inner_spike = getSpikeFromChannel(pQueue, curr_inner_channel);

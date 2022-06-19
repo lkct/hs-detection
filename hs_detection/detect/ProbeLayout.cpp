@@ -6,7 +6,9 @@ namespace HSDetection
 {
     ProbeLayout::ProbeLayout(int numChannels, int *channelPositions,
                              float neighborRadius, float innerRadius)
-        : positions(numChannels), neighborList(numChannels), innerNeighborList(numChannels)
+        : positions(numChannels), distances(numChannels, vector<float>(numChannels)),
+          neighborList(numChannels), innerNeighborList(numChannels),
+          neighborRadius(neighborRadius), innerRadius(innerRadius)
     {
         for (int i = 0; i < numChannels; i++)
         {
@@ -15,14 +17,11 @@ namespace HSDetection
         }
 
         // TODO: opportunity to vectorize?
-
-        vector<float> distance(numChannels);
-
         for (int i = 0; i < numChannels; i++)
         {
             for (int j = 0; j < numChannels; j++)
             {
-                float dis = distance[j] = channelDistance(i, j);
+                float dis = distances[i][j] = (positions[i] - positions[j]).abs();
                 if (dis < neighborRadius)
                 {
                     neighborList[i].push_back(j);
@@ -33,10 +32,10 @@ namespace HSDetection
                 }
             }
 
-            // inner neighbors are sorted, with self at the first
+            // self definitely sorted to the first
             sort(innerNeighborList[i].begin(), innerNeighborList[i].end(),
-                 [&distance](int lhs, int rhs)
-                 { return distance[lhs] < distance[rhs]; });
+                 [&dist = distances[i]](int lhs, int rhs)
+                 { return dist[lhs] < dist[rhs]; });
         }
     }
 
