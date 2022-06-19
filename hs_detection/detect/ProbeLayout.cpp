@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "ProbeLayout.h"
 
 using namespace std;

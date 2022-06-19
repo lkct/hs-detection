@@ -4,7 +4,6 @@
 #include <string>
 #include "TraceWrapper.h"
 #include "SpikeQueue.h"
-#include "Point.h"
 #include "ProbeLayout.h"
 #include "RollingArray.h"
 

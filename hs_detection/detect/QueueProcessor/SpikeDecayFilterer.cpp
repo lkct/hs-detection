@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "SpikeDecayFilterer.h"
 
 using namespace std;

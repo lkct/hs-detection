@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "SpikeFilterer.h"
 
 using namespace std;

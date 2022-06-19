@@ -1,8 +1,5 @@
 #include "SpikeLocalizer.h"
-#include <utility>
-#include <vector>
 #include <algorithm>
-#include "../Point.h"
 
 using namespace std;
 

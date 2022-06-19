@@ -1,7 +1,6 @@
 #ifndef PROBELAYOUT_H
 #define PROBELAYOUT_H
 
-#include <algorithm>
 #include <vector>
 
 #include "Point.h"
