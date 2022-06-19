@@ -17,7 +17,8 @@ namespace HSDetection
         : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
           AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
           framesLeftMargin(framesLeftMargin), filename(filename), result(),
-          to_localize(localize), saveShape(saveShape), cutout_start(cutoutStart), cutout_end(cutoutEnd),
+          to_localize(localize), saveShape(saveShape), cutout_start(cutoutStart),
+          cutout_size(cutoutStart + cutoutEnd + 1), // TODO: +1?
           noise_duration(noiseDuration), spike_peak_duration(spikePeakDuration),
           num_com_centers(numComCenters),
           probeLayout(nChannels, positionMatrix, neighborRadius, innerRadius),

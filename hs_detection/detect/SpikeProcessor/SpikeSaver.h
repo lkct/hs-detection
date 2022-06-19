@@ -8,10 +8,10 @@ namespace HSDetection
     class SpikerSaver : public SpikeProcessor
     {
     private:
-        std::vector<char> *pResult; // passed in, should not release here
+        std::vector<char> *resultBuffer; // passed in, should not release here
 
     public:
-        SpikerSaver(std::vector<char> *pResult);
+        SpikerSaver(std::vector<char> *resultBuffer);
         ~SpikerSaver();
 
         using SpikeProcessor::operator(); // allow call on iterator

@@ -8,7 +8,7 @@
 #include "QueueProcessor/SpikeFilterer.h"
 #include "SpikeProcessor/SpikeLocalizer.h"
 #include "SpikeProcessor/SpikeSaver.h"
-#include "SpikeProcessor/SpikeWriter.h"
+#include "SpikeProcessor/SpikeShapeSaver.h"
 
 using namespace std;
 
@@ -56,7 +56,7 @@ namespace HSDetection
 
         if (pDet->saveShape)
         {
-            pSpkProc = new SpikeWriter(pDet->filename, &pDet->trace, pDet->cutout_start, pDet->cutout_end);
+            pSpkProc = new SpikeShapeSaver(pDet->filename, &pDet->trace, pDet->cutout_start, pDet->cutout_size);
             addFirstElemProc(pSpkProc);
         }
     }

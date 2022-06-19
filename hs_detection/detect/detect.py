@@ -199,8 +199,8 @@ class HSDetection(object):
         amplitude = np.empty(det_len, dtype=np.int32)
         position = np.empty((det_len, 2), dtype=np.float32)
         for i in range(det_len):
-            channel_ind[i] = det_int[i * 5 + 0]
-            sample_ind[i] = det_int[i * 5 + 1]
+            sample_ind[i] = det_int[i * 5 + 0]
+            channel_ind[i] = det_int[i * 5 + 1]
             amplitude[i] = det_int[i * 5 + 2]
             position[i, 0] = det_float[i * 5 + 3]
             position[i, 1] = det_float[i * 5 + 4]

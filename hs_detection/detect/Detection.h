@@ -62,7 +62,7 @@ namespace HSDetection
         bool saveShape;
 
         int cutout_start;        // The number of frames before the spike that the cutout starts at
-        int cutout_end;          // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
+        int cutout_size;         // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
         int noise_duration;      // The number of frames that the true spike can occur after the first detection.
         int spike_peak_duration; // The number of frames it takes a spike amplitude to fully decay.
         int num_com_centers;     // Number of channels used for center of mass

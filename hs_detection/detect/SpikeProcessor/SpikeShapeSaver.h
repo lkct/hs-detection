@@ -1,5 +1,5 @@
-#ifndef SPIKEWRITER_H
-#define SPIKEWRITER_H
+#ifndef SPIKESHAPESAVER_H
+#define SPIKESHAPESAVER_H
 
 #include <string>
 #include <fstream>
@@ -9,19 +9,20 @@
 
 namespace HSDetection
 {
-    class SpikeWriter : public SpikeProcessor
+    class SpikeShapeSaver : public SpikeProcessor
     {
     private:
         std::ofstream spikeFile;
+        int *buffer; // created and released here
+
         TraceWrapper *pTrace; // passed in, should not release here
-        char *buffer;      // created and released here
-        int cutoutLeft;
+        int cutoutLeft;       // TODO: name???
         int cutoutLength;
 
     public:
-        SpikeWriter(const std::string &filename, TraceWrapper *pTrace,
-                    int cutout_start, int cutout_end);
-        ~SpikeWriter();
+        SpikeShapeSaver(const std::string &filename, TraceWrapper *pTrace,
+                        int cutoutLeft, int cutoutLength);
+        ~SpikeShapeSaver();
 
         using SpikeProcessor::operator(); // allow call on iterator
         void operator()(Spike *pSpike);

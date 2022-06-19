@@ -1,8 +1,8 @@
 #ifndef FIRSTELEMPROCESSOR_H
 #define FIRSTELEMPROCESSOR_H
 
-#include "../SpikeProcessor/SpikeProcessor.h"
 #include "QueueProcessor.h"
+#include "../SpikeProcessor/SpikeProcessor.h"
 
 namespace HSDetection
 {

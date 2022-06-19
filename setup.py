@@ -70,7 +70,7 @@ sources = ['Detection.cpp',
            'QueueProcessor/SpikeFilterer.cpp',
            'SpikeProcessor/SpikeLocalizer.cpp',
            'SpikeProcessor/SpikeSaver.cpp',
-           'SpikeProcessor/SpikeWriter.cpp',
+           'SpikeProcessor/SpikeShapeSaver.cpp',
            *ext_src]
 sources = [ext_folder + fn for fn in sources]
 
