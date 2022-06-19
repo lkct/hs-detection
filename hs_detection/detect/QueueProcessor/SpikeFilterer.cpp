@@ -11,13 +11,13 @@ namespace HSDetection
 
     void SpikeFilterer::operator()(SpikeQueue *pQueue)
     {
-        SpikeQueue::const_iterator itMax = pQueue->begin();
+        SpikeQueue::iterator itMax = pQueue->begin();
         int maxAmp = itMax->amplitude;
-        int spikeChannel = itMax->channel;
+
+        int spikeChannel = itMax->channel; // channel of first in queue
         int frameBound = itMax->frame + framesFilter;
 
-        // maybe not to use std::max_element is better in this case
-        for (SpikeQueue::const_iterator it = pQueue->begin();
+        for (SpikeQueue::iterator it = pQueue->begin();
              it->frame < frameBound && it != pQueue->end();
              ++it)
         {
@@ -29,16 +29,14 @@ namespace HSDetection
             }
         }
 
-        Spike maxSpike = move(*itMax);
-        // int maxAmp = maxSpike.amplitude;
-        spikeChannel = maxSpike.channel;
+        spikeChannel = itMax->channel; // channel of max
+
+        pQueue->push_front(move(*itMax));
         pQueue->erase(itMax);
 
         pQueue->remove_if(
             [this, spikeChannel, maxAmp](const Spike &spike)
             { return pLayout->areNeighbors(spike.channel, spikeChannel) && spike.amplitude < maxAmp; });
-
-        pQueue->push_front(move(maxSpike));
     }
 
 } // namespace HSDetection
