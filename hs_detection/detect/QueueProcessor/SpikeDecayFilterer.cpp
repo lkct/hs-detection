@@ -17,7 +17,7 @@ namespace HSDetection
         Spike curr_spike(0, 0, 0);
         Spike max_spike(0, 0, 0);
         int max_spike_amp;
-        max_spike = pQueue->front();
+        max_spike = *(pQueue->begin());
         max_spike_amp = max_spike.amplitude;
         int spikeChannel = max_spike.channel;
         int frameBound = max_spike.frame + noiseDuration + 1;

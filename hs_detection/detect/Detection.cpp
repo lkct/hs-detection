@@ -181,8 +181,7 @@ namespace HSDetection
                     {
                         if (2 * SpkArea[i] > minSl * minAvgAmp * Qvv)
                         {
-                            Spike spike = Spike(t - maxSl + 1, i, Amp[i]);
-                            pQueue->add(spike);
+                            pQueue->push_back(Spike(t - maxSl + 1, i, Amp[i]));
                         }
                         Sl[i] = 0;
                     }
@@ -204,7 +203,7 @@ namespace HSDetection
 
     int Detection::FinishDetection()
     {
-        pQueue->close();
+        pQueue->finalize();
         return result.size();
     }
 

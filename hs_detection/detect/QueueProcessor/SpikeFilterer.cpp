@@ -36,11 +36,9 @@ namespace HSDetection
         spikeChannel = maxSpike.channel;
         pQueue->erase(itMax);
 
-        pQueue->erase(
-            remove_if(pQueue->begin(), pQueue->end(),
-                      [this, spikeChannel, maxAmp](const Spike &spike)
-                      { return pLayout->areNeighbors(spike.channel, spikeChannel) && spike.amplitude < maxAmp; }),
-            pQueue->end());
+        pQueue->remove_if(
+            [this, spikeChannel, maxAmp](const Spike &spike)
+            { return pLayout->areNeighbors(spike.channel, spikeChannel) && spike.amplitude < maxAmp; });
 
         pQueue->push_front(move(maxSpike));
     }

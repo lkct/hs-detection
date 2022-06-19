@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <limits>
 
 #include "SpikeQueue.h"
 #include "Detection.h"
@@ -10,6 +11,17 @@
 #include "SpikeProcessor/SpikeWriter.h"
 
 using namespace std;
+
+// TODO: batch replace with int32_t?
+#define MAX_INT numeric_limits<int>::max()
+
+#define addFirstElemProc(pSpkProc)                   \
+    do                                               \
+    {                                                \
+        spkProcs.push_back(pSpkProc);                \
+        pQueProc = new FirstElemProcessor(pSpkProc); \
+        queProcs.push_back(pQueProc);                \
+    } while (false)
 
 namespace HSDetection
 {
@@ -24,40 +36,34 @@ namespace HSDetection
         if (pDet->decay_filtering)
         {
             pQueProc = new SpikeDecayFilterer(&pDet->probeLayout, pDet->noise_duration, pDet->noise_amp_percent);
-            queProcs.push_back(pQueProc);
         }
         else
         {
             pQueProc = new SpikeFilterer(&pDet->probeLayout, pDet->noise_duration);
-            queProcs.push_back(pQueProc);
         }
+        queProcs.push_back(pQueProc);
 
         if (pDet->to_localize)
         {
             pSpkProc = new SpikeLocalizer(&pDet->probeLayout, pDet->noise_duration,
                                           pDet->spike_peak_duration, pDet->num_com_centers,
                                           &pDet->trace, &pDet->AGlobal, &pDet->QBs);
-            spkProcs.push_back(pSpkProc);
-            pQueProc = new FirstElemProcessor(pSpkProc);
-            queProcs.push_back(pQueProc);
+            addFirstElemProc(pSpkProc);
         }
 
         pSpkProc = new SpikerSaver(&pDet->result);
-        spkProcs.push_back(pSpkProc);
-        pQueProc = new FirstElemProcessor(pSpkProc);
-        queProcs.push_back(pQueProc);
+        addFirstElemProc(pSpkProc);
 
         if (pDet->saveShape)
         {
             pSpkProc = new SpikeWriter(pDet->filename, &pDet->trace, pDet->cutout_start, pDet->cutout_end);
-            spkProcs.push_back(pSpkProc);
-            pQueProc = new FirstElemProcessor(pSpkProc);
-            queProcs.push_back(pQueProc);
+            addFirstElemProc(pSpkProc);
         }
     }
 
     SpikeQueue::~SpikeQueue()
     {
+        // should release QueueProc first because SpikeProc can be wrapped inside
         for_each(queProcs.begin(), queProcs.end(),
                  [](QueueProcessor *pQueProc)
                  { delete pQueProc; });
@@ -66,20 +72,9 @@ namespace HSDetection
                  { delete pSpkProc; });
     }
 
-    void SpikeQueue::add(Spike &spike)
-    {
-        process(spike.frame - framesInQueue);
-
-        queue.push_back(spike);
-    }
-
-    void SpikeQueue::close()
-    {
-        process();
-    }
-
     void SpikeQueue::process(int frameBound)
     {
+        // TODO: one loop?
         while (!queue.empty() && queue.front().frame < frameBound)
         {
             int last_frame = queue.front().frame;
@@ -95,6 +90,11 @@ namespace HSDetection
                 queue.erase(queue.begin());
             }
         }
+    }
+
+    void SpikeQueue::finalize()
+    {
+        process(MAX_INT);
     }
 
 } // namespace HSDetection

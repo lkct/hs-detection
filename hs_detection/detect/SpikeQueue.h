@@ -1,63 +1,66 @@
 #ifndef SPIKEQUEUE_H
 #define SPIKEQUEUE_H
 
-#include <limits>
 #include <list>
 #include <vector>
+#include <utility>
 
 #include "Spike.h"
 
-// TODO: batch replace with int32_t?
-#define MAX_INT std::numeric_limits<int>::max()
-
 namespace HSDetection
 {
-    // cannot have cyclic includes
+    class Detection;
     class QueueProcessor;
     class SpikeProcessor;
-    class Detection;
+    // no include in header to avoid cyclic dependency
 
     class SpikeQueue
     {
     private:
-        // TODO: list of Spike* ???
-        std::list<Spike> queue; // list has constant erase, but forward_list not convenient enough
-        std::vector<QueueProcessor *> queProcs;
-        std::vector<SpikeProcessor *> spkProcs;
-        int framesInQueue;    // number of frames from where the spikes should be kept in queue
-        int framesToContinue; // TODO: ???
+        std::list<Spike> queue; // list has constant-time erase and also bi-directional iter
+
+        std::vector<QueueProcessor *> queProcs; // content created and released here
+        std::vector<SpikeProcessor *> spkProcs; // content created and released here
+
+        int framesInQueue;    // TODO: name??? number of frames from where the spikes should be kept in queue
+        int framesToContinue; // TODO: name???
 
     public:
-        SpikeQueue(Detection *pDet); // passing everything altogether
+        SpikeQueue(Detection *pDet); // passing thw whole param set altogether
         ~SpikeQueue();
 
-        void add(Spike &spike);
-        void close();
-        void process(int frameBound = MAX_INT);
+        // copy constructor deleted to protect container content
+        SpikeQueue(const SpikeQueue &) = delete;
+        // copy assignment deleted to protect container content
+        SpikeQueue &operator=(const SpikeQueue &) = delete;
+
+        void process(int frameBound);
+        void finalize();
+
+        // wrappers of container interface
 
         typedef std::list<Spike>::iterator iterator;
         typedef std::list<Spike>::const_iterator const_iterator;
 
         bool empty() const { return queue.empty(); }
 
-        iterator begin() { return queue.begin(); }
         const_iterator begin() const { return queue.begin(); }
+        iterator begin() { return queue.begin(); }
 
-        iterator end() { return queue.end(); }
         const_iterator end() const { return queue.end(); }
+        iterator end() { return queue.end(); }
 
-        Spike &front() { return queue.front(); }
-        const Spike &front() const { return queue.front(); }
+        void push_front(Spike &&spike) { queue.push_front(std::move(spike)); }
 
-        void push_front(const Spike &spike) { queue.push_front(spike); }
-        void push_front(Spike &&spike) { queue.push_front(spike); }
+        void push_back(Spike &&spike) { process(spike.frame - framesInQueue), queue.push_back(std::move(spike)); }
 
         iterator erase(const_iterator position) { return queue.erase(position); }
-        iterator erase(const_iterator first, const_iterator last) { return queue.erase(first, last); }
+
+        template <class UnaryPredicate>
+        void remove_if(UnaryPredicate predicate) { queue.remove_if(predicate); }
+        // no need for return value (c++20)
     };
 
 } // namespace HSDetection
-
-#undef MAX_INT
 
 #endif
