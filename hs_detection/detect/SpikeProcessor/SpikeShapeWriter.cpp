@@ -12,8 +12,8 @@ namespace HSDetection
 
     SpikeShapeWriter::~SpikeShapeWriter()
     {
-        spikeFile.close();
         delete[] buffer;
+        spikeFile.close();
     }
 
     void SpikeShapeWriter::operator()(Spike *pSpike)
