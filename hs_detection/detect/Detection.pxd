@@ -26,7 +26,7 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   int threshold,
                   int minAvgAmp,
                   int maxAHPAmp,
-                  int *channelPositions, 
+                  float *channelPositions, 
                   float neighborRadius,
                   float innerRadius,
                   int noiseDuration,

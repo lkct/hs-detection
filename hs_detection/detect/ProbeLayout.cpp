@@ -6,7 +6,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    ProbeLayout::ProbeLayout(int numChannels, int *channelPositions,
+    ProbeLayout::ProbeLayout(int numChannels, float *channelPositions,
                              float neighborRadius, float innerRadius)
         : positions(numChannels), distances(numChannels, vector<float>(numChannels)),
           neighborList(numChannels), innerNeighborList(numChannels),
@@ -14,8 +14,8 @@ namespace HSDetection
     {
         for (int i = 0; i < numChannels; i++)
         {
-            positions[i].x = channelPositions[i * 2];
-            positions[i].y = channelPositions[i * 2 + 1];
+            positions[i].x = (int)channelPositions[i * 2]; // TODO: ???
+            positions[i].y = (int)channelPositions[i * 2 + 1];
         }
 
         for (int i = 0; i < numChannels; i++)

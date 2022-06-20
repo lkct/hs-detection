@@ -45,7 +45,7 @@ class HSDetection(object):
             warnings.warn(f'Channel locations have {positions.shape[1]} dimensions, '
                           'using the last two.')
             positions = positions[:, -2:]
-        self.positions = positions.astype(np.int32)
+        self.positions = positions.astype(np.float32)
 
         self.spike_peak_duration = int(
             params['event_length'] * self.fps / 1000)
@@ -141,8 +141,8 @@ class HSDetection(object):
                     self.num_frames[segment_index] - t_cut - t_cut2)
         t_cut = 2048  # TODO: can be smaller? effect of band pass?
 
-        position_matrix: cython.int[:, :] = np.ascontiguousarray(
-            self.positions, dtype=np.int32)
+        position_matrix: cython.float[:, :] = np.ascontiguousarray(
+            self.positions, dtype=np.float32)
         out_file = self.out_file.with_stem(
             self.out_file.stem + f'-{segment_index}') if self.out_file else None
         det: cython.pointer(Detection) = new Detection(

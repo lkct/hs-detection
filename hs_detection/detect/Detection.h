@@ -83,7 +83,7 @@ namespace HSDetection
     public:
         Detection(int numChannels, int chunkSize, int chunkLeftMargin,
                   int spikeLen, int peakLen, int threshold, int minAvgAmp, int maxAHPAmp,
-                  int *channelPositions, float neighborRadius, float innerRadius,
+                  float *channelPositions, float neighborRadius, float innerRadius,
                   int noiseDuration, int spikePeakDuration,
                   bool decayFiltering, float noiseAmpPercent,
                   bool localize, int numCoMCenters,

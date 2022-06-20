@@ -20,7 +20,7 @@ namespace HSDetection
         float innerRadius;
 
     public:
-        ProbeLayout(int numChannels, int *channelPositions, // TODO: pass in float position?
+        ProbeLayout(int numChannels, float *channelPositions,
                     float neighborRadius, float innerRadius);
         ~ProbeLayout();
 
