@@ -24,8 +24,8 @@ namespace HSDetection
 
         std::vector<Spike> *result; // passed in, should not release here
 
-        int framesInQueue;    // TODO: name??? number of frames from where the spikes should be kept in queue
-        int framesToContinue; // TODO: name???
+        int framesInQueue; // TODO: name??? number of frames from where the spikes should be kept in queue
+        int framesToContinue;
 
     public:
         SpikeQueue(Detection *pDet); // passing thw whole param set altogether

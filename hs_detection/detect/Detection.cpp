@@ -75,7 +75,7 @@ namespace HSDetection
         // for (int t = chunkStart - 1; t >= chunkStart - chunkLeftMargin; t--)
         // {
         //     // TODO: why? but keep behaviour
-        //     // TODO: but exactly kept at t==chunkStart
+        //     // but exactly kept at t==chunkStart
         //     commonRef(t, 0) = commonRef(t + spikeLen - 1, 0);
         // }
     }

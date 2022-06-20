@@ -22,18 +22,16 @@ namespace HSDetection
 
         int frameLeft = pSpike->frame - noiseDuration;
         int frameRight = pSpike->frame + noiseDuration;
-        // TODO: assert (cutoutStart >= noiseDuration && cutout_end >= noiseDuration)
 
         vector<pair<int, int>> chAmp;
 
         int aGlobal = (*pAGlobal)(pSpike->frame, 0);
-        const short *baselines = (*pBaseline)[pSpike->frame - spikePeakDuration]; // TODO: tSpike > peakDur?
+        const short *baselines = (*pBaseline)[pSpike->frame - spikePeakDuration];
 
         for (int i = 0; i < numCoMCenters; i++)
         {
             chAmp.clear();
 
-            // TODO: check i in inner neighbor range (numCoM not too large)
             int centerChannel = pLayout->getInnerNeighbors(pSpike->channel)[i];
 
             for (int neighborChannel : pLayout->getInnerNeighbors(centerChannel))
@@ -101,7 +99,7 @@ namespace HSDetection
             }
 
             sumCoM += 1 * CoM; // TODO: weight?
-            sumWeight += 1;    // TODO: inc amount?
+            sumWeight += 1;
         }
 
         pSpike->position = sumCoM / sumWeight;

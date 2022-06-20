@@ -18,7 +18,6 @@ namespace HSDetection
             positions[i].y = channelPositions[i * 2 + 1];
         }
 
-        // TODO: opportunity to vectorize?
         for (int i = 0; i < numChannels; i++)
         {
             for (int j = 0; j < numChannels; j++)
