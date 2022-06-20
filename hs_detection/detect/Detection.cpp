@@ -7,104 +7,104 @@ using namespace std;
 namespace HSDetection
 {
     Detection::Detection(int chunkSize, int *positionMatrix,
-                         int nChannels, int spikePeakDuration, string filename,
+                         int numChannels, int spikePeakDuration, string filename,
                          int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
                          int numComCenters, bool localize,
                          int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                         int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
-                         int framesLeftMargin)
-        : nChannels(nChannels), threshold(threshold), minAvgAmp(minAvgAmp),
-          AHPthr(ahpthr), maxSl(maxSl), minSl(minSl),
-          framesLeftMargin(framesLeftMargin), filename(filename), result(),
-          to_localize(localize), saveShape(saveShape), cutout_start(cutoutStart),
-          cutout_size(cutoutStart + cutoutEnd + 1), // TODO: +1?
-          noise_duration(noiseDuration), spike_peak_duration(spikePeakDuration),
-          num_com_centers(numComCenters),
-          probeLayout(nChannels, positionMatrix, neighborRadius, innerRadius),
-          trace(framesLeftMargin, nChannels, chunkSize),
-          AGlobal(framesLeftMargin, 1, chunkSize),
-          QBs(nChannels), QVs(nChannels),
-          decay_filtering(decayFiltering), noise_amp_percent(noiseAmpPercent)
+                         int ahpthr, int spikeLen, int peakLen, bool decayFiltering, bool saveShape,
+                         int chunkLeftMargin)
+        : numChannels(numChannels), threshold(threshold), minAvgAmp(minAvgAmp),
+          maxAHPAmp(ahpthr), spikeLen(spikeLen), peakLen(peakLen),
+          chunkLeftMargin(chunkLeftMargin), filename(filename), result(),
+          localize(localize), saveShape(saveShape), cutoutStart(cutoutStart),
+          cutoutLen(cutoutStart + cutoutEnd + 1), // TODO: +1?
+          noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration),
+          numCoMCenters(numComCenters),
+          probeLayout(numChannels, positionMatrix, neighborRadius, innerRadius),
+          trace(chunkLeftMargin, numChannels, chunkSize),
+          commonRef(chunkLeftMargin, 1, chunkSize),
+          runningBaseline(numChannels), runningVariance(numChannels),
+          decayFilter(decayFiltering), noiseAmpPercent(noiseAmpPercent)
     {
-        Sl = new int[nChannels];
-        AHP = new bool[nChannels];
-        Amp = new int[nChannels];
-        SpkArea = new int[nChannels];
+        spikeTime = new int[numChannels];
+        hasAHP = new bool[numChannels];
+        spikeAmp = new int[numChannels];
+        spikeArea = new int[numChannels];
 
-        _Aglobal = new short[chunkSize + framesLeftMargin];
+        _commonRef = new short[chunkSize + chunkLeftMargin];
 
-        fill_n(QBs[-1], nChannels, Voffset);
-        fill_n(QVs[-1], nChannels, 400); // TODO: magic number?
+        fill_n(runningBaseline[-1], numChannels, Voffset);
+        fill_n(runningVariance[-1], numChannels, Qvstart);
 
-        memset(Sl, 0, nChannels * sizeof(int));      // TODO: 0 init?
-        memset(AHP, 0, nChannels * sizeof(bool));    // TODO: 0 init?
-        memset(Amp, 0, nChannels * sizeof(int));     // TODO: 0 init?
-        memset(SpkArea, 0, nChannels * sizeof(int)); // TODO: 0 init?
+        memset(spikeTime, 0, numChannels * sizeof(int));      // TODO: 0 init?
+        memset(hasAHP, 0, numChannels * sizeof(bool));    // TODO: 0 init?
+        memset(spikeAmp, 0, numChannels * sizeof(int));     // TODO: 0 init?
+        memset(spikeArea, 0, numChannels * sizeof(int)); // TODO: 0 init?
 
-        memset(_Aglobal, 0, (chunkSize + framesLeftMargin) * sizeof(short)); // TODO: 0 init? // really need?
+        memset(_commonRef, 0, (chunkSize + chunkLeftMargin) * sizeof(short)); // TODO: 0 init? // really need?
 
         pQueue = new SpikeQueue(this); // all the params should be ready
     }
 
     Detection::~Detection()
     {
-        delete[] Sl;
-        delete[] AHP;
-        delete[] Amp;
-        delete[] SpkArea;
+        delete[] spikeTime;
+        delete[] hasAHP;
+        delete[] spikeAmp;
+        delete[] spikeArea;
 
-        delete[] _Aglobal;
+        delete[] _commonRef;
 
         delete pQueue;
     }
 
-    void Detection::MedianVoltage(short *traceBuffer, int frameInputStart, int framesInputLen) // TODO: add, use?
+    void Detection::commonMedian(int chunkStart, int chunkLen) // TODO: add, use?
     {
     }
 
-    void Detection::MeanVoltage(short *traceBuffer, int frameInputStart, int framesInputLen)
+    void Detection::commonAverage(int chunkStart, int chunkLen)
     {
         // // TODO: if median takes too long...
         // // or there are only few
         // // channnels (?)
-        for (int t = frameInputStart - framesLeftMargin; t < frameInputStart + framesInputLen; t++)
+        for (int t = chunkStart - chunkLeftMargin; t < chunkStart + chunkLen; t++)
         {
             int sum = 0;
-            for (int i = 0; i < nChannels; i++)
+            for (int i = 0; i < numChannels; i++)
             {
                 sum += trace(t, i) / 64; // TODO: no need to scale
             }
-            AGlobal(t, 0) = sum / (nChannels + 1) * 64; // TODO: no need +1
+            commonRef(t, 0) = sum / (numChannels + 1) * 64; // TODO: no need +1
         }
         // TODO: ???
-        // for (int t = frameInputStart - 1; t >= frameInputStart - framesLeftMargin; t--)
+        // for (int t = chunkStart - 1; t >= chunkStart - chunkLeftMargin; t--)
         // {
         //     // TODO: why? but keep behaviour
-        //     // TODO: but exactly kept at t==frameInputStart
-        //     AGlobal(t, 0) = AGlobal(t + maxSl - 1, 0);
+        //     // TODO: but exactly kept at t==chunkStart
+        //     commonRef(t, 0) = commonRef(t + spikeLen - 1, 0);
         // }
     }
 
-    void Detection::Iterate(short *traceBuffer, int frameInputStart, int framesInputLen)
+    void Detection::step(short *traceBuffer, int chunkStart, int chunkLen)
     {
         trace.updateChunk(traceBuffer);
-        AGlobal.updateChunk(_Aglobal);
+        commonRef.updateChunk(_commonRef);
 
-        if (nChannels >= 20) // TODO: magic number?
+        if (numChannels >= 20) // TODO: magic number?
         {
-            MeanVoltage(traceBuffer, frameInputStart, framesInputLen);
+            commonAverage(chunkStart, chunkLen);
         }
 
-        // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++)
+        // // TODO: Does this need to end at chunkLen + chunkLeftMargin? (Cole+Martino)
+        for (int t = chunkStart; t - chunkStart < chunkLen; t++)
         {
-            short *QbPrev = QBs[t - 1];
-            short *QvPrev = QVs[t - 1];
-            short *Qb = QBs[t];
-            short *Qv = QVs[t];
+            short *QbPrev = runningBaseline[t - 1];
+            short *QvPrev = runningVariance[t - 1];
+            short *Qb = runningBaseline[t];
+            short *Qv = runningVariance[t];
             short *input = trace[t];
-            int aglobal = AGlobal(t, 0);
-            for (int i = 0; i < nChannels; i++)
+            int aglobal = commonRef(t, 0);
+            for (int i = 0; i < numChannels; i++)
             {
                 int a = input[i] - aglobal - QbPrev[i];
 
@@ -140,58 +140,58 @@ namespace HSDetection
 
         } // for t
 
-        // // TODO: Does this need to end at framesInputLen + framesLeftMargin? (Cole+Martino)
-        for (int t = frameInputStart; t - frameInputStart < framesInputLen; t++)
+        // // TODO: Does this need to end at chunkLen + chunkLeftMargin? (Cole+Martino)
+        for (int t = chunkStart; t - chunkStart < chunkLen; t++)
         {
-            short *Qb = QBs[t];
-            short *Qv = QVs[t];
-            for (int i = 0; i < nChannels; i++)
+            short *Qb = runningBaseline[t];
+            short *Qv = runningVariance[t];
+            for (int i = 0; i < numChannels; i++)
             {
-                // // TODO: should framesLeftMargin be subtracted here??
+                // // TODO: should chunkLeftMargin be subtracted here??
                 // calc against updated Qb
-                int a = trace(t, i) - AGlobal(t, 0) - Qb[i];
+                int a = trace(t, i) - commonRef(t, 0) - Qb[i];
                 int Qvv = Qv[i];
 
-                if (a > threshold * Qvv / 2 && Sl[i] == 0) // TODO: why /2
+                if (a > threshold * Qvv / 2 && spikeTime[i] == 0) // TODO: why /2
                 {
                     // // check for threshold crossings
-                    Sl[i] = 1;
-                    Amp[i] = a;
-                    AHP[i] = false;
-                    SpkArea[i] = a;
+                    spikeTime[i] = 1;
+                    spikeAmp[i] = a;
+                    hasAHP[i] = false;
+                    spikeArea[i] = a;
                 }
-                else if (Sl[i] > 0)
+                else if (spikeTime[i] > 0)
                 {
-                    // // Sl frames after peak value
-                    // // increment Sl[i]
-                    Sl[i]++;
-                    if (Sl[i] < minSl)
+                    // // spikeTime frames after peak value
+                    // // increment spikeTime[i]
+                    spikeTime[i]++;
+                    if (spikeTime[i] < peakLen)
                     {
                         // // calculate area under first and second frame
                         // // after spike
-                        SpkArea[i] += a;
+                        spikeArea[i] += a;
                     }
-                    else if (a < AHPthr * Qvv)
+                    else if (a < maxAHPAmp * Qvv)
                     {
                         // // check whether it does repolarize
-                        AHP[i] = true;
+                        hasAHP[i] = true;
                     }
 
-                    if ((Sl[i] == maxSl) && AHP[i])
+                    if ((spikeTime[i] == spikeLen) && hasAHP[i])
                     {
-                        if (2 * SpkArea[i] > minSl * minAvgAmp * Qvv)
+                        if (2 * spikeArea[i] > peakLen * minAvgAmp * Qvv) // TODO: why *2
                         {
-                            pQueue->push_back(Spike(t - maxSl + 1, i, Amp[i]));
+                            pQueue->push_back(Spike(t - spikeLen + 1, i, spikeAmp[i]));
                         }
-                        Sl[i] = 0;
+                        spikeTime[i] = 0;
                     }
-                    else if (Amp[i] < a)
+                    else if (spikeAmp[i] < a)
                     {
                         // // check whether current ADC count is higher
-                        Sl[i] = 1; // // reset peak value
-                        Amp[i] = a;
-                        AHP[i] = false;  // // reset AHP
-                        SpkArea[i] += a; // // not resetting this one (anyway don't need to care if the spike is wide)
+                        spikeTime[i] = 1; // // reset peak value
+                        spikeAmp[i] = a;
+                        hasAHP[i] = false;  // // reset hasAHP
+                        spikeArea[i] += a; // // not resetting this one (anyway don't need to care if the spike is wide)
                     }
                 }
 
@@ -199,15 +199,15 @@ namespace HSDetection
 
         } // for t
 
-    } // Detection::Iterate
+    } // Detection::step
 
-    int Detection::FinishDetection()
+    int Detection::finish()
     {
         pQueue->finalize();
         return result.size();
     }
 
-    char *Detection::Get()
+    char *Detection::getResult()
     {
         return result.data();
     }

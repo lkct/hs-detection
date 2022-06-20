@@ -22,7 +22,7 @@ namespace HSDetection
 
         int frameLeft = pSpike->frame - noiseDuration;
         int frameRight = pSpike->frame + noiseDuration;
-        // TODO: assert (cutout_start >= noise_duration && cutout_end >= noise_duration)
+        // TODO: assert (cutoutStart >= noiseDuration && cutout_end >= noiseDuration)
 
         vector<pair<int, int>> chAmp;
 

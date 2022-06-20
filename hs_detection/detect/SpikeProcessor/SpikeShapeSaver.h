@@ -17,11 +17,11 @@ namespace HSDetection
 
         TraceWrapper *pTrace; // passed in, should not release here
         int cutoutLeft;       // TODO: name???
-        int cutoutLength;
+        int cutoutLen;
 
     public:
         SpikeShapeSaver(const std::string &filename, TraceWrapper *pTrace,
-                        int cutoutLeft, int cutoutLength);
+                        int cutoutLeft, int cutoutLen);
         ~SpikeShapeSaver();
 
         using SpikeProcessor::operator(); // allow call on iterator

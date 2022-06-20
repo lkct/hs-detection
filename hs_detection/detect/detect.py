@@ -181,18 +181,18 @@ class HSDetection(object):
 
             vm = self.get_traces(segment_index=segment_index,
                                  start_frame=t0 - t_cut, end_frame=t1 + t_cut2)
-            det.Iterate(cython.address(vm[0]), t0, t_inc)
+            det.step(cython.address(vm[0]), t0, t_inc)
 
             t0 += t_inc
             if t0 < self.num_frames[segment_index] - t_cut2:
                 t_inc = min(
                     t_inc, self.num_frames[segment_index] - t_cut2 - t0)
 
-        det_len = det.FinishDetection()
+        det_len = det.finish()
         assert det_len % 20 == 0
         det_len //= 20
-        det_int: cython.p_int = cython.cast(cython.p_int, det.Get())
-        det_float: cython.p_float = cython.cast(cython.p_float, det.Get())
+        det_int: cython.p_int = cython.cast(cython.p_int, det.getResult())
+        det_float: cython.p_float = cython.cast(cython.p_float, det.getResult())
 
         channel_ind = np.empty(det_len, dtype=np.int32)
         sample_ind = np.empty(det_len, dtype=np.int32)

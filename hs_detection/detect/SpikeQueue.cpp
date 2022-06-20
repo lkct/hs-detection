@@ -27,26 +27,26 @@ namespace HSDetection
 {
     SpikeQueue::SpikeQueue(Detection *pDet)
         : queue(), queProcs(), spkProcs(),
-          framesInQueue(pDet->noise_duration + pDet->spike_peak_duration),
-          framesToContinue(pDet->noise_duration + 1)
+          framesInQueue(pDet->noiseDuration + pDet->spikePeakDuration),
+          framesToContinue(pDet->noiseDuration + 1)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;
 
-        if (pDet->decay_filtering)
+        if (pDet->decayFilter)
         {
-            pQueProc = new SpikeDecayFilterer(&pDet->probeLayout, pDet->noise_duration, pDet->noise_amp_percent);
+            pQueProc = new SpikeDecayFilterer(&pDet->probeLayout, pDet->noiseDuration, pDet->noiseAmpPercent);
         }
         else
         {
-            pQueProc = new SpikeFilterer(&pDet->probeLayout, pDet->noise_duration);
+            pQueProc = new SpikeFilterer(&pDet->probeLayout, pDet->noiseDuration);
         }
         queProcs.push_back(pQueProc);
 
-        if (pDet->to_localize)
+        if (pDet->localize)
         {
-            pSpkProc = new SpikeLocalizer(&pDet->probeLayout, &pDet->trace, &pDet->AGlobal, &pDet->QBs,
-                                          pDet->num_com_centers, pDet->noise_duration, pDet->spike_peak_duration);
+            pSpkProc = new SpikeLocalizer(&pDet->probeLayout, &pDet->trace, &pDet->commonRef, &pDet->runningBaseline,
+                                          pDet->numCoMCenters, pDet->noiseDuration, pDet->spikePeakDuration);
             pushFirstElemProc(pSpkProc);
         }
 
@@ -55,7 +55,7 @@ namespace HSDetection
 
         if (pDet->saveShape)
         {
-            pSpkProc = new SpikeShapeSaver(pDet->filename, &pDet->trace, pDet->cutout_start, pDet->cutout_size);
+            pSpkProc = new SpikeShapeSaver(pDet->filename, &pDet->trace, pDet->cutoutStart, pDet->cutoutLen);
             pushFirstElemProc(pSpkProc);
         }
     }

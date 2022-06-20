@@ -14,6 +14,6 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
                   int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
                   int tCut) except +
-        void Iterate(short *traceBuffer, long t0, int tInc)
-        int FinishDetection()
-        char *Get()
+        void step(short *traceBuffer, int chunkStart, int chunkLen)
+        int finish()
+        char *getResult()
