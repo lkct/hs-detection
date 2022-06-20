@@ -32,38 +32,37 @@ namespace HSDetection
         fill_n(runningBaseline[-1], numChannels, Voffset);
         fill_n(runningVariance[-1], numChannels, Qvstart);
 
-        memset(spikeTime, 0, numChannels * sizeof(int)); // TODO: 0 init?
-        memset(hasAHP, 0, numChannels * sizeof(bool));   // TODO: 0 init?
-        memset(spikeAmp, 0, numChannels * sizeof(int));  // TODO: 0 init?
-        memset(spikeArea, 0, numChannels * sizeof(int)); // TODO: 0 init?
-
-        memset(_commonRef, 0, (chunkSize + chunkLeftMargin) * sizeof(short)); // TODO: 0 init? // really need?
+        fill_n(spikeTime, numChannels, -1);
 
         pQueue = new SpikeQueue(this); // all the params should be ready
     }
 
     Detection::~Detection()
     {
+        delete pQueue;
+
         delete[] spikeTime;
-        delete[] hasAHP;
         delete[] spikeAmp;
         delete[] spikeArea;
+        delete[] hasAHP;
 
         delete[] _commonRef;
-
-        delete pQueue;
     }
 
     void Detection::commonMedian(int chunkStart, int chunkLen) // TODO: add, use?
     {
+        // // TODO: if median takes too long...
+        // // or there are only few
+        // // channnels (?)
+        // // then use mean
     }
 
     void Detection::commonAverage(int chunkStart, int chunkLen)
     {
-        // // TODO: if median takes too long...
-        // // or there are only few
-        // // channnels (?)
-        for (int t = chunkStart - chunkLeftMargin; t < chunkStart + chunkLen; t++)
+        copy_n(commonRef[chunkStart + chunkSize - chunkLeftMargin], chunkLeftMargin,
+               commonRef[chunkStart - chunkLeftMargin]);
+
+        for (int t = chunkStart; t < chunkStart + chunkLen; t++)
         {
             int sum = 0;
             for (int i = 0; i < numChannels; i++)
@@ -92,104 +91,99 @@ namespace HSDetection
         }
 
         // // TODO: Does this need to end at chunkLen + chunkLeftMargin? (Cole+Martino)
-        for (int t = chunkStart; t - chunkStart < chunkLen; t++)
+        for (int t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            short *QbPrev = runningBaseline[t - 1];
+            short *input = trace[t];
+            short ref = commonRef(t, 0);
+            short *QbPrev = runningBaseline[t - 1]; // TODO: name?
             short *QvPrev = runningVariance[t - 1];
             short *Qb = runningBaseline[t];
             short *Qv = runningVariance[t];
-            short *input = trace[t];
-            int aglobal = commonRef(t, 0);
+
             for (int i = 0; i < numChannels; i++)
             {
-                int a = input[i] - aglobal - QbPrev[i];
+                short volt = input[i] - ref - QbPrev[i];
 
-                int dltQb = 0;
-                if (a < -QvPrev[i])
-                {
-                    dltQb = -QvPrev[i] / (Tau_m0 * 2);
-                }
-                else if (QvPrev[i] < a)
-                {
-                    dltQb = QvPrev[i] / Tau_m0;
-                }
+                short dltBase = 0;
+                dltBase = (QvPrev[i] < volt) ? QvPrev[i] / Tau_m0 : dltBase;
+                dltBase = (volt < -QvPrev[i]) ? -QvPrev[i] / (Tau_m0 * 2) : dltBase;
+                Qb[i] = QbPrev[i] + dltBase;
 
-                int dltQv = 0;
-                if (QvPrev[i] < a && a < 5 * QvPrev[i])
-                {
-                    dltQv = QvChange;
-                }
-                else if ((0 < a && a <= QvPrev[i]) || 6 * QvPrev[i] < a)
-                {
-                    dltQv = -QvChange;
-                }
+                short dltVar = 0;
+                dltVar = (QvPrev[i] < volt && volt < 5 * QvPrev[i]) ? QvChange : dltVar;
+                dltVar = ((0 < volt && volt <= QvPrev[i]) || 6 * QvPrev[i] < volt) ? -QvChange : dltVar;
+                short Qvi = QvPrev[i] + dltVar;
+                Qv[i] = (Qvi < Qvmin) ? Qvmin : Qvi; // clamp Qv at Qvmin
+            }
+        }
 
-                Qb[i] = QbPrev[i] + dltQb;
-                Qv[i] = QvPrev[i] + dltQv;
-
-                // set a minimum level for Qv
-                if (Qv[i] < Qvmin)
-                {
-                    Qv[i] = Qvmin;
-                }
-            } // for i
-
-        } // for t
-
-        // // TODO: Does this need to end at chunkLen + chunkLeftMargin? (Cole+Martino)
-        for (int t = chunkStart; t - chunkStart < chunkLen; t++)
+        for (int t = chunkStart; t < chunkStart + chunkLen; t++)
         {
+            short *input = trace[t];
+            short ref = commonRef(t, 0);
             short *Qb = runningBaseline[t];
             short *Qv = runningVariance[t];
+
             for (int i = 0; i < numChannels; i++)
             {
                 // // TODO: should chunkLeftMargin be subtracted here??
-                // calc against updated Qb
-                int a = trace(t, i) - commonRef(t, 0) - Qb[i];
-                int Qvv = Qv[i];
+                int volt = input[i] - ref - Qb[i]; // calc against updated Qb
+                int Qvi = Qv[i];
 
-                if (a > threshold * Qvv / 2 && spikeTime[i] == 0) // TODO: why /2
+                if (spikeTime[i] < 0) // not in spike
                 {
-                    // // check for threshold crossings
-                    spikeTime[i] = 1;
-                    spikeAmp[i] = a;
-                    hasAHP[i] = false;
-                    spikeArea[i] = a;
-                }
-                else if (spikeTime[i] > 0)
-                {
-                    // // spikeTime frames after peak value
-                    // // increment spikeTime[i]
-                    spikeTime[i]++;
-                    if (spikeTime[i] < peakLen)
+                    if (volt > threshold * Qvi / 2) // threshold crossing // TODO: why /2
                     {
-                        // // calculate area under first and second frame
-                        // // after spike
-                        spikeArea[i] += a;
+                        spikeTime[i] = 0;
+                        spikeAmp[i] = volt;
+                        spikeArea[i] = volt;
+                        hasAHP[i] = false;
                     }
-                    else if (a < maxAHPAmp * Qvv)
+                    continue;
+                }
+                // else: during a spike
+                spikeTime[i]++;
+                // 1 <= spikeTime[i]
+
+                if (spikeTime[i] < peakLen - 1) // sum up area in peakLen
+                {
+                    spikeArea[i] += volt;   // TODO: ??? added twice
+                    if (spikeAmp[i] < volt) // larger amp found
                     {
-                        // // check whether it does repolarize
+                        spikeTime[i] = 0; // reset peak to current
+                        spikeAmp[i] = volt;
+                        spikeArea[i] += volt; // but accumulate area
+                        hasAHP[i] = false;
+                    }
+                    continue;
+                }
+                // else: peakLen - 1 <= spikeTime[i]
+
+                if (spikeTime[i] < spikeLen - 1)
+                {
+                    if (volt < maxAHPAmp * Qvi) // AHP found
+                    {
                         hasAHP[i] = true;
                     }
-
-                    if ((spikeTime[i] == spikeLen) && hasAHP[i])
+                    else if (spikeAmp[i] < volt) // larger amp found
                     {
-                        if (2 * spikeArea[i] > peakLen * minAvgAmp * Qvv) // TODO: why *2
-                        {
-                            pQueue->push_back(Spike(t - spikeLen + 1, i, spikeAmp[i]));
-                        }
-                        spikeTime[i] = 0;
+                        spikeTime[i] = 0; // reset peak to current
+                        spikeAmp[i] = volt;
+                        spikeArea[i] += volt; // but accumulate area
+                        hasAHP[i] = false;
                     }
-                    else if (spikeAmp[i] < a)
-                    {
-                        // // check whether current ADC count is higher
-                        spikeTime[i] = 1; // // reset peak value
-                        spikeAmp[i] = a;
-                        hasAHP[i] = false; // // reset hasAHP
-                        spikeArea[i] += a; // // not resetting this one (anyway don't need to care if the spike is wide)
-                    }
+                    continue;
                 }
+                // else: spikeTime[i] == spikeLen - 1, spike end
+
+                // TODO: if not AHP, whether connect spike?
+                if (2 * spikeArea[i] > peakLen * minAvgAmp * Qvi && // reach min area // TODO: why *2
+                    (hasAHP[i] || volt < maxAHPAmp * Qvi))          // AHP exist
+                {
+                    pQueue->push_back(Spike(t - spikeLen + 1, i, spikeAmp[i]));
+                }
+
+                spikeTime[i] = -1;
 
             } // for i
 
