@@ -67,8 +67,7 @@ namespace HSDetection
         copy_if(pQueue->begin(), pQueue->end(), back_inserter(outerSpikes),
                 [this, pQueue, &maxSpike, frameBound](const Spike &currSpike)
                 { return currSpike.frame < frameBound &&
-                         pLayout->areNeighbors(maxSpike.channel, currSpike.channel) &&
-                         !pLayout->areInnerNeighbors(maxSpike.channel, currSpike.frame) &&
+                         pLayout->areOuterNeighbors(maxSpike.channel, currSpike.channel) &&
                          filteredOuterSpike(pQueue, currSpike, maxSpike); });
 
         for_each(outerSpikes.begin(), outerSpikes.end(),
@@ -84,8 +83,8 @@ namespace HSDetection
             if (pLayout->areInnerNeighbors(maxSpike.channel, sharedInnerNeighbor))
             {
                 SpikeQueue::iterator innerSpike = find_if(pQueue->begin(), pQueue->end(),
-                                                           [sharedInnerNeighbor](const Spike &spike)
-                                                           { return spike.channel == sharedInnerNeighbor; });
+                                                          [sharedInnerNeighbor](const Spike &spike)
+                                                          { return spike.channel == sharedInnerNeighbor; });
                 if (innerSpike != pQueue->end()) // exist spike
                 {
                     return outerSpike.amplitude < innerSpike->amplitude * noiseAmpPercent && // decayed
@@ -100,9 +99,9 @@ namespace HSDetection
             if (pLayout->getChannelDistance(currInnerChannel, maxSpike.channel) < outerDist)
             {
                 SpikeQueue::iterator innerSpike = find_if(pQueue->begin(), pQueue->end(),
-                                                           [currInnerChannel](const Spike &spike)
-                                                           { return spike.channel == currInnerChannel; });
-                if (innerSpike != pQueue->end() &&                                     // exist spike
+                                                          [currInnerChannel](const Spike &spike)
+                                                          { return spike.channel == currInnerChannel; });
+                if (innerSpike != pQueue->end() &&                                    // exist spike
                     outerSpike.amplitude < innerSpike->amplitude * noiseAmpPercent && // and decayed
                     innerSpike->frame - noiseDuration <= outerSpike.frame)            // and not too early
                 {

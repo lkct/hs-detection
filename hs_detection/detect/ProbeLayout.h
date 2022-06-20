@@ -38,6 +38,7 @@ namespace HSDetection
 
         bool areNeighbors(int channel1, int channel2) const { return getChannelDistance(channel1, channel2) < neighborRadius; }
         bool areInnerNeighbors(int channel1, int channel2) const { return getChannelDistance(channel1, channel2) < innerRadius; } // TODO: <=?
+        bool areOuterNeighbors(int channel1, int channel2) const { return areNeighbors(channel1, channel2) && !areInnerNeighbors(channel1, channel2); }
     };
 
 } // namespace HSDetection
