@@ -11,7 +11,7 @@ namespace HSDetection
     {
     private:
         ProbeLayout *pLayout; // passed in, should not release here
-        int noiseDuration;
+        int noiseDuration;    // TODO: name???
         float noiseAmpPercent;
 
     public:
@@ -20,9 +20,9 @@ namespace HSDetection
 
         void operator()(SpikeQueue *pQueue);
 
-        void filterOuterNeighbors(SpikeQueue *pQueue, Spike max_spike);
-        bool filteredOuterSpike(SpikeQueue *pQueue, Spike outer_spike, Spike max_spike);
-        void filterInnerNeighbors(SpikeQueue *pQueue, Spike max_spike);
+        // TODO: const function?
+        void filterOuterNeighbors(SpikeQueue *pQueue, Spike maxSpike);
+        bool filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, Spike maxSpike);
     };
 
 } // namespace HSDetection
