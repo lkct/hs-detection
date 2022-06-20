@@ -189,21 +189,18 @@ class HSDetection(object):
                     t_inc, self.num_frames[segment_index] - t_cut2 - t0)
 
         det_len = det.finish()
-        assert det_len % 20 == 0
-        det_len //= 20
-        det_int: cython.p_int = cython.cast(cython.p_int, det.getResult())
-        det_float: cython.p_float = cython.cast(cython.p_float, det.getResult())
+        det_res: cython.pointer(Spike) = det.getResult()
 
         channel_ind = np.empty(det_len, dtype=np.int32)
         sample_ind = np.empty(det_len, dtype=np.int32)
         amplitude = np.empty(det_len, dtype=np.int32)
         position = np.empty((det_len, 2), dtype=np.float32)
         for i in range(det_len):
-            sample_ind[i] = det_int[i * 5 + 0]
-            channel_ind[i] = det_int[i * 5 + 1]
-            amplitude[i] = det_int[i * 5 + 2]
-            position[i, 0] = det_float[i * 5 + 3]
-            position[i, 1] = det_float[i * 5 + 4]
+            sample_ind[i] = det_res[i].frame
+            channel_ind[i] = det_res[i].channel
+            amplitude[i] = det_res[i].amplitude
+            position[i, 0] = det_res[i].position.x
+            position[i, 1] = det_res[i].position.y
 
         location = np.floor(position * 1000 + 0.5).astype(np.int32) / 1000
 

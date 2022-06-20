@@ -2,10 +2,11 @@
 #define DETECTION_H
 
 #include <string>
-#include "TraceWrapper.h"
-#include "SpikeQueue.h"
+
 #include "ProbeLayout.h"
+#include "TraceWrapper.h"
 #include "RollingArray.h"
+#include "SpikeQueue.h"
 
 namespace HSDetection
 {
@@ -52,7 +53,7 @@ namespace HSDetection
     public:
         ProbeLayout probeLayout;
 
-        std::vector<char> result;
+        std::vector<Spike> result;
 
         int noiseDuration;     // The number of frames that the true spike can occur after the first detection.
         int spikePeakDuration; // The number of frames it takes a spike amplitude to fully decay.
@@ -96,7 +97,7 @@ namespace HSDetection
 
         void step(short *traceBuffer, int chunkStart, int chunkLen);
         int finish();
-        char *getResult();
+        const Spike *getResult() const;
 
     }; // class Detection
 

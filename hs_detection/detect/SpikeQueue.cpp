@@ -7,8 +7,7 @@
 #include "QueueProcessor/SpikeDecayFilterer.h"
 #include "QueueProcessor/SpikeFilterer.h"
 #include "SpikeProcessor/SpikeLocalizer.h"
-#include "SpikeProcessor/SpikeSaver.h"
-#include "SpikeProcessor/SpikeShapeSaver.h"
+#include "SpikeProcessor/SpikeShapeWriter.h"
 
 using namespace std;
 
@@ -26,7 +25,7 @@ using namespace std;
 namespace HSDetection
 {
     SpikeQueue::SpikeQueue(Detection *pDet)
-        : queue(), queProcs(), spkProcs(),
+        : queue(), queProcs(), spkProcs(), result(&pDet->result),
           framesInQueue(pDet->noiseDuration + pDet->spikePeakDuration),
           framesToContinue(pDet->noiseDuration + 1)
     {
@@ -50,12 +49,9 @@ namespace HSDetection
             pushFirstElemProc(pSpkProc);
         }
 
-        pSpkProc = new SpikerSaver(&pDet->result);
-        pushFirstElemProc(pSpkProc);
-
         if (pDet->saveShape)
         {
-            pSpkProc = new SpikeShapeSaver(pDet->filename, &pDet->trace, pDet->cutoutStart, pDet->cutoutLen);
+            pSpkProc = new SpikeShapeWriter(pDet->filename, &pDet->trace, pDet->cutoutStart, pDet->cutoutLen);
             pushFirstElemProc(pSpkProc);
         }
     }
@@ -86,6 +82,7 @@ namespace HSDetection
                          [this](QueueProcessor *pQueProc)
                          { (*pQueProc)(this); });
 
+                result->push_back(move(*queue.begin()));
                 queue.erase(queue.begin());
             }
         }

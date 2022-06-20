@@ -4,6 +4,17 @@
 from libcpp cimport bool
 from libcpp.string cimport string
 
+cdef extern from "Point.h" namespace "HSDetection":
+    cdef cppclass Point:
+        float x
+        float y
+
+cdef extern from "Spike.h" namespace "HSDetection":
+    cdef cppclass Spike:
+        int frame
+        int channel
+        int amplitude
+        Point position
 
 cdef extern from "Detection.h" namespace "HSDetection":
     cdef cppclass Detection:
@@ -16,4 +27,4 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   int tCut) except +
         void step(short *traceBuffer, int chunkStart, int chunkLen)
         int finish()
-        char *getResult()
+        const Spike *getResult() const

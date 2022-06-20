@@ -36,9 +36,9 @@ namespace HSDetection
         fill_n(runningBaseline[-1], numChannels, Voffset);
         fill_n(runningVariance[-1], numChannels, Qvstart);
 
-        memset(spikeTime, 0, numChannels * sizeof(int));      // TODO: 0 init?
-        memset(hasAHP, 0, numChannels * sizeof(bool));    // TODO: 0 init?
-        memset(spikeAmp, 0, numChannels * sizeof(int));     // TODO: 0 init?
+        memset(spikeTime, 0, numChannels * sizeof(int)); // TODO: 0 init?
+        memset(hasAHP, 0, numChannels * sizeof(bool));   // TODO: 0 init?
+        memset(spikeAmp, 0, numChannels * sizeof(int));  // TODO: 0 init?
         memset(spikeArea, 0, numChannels * sizeof(int)); // TODO: 0 init?
 
         memset(_commonRef, 0, (chunkSize + chunkLeftMargin) * sizeof(short)); // TODO: 0 init? // really need?
@@ -190,7 +190,7 @@ namespace HSDetection
                         // // check whether current ADC count is higher
                         spikeTime[i] = 1; // // reset peak value
                         spikeAmp[i] = a;
-                        hasAHP[i] = false;  // // reset hasAHP
+                        hasAHP[i] = false; // // reset hasAHP
                         spikeArea[i] += a; // // not resetting this one (anyway don't need to care if the spike is wide)
                     }
                 }
@@ -207,7 +207,7 @@ namespace HSDetection
         return result.size();
     }
 
-    char *Detection::getResult()
+    const Spike *Detection::getResult() const
     {
         return result.data();
     }

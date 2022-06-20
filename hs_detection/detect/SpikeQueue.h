@@ -22,6 +22,8 @@ namespace HSDetection
         std::vector<QueueProcessor *> queProcs; // content created and released here
         std::vector<SpikeProcessor *> spkProcs; // content created and released here
 
+        std::vector<Spike> *result; // passed in, should not release here
+
         int framesInQueue;    // TODO: name??? number of frames from where the spikes should be kept in queue
         int framesToContinue; // TODO: name???
 
