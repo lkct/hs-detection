@@ -18,13 +18,27 @@ cdef extern from "Spike.h" namespace "HSDetection":
 
 cdef extern from "Detection.h" namespace "HSDetection":
     cdef cppclass Detection:
-        Detection(int chunkSize, int *positionMatrix,
-                  int nChannels, int spikePeakDuration, string filename,
-                  int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
-                  int numComCenters, bool localize,
-                  int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                  int ahpthr, int maxSl, int minSl, bool decayFiltering, bool saveShape,
-                  int tCut) except +
-        void step(short *traceBuffer, int chunkStart, int chunkLen)
-        int finish()
-        const Spike *getResult() const
+        Detection(int numChannels,
+                  int chunkSize, 
+                  int chunkLeftMargin,
+                  int spikeLen,
+                  int peakLen, 
+                  int threshold,
+                  int minAvgAmp,
+                  int maxAHPAmp,
+                  int *channelPositions, 
+                  float neighborRadius,
+                  float innerRadius,
+                  int noiseDuration,
+                  int spikePeakDuration,
+                  bool decayFiltering,
+                  float noiseAmpPercent,
+                  bool localize, 
+                  int numCoMCenters,
+                  bool saveShape, 
+                  string filename,
+                  int cutoutStart,
+                  int cutoutLen) except +
+        void step(short *traceBuffer, int chunkStart, int chunkLen) except +
+        int finish() except +
+        const Spike *getResult() except +

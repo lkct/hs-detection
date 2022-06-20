@@ -6,33 +6,29 @@ using namespace std;
 
 namespace HSDetection
 {
-    Detection::Detection(int chunkSize, int *positionMatrix,
-                         int numChannels, int spikePeakDuration, string filename,
-                         int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
-                         int numComCenters, bool localize,
-                         int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                         int ahpthr, int spikeLen, int peakLen, bool decayFiltering, bool saveShape,
-                         int chunkLeftMargin)
-        : numChannels(numChannels), threshold(threshold), minAvgAmp(minAvgAmp),
-          maxAHPAmp(ahpthr), spikeLen(spikeLen), peakLen(peakLen),
-          chunkLeftMargin(chunkLeftMargin), filename(filename), result(),
-          localize(localize), saveShape(saveShape), cutoutStart(cutoutStart),
-          cutoutLen(cutoutStart + cutoutEnd + 1), // TODO: +1?
-          noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration),
-          numCoMCenters(numComCenters),
-          probeLayout(numChannels, positionMatrix, neighborRadius, innerRadius),
-          trace(chunkLeftMargin, numChannels, chunkSize),
+    Detection::Detection(int numChannels, int chunkSize, int chunkLeftMargin,
+                         int spikeLen, int peakLen, int threshold, int minAvgAmp, int maxAHPAmp,
+                         int *channelPositions, float neighborRadius, float innerRadius,
+                         int noiseDuration, int spikePeakDuration,
+                         bool decayFiltering, float noiseAmpPercent,
+                         bool localize, int numCoMCenters,
+                         bool saveShape, string filename, int cutoutStart, int cutoutLen)
+        : trace(chunkLeftMargin, numChannels, chunkSize),
           commonRef(chunkLeftMargin, 1, chunkSize),
           runningBaseline(numChannels), runningVariance(numChannels),
-          decayFilter(decayFiltering), noiseAmpPercent(noiseAmpPercent)
+          _commonRef(new short[chunkSize + chunkLeftMargin]),
+          numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
+          spikeTime(new int[numChannels]), spikeAmp(new int[numChannels]),
+          spikeArea(new int[numChannels]), hasAHP(new bool[numChannels]),
+          spikeLen(spikeLen), peakLen(peakLen), threshold(threshold),
+          minAvgAmp(minAvgAmp), maxAHPAmp(maxAHPAmp), // pQueue not ready
+          probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
+          result(), noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration),
+          decayFilter(decayFiltering), noiseAmpPercent(noiseAmpPercent),
+          localize(localize), numCoMCenters(numCoMCenters),
+          saveShape(saveShape), filename(filename),
+          cutoutStart(cutoutStart), cutoutLen(cutoutLen)
     {
-        spikeTime = new int[numChannels];
-        hasAHP = new bool[numChannels];
-        spikeAmp = new int[numChannels];
-        spikeArea = new int[numChannels];
-
-        _commonRef = new short[chunkSize + chunkLeftMargin];
-
         fill_n(runningBaseline[-1], numChannels, Voffset);
         fill_n(runningVariance[-1], numChannels, Qvstart);
 

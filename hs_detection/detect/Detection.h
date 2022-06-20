@@ -81,13 +81,13 @@ namespace HSDetection
         void commonAverage(int chunkStart, int chunkLen);
 
     public:
-        Detection(int chunkSize, int *positionMatrix,
-                  int numChannels, int spikePeakDuration, std::string filename,
-                  int noiseDuration, float noiseAmpPercent, float neighborRadius, float innerRadius,
-                  int numComCenters, bool localize,
-                  int threshold, int cutoutStart, int cutoutEnd, int minAvgAmp,
-                  int ahpthr, int spikeLen, int peakLen, bool decayFiltering, bool saveShape,
-                  int chunkLeftMargin);
+        Detection(int numChannels, int chunkSize, int chunkLeftMargin,
+                  int spikeLen, int peakLen, int threshold, int minAvgAmp, int maxAHPAmp,
+                  int *channelPositions, float neighborRadius, float innerRadius,
+                  int noiseDuration, int spikePeakDuration,
+                  bool decayFiltering, float noiseAmpPercent,
+                  bool localize, int numCoMCenters,
+                  bool saveShape, std::string filename, int cutoutStart, int cutoutLen);
         ~Detection();
 
         // copy constructor deleted to protect internals

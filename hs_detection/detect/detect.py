@@ -60,7 +60,7 @@ class HSDetection(object):
             params['right_cutout_time'] * self.fps / 1000 + 0.5)
         self.minsl = int(params['amp_evaluation_time'] * self.fps / 1000 + 0.5)
         self.maxsl = int(params['spk_evaluation_time'] * self.fps / 1000 + 0.5)
-        self.cutout_length = self.cutout_start + self.cutout_end + 1
+        self.cutout_length = self.cutout_start + self.cutout_end + 1  # TODO: +1?
 
         self.chunk_size: int = params['chunk_size']
         self.threshold: int = params['threshold']
@@ -146,27 +146,28 @@ class HSDetection(object):
         out_file = self.out_file.with_stem(
             self.out_file.stem + f'-{segment_index}') if self.out_file else None
         det: cython.pointer(Detection) = new Detection(
-            t_inc,
-            cython.address(position_matrix[0, 0]),
             self.num_channels,
-            self.spike_peak_duration,
-            str(out_file).encode(),
-            self.noise_duration,
-            self.noise_amp_percent,
-            self.neighbor_radius,
-            self.inner_radius,
-            self.num_com_centers,
-            self.localize,
-            self.threshold,
-            self.cutout_start,
-            self.cutout_end,
-            self.maa,
-            self.ahpthr,
+            t_inc,
+            t_cut,
             self.maxsl,
             self.minsl,
+            self.threshold,
+            self.maa,
+            self.ahpthr,
+            cython.address(position_matrix[0, 0]),
+            self.neighbor_radius,
+            self.inner_radius,
+            self.noise_duration,
+            self.spike_peak_duration,
             self.decay_filtering,
+            self.noise_amp_percent,
+            self.localize,
+            self.num_com_centers,
             self.save_shape,
-            t_cut)
+            str(out_file).encode(),
+            self.cutout_start,
+            self.cutout_length
+        )
 
         vm: cython.short[:] = np.zeros(
             self.num_channels * (t_inc + t_cut + t_cut2), dtype=np.int16)
