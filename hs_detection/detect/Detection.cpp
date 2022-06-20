@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <cstring>
+
 #include "Detection.h"
 
 using namespace std;

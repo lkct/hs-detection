@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <numeric>
 
 #include "SpikeLocalizer.h"
 
