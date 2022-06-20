@@ -15,7 +15,7 @@ using namespace std;
 // TODO: batch replace with int32_t?
 #define MAX_INT numeric_limits<int>::max()
 
-#define addFirstElemProc(pSpkProc)                   \
+#define pushFirstElemProc(pSpkProc)                  \
     do                                               \
     {                                                \
         spkProcs.push_back(pSpkProc);                \
@@ -47,16 +47,16 @@ namespace HSDetection
         {
             pSpkProc = new SpikeLocalizer(&pDet->probeLayout, &pDet->trace, &pDet->AGlobal, &pDet->QBs,
                                           pDet->num_com_centers, pDet->noise_duration, pDet->spike_peak_duration);
-            addFirstElemProc(pSpkProc);
+            pushFirstElemProc(pSpkProc);
         }
 
         pSpkProc = new SpikerSaver(&pDet->result);
-        addFirstElemProc(pSpkProc);
+        pushFirstElemProc(pSpkProc);
 
         if (pDet->saveShape)
         {
             pSpkProc = new SpikeShapeSaver(pDet->filename, &pDet->trace, pDet->cutout_start, pDet->cutout_size);
-            addFirstElemProc(pSpkProc);
+            pushFirstElemProc(pSpkProc);
         }
     }
 
@@ -76,11 +76,11 @@ namespace HSDetection
         // TODO: one loop?
         while (!queue.empty() && queue.front().frame < frameBound)
         {
-            int last_frame = queue.front().frame;
+            int lastFrame = queue.front().frame;
 
-            while (!queue.empty() && queue.front().frame < last_frame + framesToContinue)
+            while (!queue.empty() && queue.front().frame < lastFrame + framesToContinue)
             {
-                last_frame = queue.front().frame;
+                lastFrame = queue.front().frame;
 
                 for_each(queProcs.begin(), queProcs.end(),
                          [this](QueueProcessor *pQueProc)
