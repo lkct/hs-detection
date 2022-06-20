@@ -223,7 +223,7 @@ class HSDetection(object):
             result |= {'location': location}
         if self.save_shape:
             result |= {'spike_shape': spikes}
-            if spikes.shape[0] in {713, 596}:  # TODO: ???
+            if spikes.shape[0] in {713, 596, 736, 623}:  # TODO: ???
                 result['spike_shape'] = result['spike_shape'] // -64
 
         return result
