@@ -14,29 +14,8 @@ namespace HSDetection
     void SpikeDecayFilterer::operator()(SpikeQueue *pQueue)
     {
         IntFrame frameBound = pQueue->begin()->frame + noiseDuration + 1;
-        IntChannel centerChannel = pQueue->begin()->channel;
-
-        SpikeQueue::iterator itMax = pQueue->begin();
-        IntVolt maxAmp = itMax->amplitude;
-
-        for (SpikeQueue::iterator it = pQueue->begin();
-             it->frame < frameBound && it != pQueue->end();
-             ++it)
-        {
-            // TODO: get the max of last time/channel?
-            if (pLayout->areNeighbors(it->channel, centerChannel) && it->amplitude >= maxAmp)
-            {
-                itMax = it;
-                maxAmp = it->amplitude;
-            }
-        }
-
-        frameBound = itMax->frame + noiseDuration + 1;
-        IntChannel maxChannel = itMax->channel;
-        // IntVolt maxAmp = itMax->amplitude;
-
-        pQueue->push_front(move(*itMax));
-        pQueue->erase(itMax);
+        IntChannel maxChannel = pQueue->begin()->channel;
+        IntVolt maxAmp = pQueue->begin()->amplitude;
 
         filterOuterNeighbors(pQueue, *pQueue->begin());
 
