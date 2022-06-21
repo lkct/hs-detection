@@ -18,10 +18,10 @@ namespace HSDetection
 
     void SpikeShapeWriter::operator()(Spike *pSpike)
     {
-        IntFrame tStart = pSpike->frame - cutoutLeft;
-        for (IntFrame i = 0; i < cutoutLen; i++)
+        IntFrame cutoutStart = pSpike->frame - cutoutLeft;
+        for (IntFrame t = 0; t < cutoutLen; t++)
         {
-            buffer[i] = (*pTrace)(tStart + i, pSpike->channel);
+            buffer[t] = (*pTrace)(cutoutStart + t, pSpike->channel);
         }
 
         spikeFile.write((const char *)buffer, cutoutLen * sizeof(IntVolt));

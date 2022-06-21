@@ -73,7 +73,7 @@ namespace HSDetection
         bool saveShape;
         std::string filename;
         IntFrame cutoutStart; // The number of frames before the spike that the cutout starts at
-        IntFrame cutoutLen;   // The number of frames after the spike that the cutout ends atextern int filtered_spikes; //number of filtered spikes
+        IntFrame cutoutLen;   // The number of frames after the spike that the cutout ends at
 
         // methods
     private:

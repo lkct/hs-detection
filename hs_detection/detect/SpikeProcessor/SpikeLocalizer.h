@@ -14,7 +14,7 @@ namespace HSDetection
         ProbeLayout *pLayout; // passed in, should not release here
 
         TraceWrapper *pTrace;    // passed in, should not release here
-        TraceWrapper *pAGlobal;  // passed in, should not release here
+        TraceWrapper *pRef;      // passed in, should not release here
         RollingArray *pBaseline; // passed in, should not release here
 
         IntChannel numCoMCenters; // TODO: name???
@@ -23,7 +23,7 @@ namespace HSDetection
 
     public:
         SpikeLocalizer(ProbeLayout *pLayout, TraceWrapper *pTrace,
-                       TraceWrapper *pAGlobal, RollingArray *pBaseline,
+                       TraceWrapper *pRef, RollingArray *pBaseline,
                        IntChannel numCoMCenters, IntFrame noiseDuration, IntFrame spikePeakDuration);
         ~SpikeLocalizer();
 

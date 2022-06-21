@@ -56,24 +56,27 @@ namespace HSDetection
         IntFrame frameBound = maxSpike.frame + noiseDuration + 1;
 
         // pQueue->remove_if(
-        //         [this, pQueue, &maxSpike, frameBound](const Spike &currSpike)
-        //         { return currSpike.frame < frameBound &&
-        //                  pLayout->areNeighbors(maxSpike.channel, currSpike.channel) &&
-        //                  !pLayout->areInnerNeighbors(maxSpike.channel, currSpike.frame) &&
-        //                  filteredOuterSpike(pQueue, currSpike, maxSpike); });
+        //         [this, pQueue, &maxSpike, frameBound](const Spike &spike)
+        //         { return spike.frame < frameBound &&
+        //                  pLayout->areNeighbors(maxSpike.channel, spike.channel) &&
+        //                  !pLayout->areInnerNeighbors(maxSpike.channel, spike.frame) &&
+        //                  filteredOuterSpike(pQueue, spike, maxSpike); });
 
         vector<Spike> outerSpikes;
 
         copy_if(pQueue->begin(), pQueue->end(), back_inserter(outerSpikes),
-                [this, pQueue, &maxSpike, frameBound](const Spike &currSpike)
-                { return currSpike.frame < frameBound &&
-                         pLayout->areOuterNeighbors(maxSpike.channel, currSpike.channel) &&
-                         filteredOuterSpike(pQueue, currSpike, maxSpike); });
+                [this, pQueue, &maxSpike, frameBound](const Spike &spike)
+                { return spike.frame < frameBound &&
+                         pLayout->areOuterNeighbors(maxSpike.channel, spike.channel) &&
+                         filteredOuterSpike(pQueue, spike, maxSpike); });
 
-        for_each(outerSpikes.begin(), outerSpikes.end(),
-                 [pQueue](const Spike &currSpike)
-                 { pQueue->remove_if([&currSpike](const Spike &spike)
-                                     { return spike.channel == currSpike.channel && spike.frame == currSpike.frame; }); });
+        // outerSpikes is sorted by nature of queue
+        pQueue->remove_if([&outerSpikes](const Spike &spike)
+                          { return binary_search(
+                                outerSpikes.begin(), outerSpikes.end(), spike,
+                                [](const Spike &lhs, const Spike &rhs)
+                                { return lhs.frame < rhs.frame ||
+                                         (lhs.frame == rhs.frame && lhs.channel < rhs.channel); }); });
     }
 
     bool SpikeDecayFilterer::filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, Spike maxSpike)
