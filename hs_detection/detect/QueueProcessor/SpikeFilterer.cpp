@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "SpikeFilterer.h"
 
 using namespace std;
@@ -11,31 +13,24 @@ namespace HSDetection
 
     void SpikeFilterer::operator()(SpikeQueue *pQueue)
     {
-        SpikeQueue::iterator itMax = pQueue->begin();
+        IntFrame frameBound = pQueue->begin()->frame + framesFilter;
+        IntChannel centerChannel = pQueue->begin()->channel;
+
+        SpikeQueue::iterator itMax = max_element(
+            pQueue->begin(), pQueue->end(),
+            [this, frameBound, centerChannel](const Spike &lhs, const Spike &rhs)
+            { return rhs.frame < frameBound &&
+                     pLayout->areNeighbors(rhs.channel, centerChannel) &&
+                     lhs.amplitude <= rhs.amplitude; }); // TODO: <=?
+
+        IntChannel maxChannel = itMax->channel;
         IntVolt maxAmp = itMax->amplitude;
-
-        IntChannel spikeChannel = itMax->channel; // channel of first in queue
-        IntFrame frameBound = itMax->frame + framesFilter;
-
-        for (SpikeQueue::iterator it = pQueue->begin();
-             it->frame < frameBound && it != pQueue->end();
-             ++it)
-        {
-            // TODO: get the max of last time/channel?
-            if (pLayout->areNeighbors(it->channel, spikeChannel) && it->amplitude >= maxAmp)
-            {
-                itMax = it;
-                maxAmp = it->amplitude;
-            }
-        }
-
-        spikeChannel = itMax->channel; // channel of max
 
         pQueue->push_front(move(*itMax));
         pQueue->erase(itMax);
 
-        pQueue->remove_if([this, spikeChannel, maxAmp](const Spike &spike)
-                          { return pLayout->areNeighbors(spike.channel, spikeChannel) &&
+        pQueue->remove_if([this, maxChannel, maxAmp](const Spike &spike)
+                          { return pLayout->areNeighbors(spike.channel, maxChannel) &&
                                    spike.amplitude < maxAmp; });
     }
 
