@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <limits>
 
 #include "SpikeQueue.h"
 #include "Detection.h"
@@ -10,9 +9,6 @@
 #include "SpikeProcessor/SpikeShapeWriter.h"
 
 using namespace std;
-
-// TODO: batch replace with int32_t?
-#define MAX_INT numeric_limits<int>::max()
 
 #define pushFirstElemProc(pSpkProc)                  \
     do                                               \
@@ -67,12 +63,12 @@ namespace HSDetection
                  { delete pSpkProc; });
     }
 
-    void SpikeQueue::process(int frameBound)
+    void SpikeQueue::process(IntFrame frameBound)
     {
         // TODO: one loop?
         while (!queue.empty() && queue.front().frame < frameBound)
         {
-            int lastFrame = queue.front().frame;
+            IntFrame lastFrame = queue.front().frame;
 
             while (!queue.empty() && queue.front().frame < lastFrame + framesToContinue)
             {
@@ -90,7 +86,7 @@ namespace HSDetection
 
     void SpikeQueue::finalize()
     {
-        process(MAX_INT);
+        process(MAX_FRAME);
     }
 
 } // namespace HSDetection

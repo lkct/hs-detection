@@ -13,15 +13,15 @@ namespace HSDetection
     {
     private:
         std::ofstream spikeFile;
-        int *buffer; // created and released here
+        IntVolt *buffer; // created and released here
 
         TraceWrapper *pTrace; // passed in, should not release here
-        int cutoutLeft;       // TODO: name???
-        int cutoutLen;
+        IntFrame cutoutLeft;  // TODO: name???
+        IntFrame cutoutLen;
 
     public:
         SpikeShapeWriter(const std::string &filename, TraceWrapper *pTrace,
-                         int cutoutLeft, int cutoutLen);
+                         IntFrame cutoutLeft, IntFrame cutoutLen);
         ~SpikeShapeWriter();
 
         using SpikeProcessor::operator(); // allow call on iterator

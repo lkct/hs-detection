@@ -6,7 +6,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeDecayFilterer::SpikeDecayFilterer(ProbeLayout *pLayout, int noiseDuration, float noiseAmpPercent)
+    SpikeDecayFilterer::SpikeDecayFilterer(ProbeLayout *pLayout, IntFrame noiseDuration, float noiseAmpPercent)
         : pLayout(pLayout), noiseDuration(noiseDuration), noiseAmpPercent(noiseAmpPercent) {}
 
     SpikeDecayFilterer::~SpikeDecayFilterer() {}
@@ -14,10 +14,10 @@ namespace HSDetection
     void SpikeDecayFilterer::operator()(SpikeQueue *pQueue)
     {
         SpikeQueue::iterator itMax = pQueue->begin();
-        int maxAmp = itMax->amplitude;
+        IntVolt maxAmp = itMax->amplitude;
 
-        int spikeChannel = itMax->channel; // channel of first in queue
-        int frameBound = itMax->frame + noiseDuration + 1;
+        IntChannel spikeChannel = itMax->channel; // channel of first in queue
+        IntFrame frameBound = itMax->frame + noiseDuration + 1;
 
         for (SpikeQueue::iterator it = pQueue->begin();
              it->frame < frameBound && it != pQueue->end();
@@ -53,7 +53,7 @@ namespace HSDetection
 
     void SpikeDecayFilterer::filterOuterNeighbors(SpikeQueue *pQueue, Spike maxSpike)
     {
-        int frameBound = maxSpike.frame + noiseDuration + 1;
+        IntFrame frameBound = maxSpike.frame + noiseDuration + 1;
 
         // pQueue->remove_if(
         //         [this, pQueue, &maxSpike, frameBound](const Spike &currSpike)
@@ -78,7 +78,7 @@ namespace HSDetection
 
     bool SpikeDecayFilterer::filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, Spike maxSpike)
     {
-        for (int sharedInnerNeighbor : pLayout->getInnerNeighbors(outerSpike.channel))
+        for (IntChannel sharedInnerNeighbor : pLayout->getInnerNeighbors(outerSpike.channel))
         {
             if (pLayout->areInnerNeighbors(maxSpike.channel, sharedInnerNeighbor))
             {
@@ -93,8 +93,8 @@ namespace HSDetection
             }
         }
 
-        float outerDist = pLayout->getChannelDistance(outerSpike.channel, maxSpike.channel);
-        for (int currInnerChannel : pLayout->getInnerNeighbors(outerSpike.channel))
+        FloatGeom outerDist = pLayout->getChannelDistance(outerSpike.channel, maxSpike.channel);
+        for (IntChannel currInnerChannel : pLayout->getInnerNeighbors(outerSpike.channel))
         {
             if (pLayout->getChannelDistance(currInnerChannel, maxSpike.channel) < outerDist)
             {

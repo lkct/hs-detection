@@ -8,7 +8,7 @@ namespace HSDetection
 {
     SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout, TraceWrapper *pTrace,
                                    TraceWrapper *pAGlobal, RollingArray *pBaseline,
-                                   int numCoMCenters, int noiseDuration, int spikePeakDuration)
+                                   IntChannel numCoMCenters, IntFrame noiseDuration, IntFrame spikePeakDuration)
         : pLayout(pLayout), pTrace(pTrace), pAGlobal(pAGlobal), pBaseline(pBaseline),
           numCoMCenters(numCoMCenters), noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration) {}
 
@@ -17,29 +17,29 @@ namespace HSDetection
     void SpikeLocalizer::operator()(Spike *pSpike)
     {
         Point sumCoM(0, 0);
-        int sumWeight = 0;
+        IntChannel sumWeight = 0;
 
-        int frameLeft = pSpike->frame - noiseDuration;
-        int frameRight = pSpike->frame + noiseDuration;
+        IntFrame frameLeft = pSpike->frame - noiseDuration;
+        IntFrame frameRight = pSpike->frame + noiseDuration;
 
-        vector<pair<int, int>> chAmp;
+        vector<pair<IntChannel, IntFxV>> chAmp;
 
-        int aGlobal = (*pAGlobal)(pSpike->frame, 0);
-        const short *baselines = (*pBaseline)[pSpike->frame - spikePeakDuration];
+        IntVolt aGlobal = (*pAGlobal)(pSpike->frame, 0);
+        const IntVolt *baselines = (*pBaseline)[pSpike->frame - spikePeakDuration];
 
-        for (int i = 0; i < numCoMCenters; i++)
+        for (IntChannel i = 0; i < numCoMCenters; i++)
         {
             chAmp.clear();
 
-            int centerChannel = pLayout->getInnerNeighbors(pSpike->channel)[i];
+            IntChannel centerChannel = pLayout->getInnerNeighbors(pSpike->channel)[i];
 
-            for (int neighborChannel : pLayout->getInnerNeighbors(centerChannel))
+            for (IntChannel neighborChannel : pLayout->getInnerNeighbors(centerChannel))
             {
-                int offset = aGlobal + baselines[neighborChannel];
-                int sum = 0;
-                for (int t = frameLeft; t < frameRight; t++)
+                IntVolt offset = aGlobal + baselines[neighborChannel];
+                IntFxV sum = 0;
+                for (IntFrame t = frameLeft; t < frameRight; t++)
                 {
-                    int a = (*pTrace)(t, neighborChannel) - offset;
+                    IntVolt a = (*pTrace)(t, neighborChannel) - offset;
                     if (a > 0)
                     {
                         sum += a;
@@ -48,31 +48,31 @@ namespace HSDetection
                 chAmp.push_back(make_pair(neighborChannel, sum));
             }
 
-            int chCount = pLayout->getInnerNeighbors(centerChannel).size();
+            IntChannel chCount = pLayout->getInnerNeighbors(centerChannel).size();
 
-            int median;
+            IntFxV median;
             {
                 // TODO: extract as a class?
-                vector<pair<int, int>>::iterator mid = chAmp.begin() + (chCount - 1) / 2;
+                vector<pair<IntChannel, IntFxV>>::iterator mid = chAmp.begin() + (chCount - 1) / 2;
                 nth_element(chAmp.begin(), mid, chAmp.end(),
-                            [](const pair<int, int> &lhs, const pair<int, int> &rhs)
+                            [](const pair<IntChannel, IntFxV> &lhs, const pair<IntChannel, IntFxV> &rhs)
                             { return lhs.second < rhs.second; });
                 median = mid->second;
                 if (chCount % 2 == 0)
                 {
-                    int next = min_element(mid + 1, chAmp.end(),
-                                           [](const pair<int, int> &lhs, const pair<int, int> &rhs)
-                                           { return lhs.second < rhs.second; })
-                                   ->second;
+                    IntFxV next = min_element(mid + 1, chAmp.end(),
+                                              [](const pair<IntChannel, IntFxV> &lhs, const pair<IntChannel, IntFxV> &rhs)
+                                              { return lhs.second < rhs.second; })
+                                      ->second;
                     median = (median + next) / 2;
                 }
             }
 
             Point CoM(0, 0);
-            int sumAmp = 0;
-            for (int i = 0; i < chCount; i++)
+            IntFCV sumAmp = 0;
+            for (IntChannel i = 0; i < chCount; i++)
             {
-                int amp = chAmp[i].second - median; // correction and threshold
+                IntFxV amp = chAmp[i].second - median; // correction and threshold
                 if (amp > 0)
                 {
                     CoM += amp * pLayout->getChannelPosition(chAmp[i].first);
@@ -87,9 +87,9 @@ namespace HSDetection
                 // NOTE: unlikely happens, therefore loop again instead of merge into previous
                 // NOTE: choose any point with amp == median == max
                 // TODO: really need? choose any?
-                vector<pair<int, int>>::iterator it = find_if(chAmp.begin(), chAmp.end(),
-                                                              [median](const pair<int, int> &x)
-                                                              { return x.second == median; });
+                vector<pair<IntChannel, IntFxV>>::iterator it = find_if(chAmp.begin(), chAmp.end(),
+                                                                        [median](const pair<IntChannel, IntFxV> &x)
+                                                                        { return x.second == median; });
                 CoM = pLayout->getChannelPosition(it->first);
             }
             else

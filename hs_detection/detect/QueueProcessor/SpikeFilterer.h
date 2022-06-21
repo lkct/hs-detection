@@ -9,11 +9,11 @@ namespace HSDetection
     class SpikeFilterer : public QueueProcessor
     {
     private:
-        ProbeLayout *pLayout; // passed in, should not release here
-        int framesFilter;     // TODO: name???
+        ProbeLayout *pLayout;  // passed in, should not release here
+        IntFrame framesFilter; // TODO: name???
 
     public:
-        SpikeFilterer(ProbeLayout *pLayout, int noiseDuration);
+        SpikeFilterer(ProbeLayout *pLayout, IntFrame noiseDuration);
         ~SpikeFilterer();
 
         void operator()(SpikeQueue *pQueue);

@@ -208,11 +208,11 @@ class HSDetection(object):
         del det
 
         if out_file and out_file.stat().st_size > 0:
-            spikes: NDArray[np.int32] = np.memmap(
-                str(out_file), dtype=np.int32, mode='r').reshape(-1, self.cutout_length)
+            spikes: NDArray[np.int16] = np.memmap(
+                str(out_file), dtype=np.int16, mode='r').reshape(-1, self.cutout_length)
         else:
-            spikes: NDArray[np.int32] = np.empty(
-                (0, self.cutout_length), dtype=np.int32)
+            spikes: NDArray[np.int16] = np.empty(
+                (0, self.cutout_length), dtype=np.int16)
 
         result: dict[str, RealArray] = {'channel_ind': channel_ind,
                                         'sample_ind': sample_ind,

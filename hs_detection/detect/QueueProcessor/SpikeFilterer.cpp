@@ -4,7 +4,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeFilterer::SpikeFilterer(ProbeLayout *pLayout, int noiseDuration)
+    SpikeFilterer::SpikeFilterer(ProbeLayout *pLayout, IntFrame noiseDuration)
         : pLayout(pLayout), framesFilter(noiseDuration + 1) {}
 
     SpikeFilterer::~SpikeFilterer() {}
@@ -12,10 +12,10 @@ namespace HSDetection
     void SpikeFilterer::operator()(SpikeQueue *pQueue)
     {
         SpikeQueue::iterator itMax = pQueue->begin();
-        int maxAmp = itMax->amplitude;
+        IntVolt maxAmp = itMax->amplitude;
 
-        int spikeChannel = itMax->channel; // channel of first in queue
-        int frameBound = itMax->frame + framesFilter;
+        IntChannel spikeChannel = itMax->channel; // channel of first in queue
+        IntFrame frameBound = itMax->frame + framesFilter;
 
         for (SpikeQueue::iterator it = pQueue->begin();
              it->frame < frameBound && it != pQueue->end();

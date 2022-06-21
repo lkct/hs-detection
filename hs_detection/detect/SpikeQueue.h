@@ -24,8 +24,8 @@ namespace HSDetection
 
         std::vector<Spike> *result; // passed in, should not release here
 
-        int framesInQueue; // TODO: name??? number of frames from where the spikes should be kept in queue
-        int framesToContinue;
+        IntFrame framesInQueue; // TODO: name??? number of frames from where the spikes should be kept in queue
+        IntFrame framesToContinue;
 
     public:
         SpikeQueue(Detection *pDet); // passing thw whole param set altogether
@@ -36,7 +36,7 @@ namespace HSDetection
         // copy assignment deleted to protect container content
         SpikeQueue &operator=(const SpikeQueue &) = delete;
 
-        void process(int frameBound);
+        void process(IntFrame frameBound);
         void finalize();
 
         // wrappers of container interface

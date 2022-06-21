@@ -10,12 +10,12 @@ namespace HSDetection
     class SpikeDecayFilterer : public QueueProcessor
     {
     private:
-        ProbeLayout *pLayout; // passed in, should not release here
-        int noiseDuration;    // TODO: name???
+        ProbeLayout *pLayout;   // passed in, should not release here
+        IntFrame noiseDuration; // TODO: name???
         float noiseAmpPercent;
 
     public:
-        SpikeDecayFilterer(ProbeLayout *pLayout, int noiseDuration, float noiseAmpPercent);
+        SpikeDecayFilterer(ProbeLayout *pLayout, IntFrame noiseDuration, float noiseAmpPercent);
         ~SpikeDecayFilterer();
 
         void operator()(SpikeQueue *pQueue);

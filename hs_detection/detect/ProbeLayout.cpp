@@ -6,23 +6,23 @@ using namespace std;
 
 namespace HSDetection
 {
-    ProbeLayout::ProbeLayout(int numChannels, float *channelPositions,
-                             float neighborRadius, float innerRadius)
-        : positions(numChannels), distances(numChannels, vector<float>(numChannels)),
+    ProbeLayout::ProbeLayout(IntChannel numChannels, FloatGeom *channelPositions,
+                             FloatGeom neighborRadius, FloatGeom innerRadius)
+        : positions(numChannels), distances(numChannels, vector<FloatGeom>(numChannels)),
           neighborList(numChannels), innerNeighborList(numChannels),
           neighborRadius(neighborRadius), innerRadius(innerRadius)
     {
-        for (int i = 0; i < numChannels; i++)
+        for (IntChannel i = 0; i < numChannels; i++)
         {
-            positions[i].x = (int)channelPositions[i * 2]; // TODO: ???
+            positions[i].x = (int)channelPositions[i * 2]; // TODO: int cast???
             positions[i].y = (int)channelPositions[i * 2 + 1];
         }
 
-        for (int i = 0; i < numChannels; i++)
+        for (IntChannel i = 0; i < numChannels; i++)
         {
-            for (int j = 0; j < numChannels; j++)
+            for (IntChannel j = 0; j < numChannels; j++)
             {
-                float dis = distances[i][j] = (positions[i] - positions[j]).abs();
+                FloatGeom dis = distances[i][j] = (positions[i] - positions[j]).abs();
                 if (dis < neighborRadius)
                 {
                     neighborList[i].push_back(j);
@@ -35,7 +35,7 @@ namespace HSDetection
 
             // self definitely sorted to the first
             sort(innerNeighborList[i].begin(), innerNeighborList[i].end(),
-                 [&dist = distances[i]](int lhs, int rhs)
+                 [&dist = distances[i]](IntChannel lhs, IntChannel rhs)
                  { return dist[lhs] < dist[rhs]; });
         }
     }

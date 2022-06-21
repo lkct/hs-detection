@@ -6,20 +6,20 @@ using namespace std;
 
 namespace HSDetection
 {
-    Detection::Detection(int numChannels, int chunkSize, int chunkLeftMargin,
-                         int spikeLen, int peakLen, int threshold, int minAvgAmp, int maxAHPAmp,
-                         float *channelPositions, float neighborRadius, float innerRadius,
-                         int noiseDuration, int spikePeakDuration,
+    Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
+                         IntFrame spikeLen, IntFrame peakLen, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
+                         FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
+                         IntFrame noiseDuration, IntFrame spikePeakDuration,
                          bool decayFiltering, float noiseAmpPercent,
-                         bool localize, int numCoMCenters,
-                         bool saveShape, string filename, int cutoutStart, int cutoutLen)
+                         bool localize, IntChannel numCoMCenters,
+                         bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
           commonRef(chunkLeftMargin, 1, chunkSize),
           runningBaseline(numChannels), runningVariance(numChannels),
-          _commonRef(new short[chunkSize + chunkLeftMargin]),
+          _commonRef(new IntVolt[chunkSize + chunkLeftMargin]),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
-          spikeTime(new int[numChannels]), spikeAmp(new int[numChannels]),
-          spikeArea(new int[numChannels]), hasAHP(new bool[numChannels]),
+          spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
+          spikeArea(new IntFxV[numChannels]), hasAHP(new bool[numChannels]),
           spikeLen(spikeLen), peakLen(peakLen), threshold(threshold),
           minAvgAmp(minAvgAmp), maxAHPAmp(maxAHPAmp), // pQueue not ready
           probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
@@ -32,7 +32,7 @@ namespace HSDetection
         fill_n(runningBaseline[-1], numChannels, Voffset);
         fill_n(runningVariance[-1], numChannels, Qvstart);
 
-        fill_n(spikeTime, numChannels, -1);
+        fill_n(spikeTime, numChannels, (IntFrame)-1);
 
         pQueue = new SpikeQueue(this); // all the params should be ready
     }
@@ -49,7 +49,7 @@ namespace HSDetection
         delete[] _commonRef;
     }
 
-    void Detection::commonMedian(int chunkStart, int chunkLen) // TODO: add, use?
+    void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen) // TODO: add, use?
     {
         // // TODO: if median takes too long...
         // // or there are only few
@@ -57,15 +57,15 @@ namespace HSDetection
         // // then use mean
     }
 
-    void Detection::commonAverage(int chunkStart, int chunkLen)
+    void Detection::commonAverage(IntFrame chunkStart, IntFrame chunkLen)
     {
         copy_n(commonRef[chunkStart + chunkSize - chunkLeftMargin], chunkLeftMargin,
                commonRef[chunkStart - chunkLeftMargin]);
 
-        for (int t = chunkStart; t < chunkStart + chunkLen; t++)
+        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            int sum = 0;
-            for (int i = 0; i < numChannels; i++)
+            IntCxV sum = 0;
+            for (IntChannel i = 0; i < numChannels; i++)
             {
                 sum += trace(t, i) / 64; // TODO: no need to scale
             }
@@ -80,7 +80,7 @@ namespace HSDetection
         // }
     }
 
-    void Detection::step(short *traceBuffer, int chunkStart, int chunkLen)
+    void Detection::step(IntVolt *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)
     {
         trace.updateChunk(traceBuffer);
         commonRef.updateChunk(_commonRef);
@@ -91,44 +91,44 @@ namespace HSDetection
         }
 
         // // TODO: Does this need to end at chunkLen + chunkLeftMargin? (Cole+Martino)
-        for (int t = chunkStart; t < chunkStart + chunkLen; t++)
+        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            short *input = trace[t];
-            short ref = commonRef(t, 0);
-            short *QbPrev = runningBaseline[t - 1]; // TODO: name?
-            short *QvPrev = runningVariance[t - 1];
-            short *Qb = runningBaseline[t];
-            short *Qv = runningVariance[t];
+            IntVolt *input = trace[t];
+            IntVolt ref = commonRef(t, 0);
+            IntVolt *QbPrev = runningBaseline[t - 1]; // TODO: name?
+            IntVolt *QvPrev = runningVariance[t - 1];
+            IntVolt *Qb = runningBaseline[t];
+            IntVolt *Qv = runningVariance[t];
 
-            for (int i = 0; i < numChannels; i++)
+            for (IntChannel i = 0; i < numChannels; i++)
             {
-                short volt = input[i] - ref - QbPrev[i];
+                IntVolt volt = input[i] - ref - QbPrev[i];
 
-                short dltBase = 0;
+                IntVolt dltBase = 0;
                 dltBase = (QvPrev[i] < volt) ? QvPrev[i] / Tau_m0 : dltBase;
                 dltBase = (volt < -QvPrev[i]) ? -QvPrev[i] / (Tau_m0 * 2) : dltBase;
                 Qb[i] = QbPrev[i] + dltBase;
 
-                short dltVar = 0;
+                IntVolt dltVar = 0;
                 dltVar = (QvPrev[i] < volt && volt < 5 * QvPrev[i]) ? QvChange : dltVar;
-                dltVar = ((0 < volt && volt <= QvPrev[i]) || 6 * QvPrev[i] < volt) ? -QvChange : dltVar;
-                short Qvi = QvPrev[i] + dltVar;
+                dltVar = ((0 < volt && volt <= QvPrev[i]) || 6 * QvPrev[i] < volt) ? -QvChange : dltVar; // TODO: split two cmov?
+                IntVolt Qvi = QvPrev[i] + dltVar;
                 Qv[i] = (Qvi < Qvmin) ? Qvmin : Qvi; // clamp Qv at Qvmin
             }
         }
 
-        for (int t = chunkStart; t < chunkStart + chunkLen; t++)
+        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            short *input = trace[t];
-            short ref = commonRef(t, 0);
-            short *Qb = runningBaseline[t];
-            short *Qv = runningVariance[t];
+            IntVolt *input = trace[t];
+            IntVolt ref = commonRef(t, 0);
+            IntVolt *Qb = runningBaseline[t];
+            IntVolt *Qv = runningVariance[t];
 
-            for (int i = 0; i < numChannels; i++)
+            for (IntChannel i = 0; i < numChannels; i++)
             {
                 // // TODO: should chunkLeftMargin be subtracted here??
-                int volt = input[i] - ref - Qb[i]; // calc against updated Qb
-                int Qvi = Qv[i];
+                IntVolt volt = input[i] - ref - Qb[i]; // calc against updated Qb
+                IntVolt Qvi = Qv[i];
 
                 if (spikeTime[i] < 0) // not in spike
                 {
@@ -177,8 +177,8 @@ namespace HSDetection
                 // else: spikeTime[i] == spikeLen - 1, spike end
 
                 // TODO: if not AHP, whether connect spike?
-                if (2 * spikeArea[i] > peakLen * minAvgAmp * Qvi && // reach min area // TODO: why *2
-                    (hasAHP[i] || volt < maxAHPAmp * Qvi))          // AHP exist
+                if (2 * spikeArea[i] > (IntFxV)peakLen * minAvgAmp * Qvi && // reach min area // TODO: why *2
+                    (hasAHP[i] || volt < maxAHPAmp * Qvi))                  // AHP exist
                 {
                     pQueue->push_back(Spike(t - spikeLen + 1, i, spikeAmp[i]));
                 }
@@ -191,7 +191,7 @@ namespace HSDetection
 
     } // Detection::step
 
-    int Detection::finish()
+    IntResult Detection::finish()
     {
         pQueue->finalize();
         return result.size();
