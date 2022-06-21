@@ -6,7 +6,6 @@
 
 namespace HSDetection
 {
-
     class SpikeDecayFilterer : public QueueProcessor
     {
     private:
@@ -14,15 +13,13 @@ namespace HSDetection
         IntFrame noiseDuration; // TODO: name???
         float noiseAmpPercent;
 
+        bool shouldFilterOuter(SpikeQueue *pQueue, const Spike &outerSpike) const;
+
     public:
         SpikeDecayFilterer(ProbeLayout *pLayout, IntFrame noiseDuration, float noiseAmpPercent);
         ~SpikeDecayFilterer();
 
         void operator()(SpikeQueue *pQueue);
-
-        // TODO: const function?
-        void filterOuterNeighbors(SpikeQueue *pQueue, const Spike &maxSpike);
-        bool filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, const Spike & maxSpike);
     };
 
 } // namespace HSDetection

@@ -17,7 +17,29 @@ namespace HSDetection
         IntChannel maxChannel = pQueue->begin()->channel;
         IntVolt maxAmp = pQueue->begin()->amplitude;
 
-        filterOuterNeighbors(pQueue, *pQueue->begin());
+        { // TODO:
+            // pQueue->remove_if(
+            //         [this, pQueue, &maxSpike, frameBound](const Spike &spike)
+            //         { return spike.frame < frameBound &&
+            //                  pLayout->areNeighbors(maxSpike.channel, spike.channel) &&
+            //                  !pLayout->areInnerNeighbors(maxSpike.channel, spike.frame) &&
+            //                  shouldFilterOuter(pQueue, spike, maxSpike); });
+
+            vector<Spike> outerSpikes;
+
+            copy_if(pQueue->begin(), pQueue->end(), back_inserter(outerSpikes),
+                    [this, pQueue, frameBound, maxChannel](const Spike &spike)
+                    { return spike.frame < frameBound &&
+                             pLayout->areOuterNeighbors(spike.channel, maxChannel) &&
+                             shouldFilterOuter(pQueue, spike); });
+
+            pQueue->remove_if([&outerSpikes](const Spike &spike)
+                              { return binary_search( // outerSpikes is sorted by nature of queue
+                                    outerSpikes.begin(), outerSpikes.end(), spike,
+                                    [](const Spike &lhs, const Spike &rhs)
+                                    { return lhs.frame < rhs.frame ||
+                                             (lhs.frame == rhs.frame && lhs.channel < rhs.channel); }); });
+        }
 
         // TODO: with frameBound only in decay???
         pQueue->remove_if([this, frameBound, maxChannel, maxAmp](const Spike &spike)
@@ -26,68 +48,49 @@ namespace HSDetection
                                    spike.amplitude < maxAmp; });
     }
 
-    void SpikeDecayFilterer::filterOuterNeighbors(SpikeQueue *pQueue, const Spike &maxSpike)
+    bool SpikeDecayFilterer::shouldFilterOuter(SpikeQueue *pQueue, const Spike &outerSpike) const
     {
-        IntFrame frameBound = maxSpike.frame + noiseDuration + 1;
+        IntChannel maxChannel = pQueue->begin()->channel;
+        IntChannel outerChannel = outerSpike.channel;
+        FloatGeom outerDist = pLayout->getChannelDistance(outerChannel, maxChannel);
 
-        // pQueue->remove_if(
-        //         [this, pQueue, &maxSpike, frameBound](const Spike &spike)
-        //         { return spike.frame < frameBound &&
-        //                  pLayout->areNeighbors(maxSpike.channel, spike.channel) &&
-        //                  !pLayout->areInnerNeighbors(maxSpike.channel, spike.frame) &&
-        //                  filteredOuterSpike(pQueue, spike, maxSpike); });
-
-        vector<Spike> outerSpikes;
-
-        copy_if(pQueue->begin(), pQueue->end(), back_inserter(outerSpikes),
-                [this, pQueue, &maxSpike, frameBound](const Spike &spike)
-                { return spike.frame < frameBound &&
-                         pLayout->areOuterNeighbors(maxSpike.channel, spike.channel) &&
-                         filteredOuterSpike(pQueue, spike, maxSpike); });
-
-        // outerSpikes is sorted by nature of queue
-        pQueue->remove_if([&outerSpikes](const Spike &spike)
-                          { return binary_search(
-                                outerSpikes.begin(), outerSpikes.end(), spike,
-                                [](const Spike &lhs, const Spike &rhs)
-                                { return lhs.frame < rhs.frame ||
-                                         (lhs.frame == rhs.frame && lhs.channel < rhs.channel); }); });
-    }
-
-    bool SpikeDecayFilterer::filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, const Spike &maxSpike)
-    {
-        for (IntChannel sharedInnerNeighbor : pLayout->getInnerNeighbors(outerSpike.channel))
+        // TODO: merge loop?
+        for (IntChannel innerOfOuter : pLayout->getInnerNeighbors(outerChannel))
         {
-            if (pLayout->areInnerNeighbors(maxSpike.channel, sharedInnerNeighbor))
+            if (pLayout->areInnerNeighbors(innerOfOuter, maxChannel))
             {
-                SpikeQueue::iterator innerSpike = find_if(pQueue->begin(), pQueue->end(),
-                                                          [sharedInnerNeighbor](const Spike &spike)
-                                                          { return spike.channel == sharedInnerNeighbor; });
-                if (innerSpike != pQueue->end()) // exist spike
+                SpikeQueue::const_iterator itSpikeOnInner = find_if(
+                    pQueue->begin(), pQueue->end(),
+                    [innerOfOuter](const Spike &spike)
+                    { return spike.channel == innerOfOuter; });
+
+                if (itSpikeOnInner != pQueue->end()) // exist spike on innerOfOuter
                 {
-                    return outerSpike.amplitude < innerSpike->amplitude * noiseAmpPercent && // decayed
-                           innerSpike->frame - noiseDuration <= outerSpike.frame;            // not too early
+                    return outerSpike.amplitude < itSpikeOnInner->amplitude * noiseAmpPercent && // and outer decayed
+                           itSpikeOnInner->frame - noiseDuration <= outerSpike.frame;            // and outer not too early
                 }
             }
         }
 
-        FloatGeom outerDist = pLayout->getChannelDistance(outerSpike.channel, maxSpike.channel);
-        for (IntChannel currInnerChannel : pLayout->getInnerNeighbors(outerSpike.channel))
+        for (IntChannel innerOfOuter : pLayout->getInnerNeighbors(outerChannel))
         {
-            if (pLayout->getChannelDistance(currInnerChannel, maxSpike.channel) < outerDist)
+            if (pLayout->getChannelDistance(innerOfOuter, maxChannel) < outerDist)
             {
-                SpikeQueue::iterator innerSpike = find_if(pQueue->begin(), pQueue->end(),
-                                                          [currInnerChannel](const Spike &spike)
-                                                          { return spike.channel == currInnerChannel; });
-                if (innerSpike != pQueue->end() &&                                    // exist spike
-                    outerSpike.amplitude < innerSpike->amplitude * noiseAmpPercent && // and decayed
-                    innerSpike->frame - noiseDuration <= outerSpike.frame)            // and not too early
+                SpikeQueue::const_iterator itSpikeOnInner = find_if(
+                    pQueue->begin(), pQueue->end(),
+                    [innerOfOuter](const Spike &spike)
+                    { return spike.channel == innerOfOuter; });
+
+                if (itSpikeOnInner != pQueue->end() &&                                    // exist spike on innerOfOuter
+                    outerSpike.amplitude < itSpikeOnInner->amplitude * noiseAmpPercent && // and outer decayed
+                    itSpikeOnInner->frame - noiseDuration <= outerSpike.frame)            // and outer not too early
                 {
-                    return filteredOuterSpike(pQueue, *innerSpike, maxSpike);
+                    return shouldFilterOuter(pQueue, *itSpikeOnInner);
                 }
             }
         }
-        return false;
+
+        return false; // no corresponding spike from inner
     }
 
 } // namespace HSDetection
