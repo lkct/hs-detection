@@ -13,45 +13,41 @@ namespace HSDetection
 
     void SpikeDecayFilterer::operator()(SpikeQueue *pQueue)
     {
+        IntFrame frameBound = pQueue->begin()->frame + noiseDuration + 1;
+        IntChannel centerChannel = pQueue->begin()->channel;
+
         SpikeQueue::iterator itMax = pQueue->begin();
         IntVolt maxAmp = itMax->amplitude;
-
-        IntChannel spikeChannel = itMax->channel; // channel of first in queue
-        IntFrame frameBound = itMax->frame + noiseDuration + 1;
 
         for (SpikeQueue::iterator it = pQueue->begin();
              it->frame < frameBound && it != pQueue->end();
              ++it)
         {
             // TODO: get the max of last time/channel?
-            if (pLayout->areNeighbors(it->channel, spikeChannel) && it->amplitude >= maxAmp)
+            if (pLayout->areNeighbors(it->channel, centerChannel) && it->amplitude >= maxAmp)
             {
                 itMax = it;
                 maxAmp = it->amplitude;
             }
         }
 
-        spikeChannel = itMax->channel; // channel of max
         frameBound = itMax->frame + noiseDuration + 1;
+        IntChannel maxChannel = itMax->channel;
+        // IntVolt maxAmp = itMax->amplitude;
 
-        Spike maxSpike = move(*itMax);
+        pQueue->push_front(move(*itMax));
         pQueue->erase(itMax);
 
-        if (!pQueue->empty())
-        {
-            filterOuterNeighbors(pQueue, maxSpike);
-        }
-
-        pQueue->push_front(move(maxSpike));
+        filterOuterNeighbors(pQueue, *pQueue->begin());
 
         // TODO: with frameBound only in decay???
-        pQueue->remove_if([this, frameBound, spikeChannel, maxAmp](const Spike &spike)
+        pQueue->remove_if([this, frameBound, maxChannel, maxAmp](const Spike &spike)
                           { return spike.frame < frameBound &&
-                                   pLayout->areInnerNeighbors(spike.channel, spikeChannel) &&
+                                   pLayout->areInnerNeighbors(spike.channel, maxChannel) &&
                                    spike.amplitude < maxAmp; });
     }
 
-    void SpikeDecayFilterer::filterOuterNeighbors(SpikeQueue *pQueue, Spike maxSpike)
+    void SpikeDecayFilterer::filterOuterNeighbors(SpikeQueue *pQueue, const Spike &maxSpike)
     {
         IntFrame frameBound = maxSpike.frame + noiseDuration + 1;
 
@@ -79,7 +75,7 @@ namespace HSDetection
                                          (lhs.frame == rhs.frame && lhs.channel < rhs.channel); }); });
     }
 
-    bool SpikeDecayFilterer::filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, Spike maxSpike)
+    bool SpikeDecayFilterer::filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, const Spike &maxSpike)
     {
         for (IntChannel sharedInnerNeighbor : pLayout->getInnerNeighbors(outerSpike.channel))
         {

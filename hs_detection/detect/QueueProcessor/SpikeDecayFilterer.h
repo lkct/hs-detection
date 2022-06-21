@@ -21,8 +21,8 @@ namespace HSDetection
         void operator()(SpikeQueue *pQueue);
 
         // TODO: const function?
-        void filterOuterNeighbors(SpikeQueue *pQueue, Spike maxSpike);
-        bool filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, Spike maxSpike);
+        void filterOuterNeighbors(SpikeQueue *pQueue, const Spike &maxSpike);
+        bool filteredOuterSpike(SpikeQueue *pQueue, Spike outerSpike, const Spike & maxSpike);
     };
 
 } // namespace HSDetection
