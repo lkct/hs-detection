@@ -34,7 +34,6 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   bool decayFiltering,
                   float noiseAmpPercent,
                   bool localize, 
-                  int numCoMCenters,
                   bool saveShape, 
                   string filename,
                   int cutoutStart,

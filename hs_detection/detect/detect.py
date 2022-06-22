@@ -66,7 +66,6 @@ class HSDetection(object):
 
         self.chunk_size: int = params['chunk_size']
         self.threshold: int = params['threshold']
-        self.num_com_centers: int = params['num_com_centers']
         self.maa: int = params['maa']
         self.ahpthr: int = params['ahpthr']
         self.decay_filtering: bool = params['decay_filtering']
@@ -163,7 +162,6 @@ class HSDetection(object):
             self.decay_filtering,
             self.noise_amp_percent,
             self.localize,
-            self.num_com_centers,
             self.save_shape,
             str(out_file).encode(),
             self.cutout_start,

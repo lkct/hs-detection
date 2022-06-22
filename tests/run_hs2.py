@@ -24,7 +24,6 @@ default_kwargs = {
 
     # extra detection params
     'chunk_size': 100000,
-    'num_com_centers': 1,
     'maa': 12,
     'ahpthr': 11,
     'out_file': 'HS2_detected',
@@ -60,6 +59,7 @@ deprecation = {
     'pre_scale_value': 'rescale_value',
     # following not supported anymore
     'probe_masked_channels': 'None',
+    'num_com_centers': 'None',
     'save_all': 'None'
 }
 

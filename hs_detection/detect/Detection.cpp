@@ -10,8 +10,7 @@ namespace HSDetection
                          IntFrame spikeLen, IntFrame peakLen, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                          FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                          IntFrame noiseDuration, IntFrame spikePeakDuration,
-                         bool decayFiltering, float noiseAmpPercent,
-                         bool localize, IntChannel numCoMCenters,
+                         bool decayFiltering, float noiseAmpPercent, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
           commonRef(chunkLeftMargin, 1, chunkSize),
@@ -25,8 +24,7 @@ namespace HSDetection
           probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
           result(), noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration),
           decayFilter(decayFiltering), noiseAmpPercent(noiseAmpPercent),
-          localize(localize), numCoMCenters(numCoMCenters),
-          saveShape(saveShape), filename(filename),
+          localize(localize), saveShape(saveShape), filename(filename),
           cutoutStart(cutoutStart), cutoutLen(cutoutLen)
     {
         fill_n(runningBaseline[-1], numChannels, initBase);

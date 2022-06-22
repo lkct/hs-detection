@@ -65,8 +65,7 @@ namespace HSDetection
 
         // localization
     public:
-        bool localize;            // True: filter and localize the spike, False: just filter the spike.
-        IntChannel numCoMCenters; // Number of channels used for center of mass
+        bool localize; // True: filter and localize the spike, False: just filter the spike.
 
         // save shape
     public:
@@ -85,8 +84,7 @@ namespace HSDetection
                   IntFrame spikeLen, IntFrame peakLen, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                   FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                   IntFrame noiseDuration, IntFrame spikePeakDuration,
-                  bool decayFiltering, float noiseAmpPercent,
-                  bool localize, IntChannel numCoMCenters,
+                  bool decayFiltering, float noiseAmpPercent, bool localize,
                   bool saveShape, std::string filename, IntFrame cutoutStart, IntFrame cutoutLen);
         ~Detection();
 

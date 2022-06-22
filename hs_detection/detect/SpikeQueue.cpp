@@ -45,7 +45,7 @@ namespace HSDetection
         if (pDet->localize)
         {
             pSpkProc = new SpikeLocalizer(&pDet->probeLayout, &pDet->trace, &pDet->commonRef, &pDet->runningBaseline,
-                                          pDet->numCoMCenters, pDet->noiseDuration, pDet->spikePeakDuration);
+                                          pDet->noiseDuration, pDet->spikePeakDuration);
             pushFirstElemProc(pSpkProc);
         }
 
