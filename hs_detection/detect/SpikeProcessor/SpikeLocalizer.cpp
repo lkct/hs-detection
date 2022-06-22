@@ -19,7 +19,7 @@ namespace HSDetection
         IntFrame frameLeft = pSpike->frame - jitterTol; // TODO: name?
         IntFrame frameRight = pSpike->frame + jitterTol;
 
-        IntVolt ref = (*pRef)(pSpike->frame, 0);
+        IntVolt ref = (*pRef)(pSpike->frame, 0); // TODO: why not -peakDur
         const IntVolt *baselines = (*pBaseline)[pSpike->frame - peakDur];
 
         vector<pair<IntChannel, IntFxV>> chAmps;
