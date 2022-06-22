@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <numeric>
 
 #include "Detection.h"
 
@@ -62,12 +63,10 @@ namespace HSDetection
 
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            IntCxV sum = 0;
-            for (IntChannel i = 0; i < numChannels; i++)
-            {
-                sum += trace(t, i) / 64; // TODO: no need to scale
-            }
-            commonRef(t, 0) = sum / numChannels * 64;
+            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntCxV)0, // TODO: 64?
+                                         [](IntCxV sum, IntVolt data)
+                                         { return sum + data / 64; }) /
+                              numChannels * 64;
         }
     }
 
