@@ -13,10 +13,10 @@ namespace HSDetection
                          bool decayFiltering, FloatRatio decayRatio, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
-          commonRef(chunkLeftMargin, 1, chunkSize),
-          runningBaseline(numChannels), runningDeviation(numChannels),
-          _commonRef(new IntVolt[chunkSize + chunkLeftMargin]),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
+          commonRef(chunkLeftMargin, 1, chunkSize),
+          _commonRef(new IntVolt[chunkSize + chunkLeftMargin]),
+          runningBaseline(numChannels), runningDeviation(numChannels),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
           spikeArea(new IntFxV[numChannels]), hasAHP(new bool[numChannels]),
           spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold),

@@ -23,15 +23,18 @@ namespace HSDetection
         const IntVolt minDev = 200;       // minimum level of deviation
 
         // input data
-        TraceWrapper trace;            // input trace
-        TraceWrapper commonRef;        // common median/average reference
-        RollingArray runningBaseline;  // running estimation of baseline (33 percentile)
-        RollingArray runningDeviation; // running estimation of deviation from baseline
-
-        IntVolt *_commonRef;      // internal buffer for commonRef
+        TraceWrapper trace;       // input trace
         IntChannel numChannels;   // number of probe channels
         IntFrame chunkSize;       // size of each chunk, only the last chunk can be of a different (smaller) size
         IntFrame chunkLeftMargin; // margin on the left of each chunk
+
+        // common reference
+        TraceWrapper commonRef; // common average/median reference
+        IntVolt *_commonRef;    // internal buffer for commonRef
+
+        // running estimation
+        RollingArray runningBaseline;  // running estimation of baseline (33 percentile)
+        RollingArray runningDeviation; // running estimation of deviation from baseline
 
         // detection
         IntFrame *spikeTime; // counter for time since spike peak
