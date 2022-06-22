@@ -69,7 +69,7 @@ namespace HSDetection
             {
                 sum += trace(t, i) / 64; // TODO: no need to scale
             }
-            commonRef(t, 0) = sum / (numChannels + 1) * 64; // TODO: no need +1
+            commonRef(t, 0) = sum / numChannels * 64;
         }
         // TODO: ???
         // for (int t = chunkStart - 1; t >= chunkStart - chunkLeftMargin; t--)

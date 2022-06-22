@@ -7,7 +7,7 @@ from data_utils import download_small, str2Path
 from run_hs2 import run_herdingspikes, run_hsdet
 
 
-def test_correctness(data_fn: str = 'mearec_test_10s.h5', expected: int = 713, **kwargs) -> None:
+def test_correctness(data_fn: str = 'mearec_test_10s.h5', expected: int = -1, **kwargs) -> None:
     data_path = str2Path(data_fn)
     if not data_path.exists():
         download_small(data_fn)
@@ -50,15 +50,14 @@ def test_correctness(data_fn: str = 'mearec_test_10s.h5', expected: int = 713, *
     else:
         sys.stdout, sys.stderr = stdout, stderr
 
-    assert all(hsdet[seg]['channel_ind'].shape[0] == expected
-               for seg in range(recording.get_num_segments()))
     for seg in range(recording.get_num_segments()):
+        assert hsdet[seg]['channel_ind'].shape[0] == expected, hsdet[seg]['channel_ind'].shape[0]
         for k in hsdet[seg].keys():
             assert np.all(sihs[seg][k] == hsdet[seg][k]), k
 
 
 if __name__ == '__main__':
-    test_correctness(filter=False, expected=596)
-    test_correctness()
-    test_correctness(filter=False, decay_filtering=True, expected=623)
-    test_correctness(decay_filtering=True, expected=736)
+    test_correctness(filter=False, expected=593)
+    test_correctness(expected=716)
+    test_correctness(filter=False, decay_filtering=True, expected=620)
+    test_correctness(decay_filtering=True, expected=738)
