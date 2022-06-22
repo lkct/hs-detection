@@ -37,7 +37,7 @@ namespace HSDetection
         }
         else
         {
-            pQueProc = new SpikeFilterer(&pDet->probeLayout);
+            pQueProc = new SpikeFilterer(&pDet->probeLayout, pDet->jitterTol);
         }
         queProcs.push_back(pQueProc);
 

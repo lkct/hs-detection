@@ -11,8 +11,10 @@ namespace HSDetection
     private:
         ProbeLayout *pLayout; // passed in, should not release here
 
+        IntFrame jitterTol;
+
     public:
-        SpikeFilterer(ProbeLayout *pLayout);
+        SpikeFilterer(ProbeLayout *pLayout, IntFrame jitterTol);
         ~SpikeFilterer();
 
         void operator()(SpikeQueue *pQueue);
