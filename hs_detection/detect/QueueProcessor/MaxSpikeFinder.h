@@ -9,8 +9,8 @@ namespace HSDetection
     class MaxSpikeFinder : public QueueProcessor
     {
     private:
-        ProbeLayout *pLayout;  // passed in, should not release here
-        IntFrame framesFilter; // TODO: name???
+        ProbeLayout *pLayout; // passed in, should not release here
+        IntFrame jitterTol;   // TODO: name???
 
     public:
         MaxSpikeFinder(ProbeLayout *pLayout, IntFrame jitterTol);

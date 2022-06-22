@@ -136,7 +136,7 @@ namespace HSDetection
                 spikeTime[i]++;
                 // 1 <= spikeTime[i]
 
-                if (spikeTime[i] < ampAvgLen - 1) // sum up area in ampAvgLen
+                if (spikeTime[i] < ampAvgLen - 1) // sum up area in ampAvgLen // TODO: inconsistent - 1
                 {
                     spikeArea[i] += volt;   // TODO: ??? added twice
                     if (spikeAmp[i] < volt) // larger amp found
@@ -150,7 +150,7 @@ namespace HSDetection
                 }
                 // else: ampAvgLen - 1 <= spikeTime[i]
 
-                if (spikeTime[i] < spikeLen - 1)
+                if (spikeTime[i] < spikeLen - 1) // TODO: inconsistent - 1
                 {
                     if (volt < maxAHPAmp * devI) // AHP found
                     {
@@ -169,9 +169,9 @@ namespace HSDetection
 
                 // TODO: if not AHP, whether connect spike?
                 if (2 * spikeArea[i] > (IntFxV)ampAvgLen * minAvgAmp * devI && // reach min area // TODO: why *2
-                    (hasAHP[i] || volt < maxAHPAmp * devI))                  // AHP exist
+                    (hasAHP[i] || volt < maxAHPAmp * devI))                    // AHP exist
                 {
-                    pQueue->push_back(Spike(t - spikeLen + 1, i, spikeAmp[i]));
+                    pQueue->push_back(Spike(t - (spikeLen - 1), i, spikeAmp[i]));
                 }
 
                 spikeTime[i] = -1;

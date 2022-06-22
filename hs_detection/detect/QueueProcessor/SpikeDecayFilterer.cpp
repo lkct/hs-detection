@@ -13,7 +13,7 @@ namespace HSDetection
 
     void SpikeDecayFilterer::operator()(SpikeQueue *pQueue)
     {
-        IntFrame frameBound = pQueue->begin()->frame + jitterTol + 1;
+        IntFrame frameBound = pQueue->begin()->frame + jitterTol;
         IntChannel maxChannel = pQueue->begin()->channel;
         IntVolt maxAmp = pQueue->begin()->amplitude;
 
@@ -22,7 +22,7 @@ namespace HSDetection
 
             copy_if(pQueue->begin(), pQueue->end(), back_inserter(outerSpikes),
                     [this, pQueue, frameBound, maxChannel](const Spike &spike)
-                    { return spike.frame < frameBound &&
+                    { return spike.frame <= frameBound &&
                              pLayout->areOuterNeighbors(spike.channel, maxChannel) &&
                              shouldFilterOuter(pQueue, spike); });
 
@@ -35,7 +35,7 @@ namespace HSDetection
         }
 
         pQueue->remove_if([this, frameBound, maxChannel, maxAmp](const Spike &spike)
-                          { return spike.frame < frameBound &&
+                          { return spike.frame <= frameBound &&
                                    pLayout->areInnerNeighbors(spike.channel, maxChannel) &&
                                    spike.amplitude < maxAmp; });
     }
@@ -60,7 +60,7 @@ namespace HSDetection
                 }
 
                 bool isDecay = outerSpike.amplitude < itSpikeOnInner->amplitude * decayRatio && // outer decayed
-                               itSpikeOnInner->frame - jitterTol <= outerSpike.frame;       // and outer time correct
+                               itSpikeOnInner->frame - jitterTol <= outerSpike.frame;           // and outer time correct
 
                 if (pLayout->areInnerNeighbors(innerOfOuter, maxChannel))
                 {

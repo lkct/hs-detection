@@ -53,8 +53,8 @@ class HSDetection(object):
             params['event_length'] * self.fps / 1000)
         self.noise_duration = int(params['peak_jitter'] * self.fps / 1000)
         self.noise_amp_percent: float = params['noise_amp_percent']
-        self.neighbor_radius: float = params['neighbor_radius']
-        self.inner_radius: float = params['inner_radius']
+        self.neighbor_radius: float = params['neighbor_radius'] + 1e-3
+        self.inner_radius: float = params['inner_radius'] + 1e-3
 
         self.cutout_start = int(
             params['left_cutout_time'] * self.fps / 1000 + 0.5)
@@ -62,7 +62,7 @@ class HSDetection(object):
             params['right_cutout_time'] * self.fps / 1000 + 0.5)
         self.minsl = int(params['amp_evaluation_time'] * self.fps / 1000 + 0.5)
         self.maxsl = int(params['spk_evaluation_time'] * self.fps / 1000 + 0.5)
-        self.cutout_length = self.cutout_start + self.cutout_end + 1  # TODO: +1?
+        self.cutout_length = self.cutout_start + 1 + self.cutout_end
 
         self.chunk_size: int = params['chunk_size']
         self.threshold: int = params['threshold']

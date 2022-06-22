@@ -28,7 +28,7 @@ namespace HSDetection
         {
             IntVolt baseline = ref + baselines[neighborChannel];
             IntFxV sumVolt = 0;
-            for (IntFrame t = frameLeft; t < frameRight; t++)
+            for (IntFrame t = frameLeft; t < frameRight; t++) // TODO: why not <=
             {
                 IntVolt volt = (*pTrace)(t, neighborChannel) - baseline;
                 if (volt > 0)

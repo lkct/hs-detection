@@ -24,7 +24,7 @@ namespace HSDetection
     SpikeQueue::SpikeQueue(Detection *pDet)
         : queue(), queProcs(), spkProcs(), result(&pDet->result),
           framesInQueue(pDet->jitterTol + pDet->peakLen),
-          framesToContinue(pDet->jitterTol + 1)
+          jitterTol(pDet->jitterTol)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;
@@ -67,14 +67,16 @@ namespace HSDetection
                  { delete pSpkProc; });
     }
 
-    void SpikeQueue::process(IntFrame frameBound)
+    void SpikeQueue::process(IntFrame spikeFrame)
     {
+        IntFrame frameBound = spikeFrame - framesInQueue;
+
         // TODO: one loop?
-        while (!queue.empty() && queue.front().frame < frameBound)
+        while (!queue.empty() && !(frameBound <= queue.front().frame)) // keep everything after bound
         {
             IntFrame lastFrame = queue.front().frame;
 
-            while (!queue.empty() && queue.front().frame < lastFrame + framesToContinue)
+            while (!queue.empty() && queue.front().frame <= lastFrame + jitterTol)
             {
                 lastFrame = queue.front().frame;
 

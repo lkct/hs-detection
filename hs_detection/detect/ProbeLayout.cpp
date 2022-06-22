@@ -10,7 +10,7 @@ namespace HSDetection
                              FloatGeom neighborRadius, FloatGeom innerRadius)
         : positions(numChannels), distances(numChannels, vector<FloatGeom>(numChannels)),
           neighborList(numChannels), innerNeighborList(numChannels),
-          neighborRadius(neighborRadius + 1e-3), innerRadius(innerRadius + 1e-3)
+          neighborRadius(neighborRadius), innerRadius(innerRadius)
     {
         for (IntChannel i = 0; i < numChannels; i++)
         {

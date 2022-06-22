@@ -25,7 +25,7 @@ namespace HSDetection
         std::vector<Spike> *result; // passed in, should not release here
 
         IntFrame framesInQueue; // TODO: name??? number of frames from where the spikes should be kept in queue
-        IntFrame framesToContinue;
+        IntFrame jitterTol;
 
     public:
         SpikeQueue(Detection *pDet); // passing thw whole param set altogether
@@ -36,7 +36,7 @@ namespace HSDetection
         // copy assignment deleted to protect container content
         SpikeQueue &operator=(const SpikeQueue &) = delete;
 
-        void process(IntFrame frameBound);
+        void process(IntFrame spikeFrame);
         void finalize();
 
         // wrappers of container interface
@@ -54,7 +54,7 @@ namespace HSDetection
 
         void push_front(Spike &&spike) { queue.push_front(std::move(spike)); }
 
-        void push_back(Spike &&spike) { process(spike.frame - framesInQueue), queue.push_back(std::move(spike)); }
+        void push_back(Spike &&spike) { process(spike.frame), queue.push_back(std::move(spike)); }
 
         iterator erase(const_iterator position) { return queue.erase(position); }
 
