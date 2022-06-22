@@ -7,7 +7,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
+    Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin, bool medianReference,
                          IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                          FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                          IntFrame jitterTol, IntFrame peakDur,
@@ -15,7 +15,7 @@ namespace HSDetection
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
-          commonRef(chunkLeftMargin, 1, chunkSize),
+          medianReference(medianReference), commonRef(chunkLeftMargin, 1, chunkSize),
           _commonRef(new IntVolt[chunkSize + chunkLeftMargin]),
           runningBaseline(numChannels), runningDeviation(numChannels),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
@@ -48,12 +48,24 @@ namespace HSDetection
         delete[] _commonRef;
     }
 
-    void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen) // TODO: add, use?
+    void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen)
     {
-        // // TODO: if median takes too long...
-        // // or there are only few
-        // // channnels (?)
-        // // then use mean
+        copy_n(commonRef[chunkStart + chunkSize - chunkLeftMargin], chunkLeftMargin,
+               commonRef[chunkStart - chunkLeftMargin]);
+
+        IntVolt *frame = new IntVolt[numChannels]; // nth_element modifies container
+        IntChannel mid = numChannels / 2 - 1;      // TODO: no need - 1
+
+        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+        {
+            copy_n(trace[t], numChannels, frame);
+
+            nth_element(frame, frame + mid, frame + numChannels);
+
+            commonRef(t, 0) = frame[mid];
+        }
+
+        delete[] frame;
     }
 
     void Detection::commonAverage(IntFrame chunkStart, IntFrame chunkLen)
@@ -77,7 +89,14 @@ namespace HSDetection
 
         if (numChannels >= 20) // TODO: magic number?
         {
-            commonAverage(chunkStart, chunkLen);
+            if (medianReference)
+            {
+                commonMedian(chunkStart, chunkLen);
+            }
+            else
+            {
+                commonAverage(chunkStart, chunkLen);
+            }
         }
 
         // // TODO: Does this need to end at chunkLen + chunkLeftMargin? (Cole+Martino)

@@ -29,6 +29,7 @@ namespace HSDetection
         IntFrame chunkLeftMargin; // margin on the left of each chunk
 
         // common reference
+        bool medianReference;   // whether to use median instead of average
         TraceWrapper commonRef; // common average/median reference
         IntVolt *_commonRef;    // internal buffer for commonRef
 
@@ -76,7 +77,7 @@ namespace HSDetection
         void commonAverage(IntFrame chunkStart, IntFrame chunkLen);
 
     public:
-        Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
+        Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin, bool medianReference,
                   IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                   FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                   IntFrame jitterTol, IntFrame peakDur,

@@ -70,6 +70,7 @@ class HSDetection(object):
         self.ahpthr: int = params['ahpthr']
         self.decay_filtering: bool = params['decay_filtering']
 
+        self.median_reference: bool = params['median_reference']
         self.localize: bool = params['localize']
         self.save_shape: bool = params['save_shape']
         self.verbose: bool = params['verbose']
@@ -149,6 +150,7 @@ class HSDetection(object):
             self.num_channels,
             t_inc,
             t_cut,
+            self.median_reference,
             self.maxsl,
             self.minsl,
             self.threshold,
