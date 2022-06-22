@@ -9,6 +9,7 @@ namespace HSDetection
     {
     private:
         IntVolt *arrayBuffer; // created and released here
+
         IntChannel numChannels;
 
         // TODO: must be >=chunkSize if cache all chunk, better to be 2^n?

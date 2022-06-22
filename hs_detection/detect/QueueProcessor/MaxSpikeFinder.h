@@ -10,7 +10,8 @@ namespace HSDetection
     {
     private:
         ProbeLayout *pLayout; // passed in, should not release here
-        IntFrame jitterTol;   // TODO: name???
+
+        IntFrame jitterTol;
 
     public:
         MaxSpikeFinder(ProbeLayout *pLayout, IntFrame jitterTol);

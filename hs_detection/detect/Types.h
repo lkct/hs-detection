@@ -12,6 +12,7 @@ namespace HSDetection
     typedef int32_t IntChannel;
     typedef int16_t IntVolt;
     typedef float FloatGeom; // correspond to np.single and cython.float
+    typedef float FloatRatio;
 
     typedef int64_t IntFxC;
     typedef int32_t IntFxV;

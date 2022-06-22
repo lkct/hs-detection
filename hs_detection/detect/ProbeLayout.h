@@ -13,8 +13,8 @@ namespace HSDetection
         std::vector<Point> positions;                  // channel positions, NxXY
         std::vector<std::vector<FloatGeom>> distances; // channel distances, NxN
 
-        std::vector<std::vector<IntChannel>> neighborList;      // adjacency list sorted by channel for neighbors, contains self, NxVariable
-        std::vector<std::vector<IntChannel>> innerNeighborList; // adjacency list sorted by distance for inner neighbors, contains self, NxVariable
+        std::vector<std::vector<IntChannel>> neighborList;      // adjacency list sorted by channel for neighbors, contains self, Nx?
+        std::vector<std::vector<IntChannel>> innerNeighborList; // adjacency list sorted by distance for inner neighbors, contains self, Nx?
 
         FloatGeom neighborRadius;
         FloatGeom innerRadius;

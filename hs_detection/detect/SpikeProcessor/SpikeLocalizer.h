@@ -11,8 +11,7 @@ namespace HSDetection
     class SpikeLocalizer : public SpikeProcessor
     {
     private:
-        ProbeLayout *pLayout; // passed in, should not release here
-
+        ProbeLayout *pLayout;    // passed in, should not release here
         TraceWrapper *pTrace;    // passed in, should not release here
         TraceWrapper *pRef;      // passed in, should not release here
         RollingArray *pBaseline; // passed in, should not release here

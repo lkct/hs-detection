@@ -16,12 +16,13 @@ namespace HSDetection
         IntVolt *buffer; // created and released here
 
         TraceWrapper *pTrace; // passed in, should not release here
-        IntFrame cutoutLeft;  // TODO: name???
+
+        IntFrame cutoutStart;
         IntFrame cutoutLen;
 
     public:
         SpikeShapeWriter(const std::string &filename, TraceWrapper *pTrace,
-                         IntFrame cutoutLeft, IntFrame cutoutLen);
+                         IntFrame cutoutStart, IntFrame cutoutLen);
         ~SpikeShapeWriter();
 
         using SpikeProcessor::operator(); // allow call on iterator

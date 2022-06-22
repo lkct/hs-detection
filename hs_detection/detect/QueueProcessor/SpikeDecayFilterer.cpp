@@ -6,7 +6,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeDecayFilterer::SpikeDecayFilterer(ProbeLayout *pLayout, IntFrame jitterTol, float decayRatio)
+    SpikeDecayFilterer::SpikeDecayFilterer(ProbeLayout *pLayout, IntFrame jitterTol, FloatRatio decayRatio)
         : pLayout(pLayout), jitterTol(jitterTol), decayRatio(decayRatio) {}
 
     SpikeDecayFilterer::~SpikeDecayFilterer() {}

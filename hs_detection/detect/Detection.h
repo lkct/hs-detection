@@ -14,65 +14,65 @@ namespace HSDetection
     {
         // constants
     private:
-        const IntVolt initBase = 0 * -64; // TODO: 64? mean ADC counts, as initial value for Qb
-        const IntVolt initDev = 400;      // start value of Qv // TODO: ???
-        const IntVolt minDev = 200;       // set minimum value of Qv
-        const IntVolt tauBase = 4;        // timescale for updating Qb (increment is Qv/Tau_m)
-        const IntVolt devChange = 1;      // TODO: Qv change amount?
+        const IntVolt initBase = 0 * -64; // initial value of baseline // TODO: 64?
+        const IntVolt initDev = 400;      // initial value of deviation
+        const IntVolt tauBase = 4;        // time constant for baseline update
+        const IntVolt devChange = 1;      // changing for deviation update
+        const IntVolt minDev = 200;       // minimum level of deviation
 
-        // input trace
+        // input data
     public:
-        TraceWrapper trace;
-        TraceWrapper commonRef;
-        RollingArray runningBaseline;  // median
-        RollingArray runningDeviation; // noise amplitude
+        TraceWrapper trace;            // input trace
+        TraceWrapper commonRef;        // common median/average reference
+        RollingArray runningBaseline;  // running estimation of baseline (33 percentile)
+        RollingArray runningDeviation; // running estimation of deviation from baseline
 
     private:
-        IntVolt *_commonRef; // for commonRef
-        IntChannel numChannels;
-        IntFrame chunkSize;
-        IntFrame chunkLeftMargin;
+        IntVolt *_commonRef;      // internal buffer for commonRef
+        IntChannel numChannels;   // number of probe channels
+        IntFrame chunkSize;       // size of each chunk, only the last chunk can be of a different (smaller) size
+        IntFrame chunkLeftMargin; // margin on the left of each chunk
 
         // detection
     private:
-        IntFrame *spikeTime; // counter for spike length
-        IntVolt *spikeAmp;   // buffers spike amplitude
-        IntFxV *spikeArea;   // integrates over spike // actually area*fps
-        bool *hasAHP;        // counter for repolarizing current
+        IntFrame *spikeTime; // counter for time since spike peak
+        IntVolt *spikeAmp;   // spike peak amplitude
+        IntFxV *spikeArea;   // area under spike used for average amplitude, actually integral*fps
+        bool *hasAHP;        // flag for AHP existence
 
-        IntFrame spikeDur;  // dead time in frames after peak, used for further testing
-        IntFrame ampAvgDur; // length considered for determining avg. spike amplitude
-        IntVolt threshold;  // threshold to detect spikes >11 is likely to be real spikes, but can and should be sorted afterwards(in units of Qv)
-        IntVolt minAvgAmp;  // minimal avg. amplitude of peak (in units of Qv)
-        IntVolt maxAHPAmp;  // signal should go below that threshold within MaxSl-MinSl frames(in units of Qv)
+        IntFrame spikeDur;  // duration of a whole spike
+        IntFrame ampAvgDur; // duration to average amplitude
+        IntVolt threshold;  // threshold to detect spikes, used as multiplier of deviation
+        IntVolt minAvgAmp;  // threshold for average amplitude of peak, used as multiplier of deviation
+        IntVolt maxAHPAmp;  // threshold for voltage level of AHP, used as multiplier of deviation
 
         // queue processing
     private:
-        SpikeQueue *pQueue; // must be a pointer to be new-ed later
+        SpikeQueue *pQueue; // spike queue, must be a pointer to be new-ed later
 
     public:
-        ProbeLayout probeLayout;
+        ProbeLayout probeLayout; // geometry for probe layout
 
-        std::vector<Spike> result;
+        std::vector<Spike> result; // detection result, use vector to expand as needed
 
-        IntFrame jitterTol; // The number of frames that the true spike can occur after the first detection.
-        IntFrame peakDur;   // The number of frames it takes a spike amplitude to fully decay.
+        IntFrame jitterTol; // tolerance of jitter in raw data
+        IntFrame peakDur;   // duration of spike peaks
 
         // decay filtering
     public:
-        bool decayFilter; // if true, then tries to filter by decay (more effective for less dense arrays)
-        float decayRatio; // percent??? Amplitude percentage allowed to differentiate between decreasing amplitude duplicate spike
+        bool decayFilter;      // whether to use decay filtering instead of normal one
+        FloatRatio decayRatio; // ratio of amplitude to be considered as decayed
 
         // localization
     public:
-        bool localize; // True: filter and localize the spike, False: just filter the spike.
+        bool localize; // whether to turn on localization
 
         // save shape
     public:
-        bool saveShape;
-        std::string filename;
-        IntFrame cutoutStart; // The number of frames before the spike that the cutout starts at
-        IntFrame cutoutLen;   // The number of frames after the spike that the cutout ends at
+        bool saveShape;       // whether to save spike shapes to file
+        std::string filename; // filename for saving
+        IntFrame cutoutStart; // the start of spike shape cutout
+        IntFrame cutoutLen;   // the length of shape cutout
 
         // methods
     private:
@@ -84,7 +84,7 @@ namespace HSDetection
                   IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                   FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                   IntFrame jitterTol, IntFrame peakDur,
-                  bool decayFiltering, float decayRatio, bool localize,
+                  bool decayFiltering, FloatRatio decayRatio, bool localize,
                   bool saveShape, std::string filename, IntFrame cutoutStart, IntFrame cutoutLen);
         ~Detection();
 

@@ -10,7 +10,7 @@ namespace HSDetection
                          IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                          FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                          IntFrame jitterTol, IntFrame peakDur,
-                         bool decayFiltering, float decayRatio, bool localize,
+                         bool decayFiltering, FloatRatio decayRatio, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
           commonRef(chunkLeftMargin, 1, chunkSize),
@@ -86,7 +86,7 @@ namespace HSDetection
         {
             IntVolt *input = trace[t];
             IntVolt ref = commonRef(t, 0);
-            IntVolt *basePrev = runningBaseline[t - 1]; // TODO: name?
+            IntVolt *basePrev = runningBaseline[t - 1];
             IntVolt *devPrev = runningDeviation[t - 1];
             IntVolt *baselines = runningBaseline[t];
             IntVolt *deviations = runningDeviation[t];

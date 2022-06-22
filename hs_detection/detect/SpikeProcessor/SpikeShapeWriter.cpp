@@ -5,10 +5,10 @@ using namespace std;
 namespace HSDetection
 {
     SpikeShapeWriter::SpikeShapeWriter(const string &filename, TraceWrapper *pTrace,
-                                       IntFrame cutoutLeft, IntFrame cutoutLen)
+                                       IntFrame cutoutStart, IntFrame cutoutLen)
         : spikeFile(filename, ios::binary | ios::trunc),
           buffer(new IntVolt[cutoutLen]), pTrace(pTrace),
-          cutoutLeft(cutoutLeft), cutoutLen(cutoutLen) {}
+          cutoutStart(cutoutStart), cutoutLen(cutoutLen) {}
 
     SpikeShapeWriter::~SpikeShapeWriter()
     {
@@ -18,7 +18,7 @@ namespace HSDetection
 
     void SpikeShapeWriter::operator()(Spike *pSpike)
     {
-        IntFrame cutoutStart = pSpike->frame - cutoutLeft;
+        IntFrame cutoutStart = pSpike->frame - this->cutoutStart;
         for (IntFrame t = 0; t < cutoutLen; t++)
         {
             buffer[t] = (*pTrace)(cutoutStart + t, pSpike->channel);

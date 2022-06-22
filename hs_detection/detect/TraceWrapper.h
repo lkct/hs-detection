@@ -12,7 +12,7 @@ namespace HSDetection
 
         IntFrame frameOffset; // offset of current chunk
         IntChannel numChannels;
-        IntFrame chunkSize; // offset advenced by this size with each new chunk
+        IntFrame chunkSize; // offset advance by this size with each new chunk
 
     public:
         TraceWrapper(IntFrame leftMargin, IntChannel numChannels, IntFrame chunkSize)
