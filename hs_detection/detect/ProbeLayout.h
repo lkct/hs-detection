@@ -37,7 +37,7 @@ namespace HSDetection
         const std::vector<IntChannel> &getInnerNeighbors(IntChannel channel) const { return innerNeighborList[channel]; }
 
         bool areNeighbors(IntChannel channel1, IntChannel channel2) const { return getChannelDistance(channel1, channel2) < neighborRadius; }
-        bool areInnerNeighbors(IntChannel channel1, IntChannel channel2) const { return getChannelDistance(channel1, channel2) < innerRadius; } // TODO: <=?
+        bool areInnerNeighbors(IntChannel channel1, IntChannel channel2) const { return getChannelDistance(channel1, channel2) < innerRadius; }
         bool areOuterNeighbors(IntChannel channel1, IntChannel channel2) const { return areNeighbors(channel1, channel2) && !areInnerNeighbors(channel1, channel2); }
     };
 

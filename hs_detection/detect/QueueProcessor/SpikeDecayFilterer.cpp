@@ -17,14 +17,7 @@ namespace HSDetection
         IntChannel maxChannel = pQueue->begin()->channel;
         IntVolt maxAmp = pQueue->begin()->amplitude;
 
-        { // TODO:
-            // pQueue->remove_if(
-            //         [this, pQueue, &maxSpike, frameBound](const Spike &spike)
-            //         { return spike.frame < frameBound &&
-            //                  pLayout->areNeighbors(maxSpike.channel, spike.channel) &&
-            //                  !pLayout->areInnerNeighbors(maxSpike.channel, spike.frame) &&
-            //                  shouldFilterOuter(pQueue, spike, maxSpike); });
-
+        { // filter outer neighbors
             vector<Spike> outerSpikes;
 
             copy_if(pQueue->begin(), pQueue->end(), back_inserter(outerSpikes),
@@ -41,7 +34,6 @@ namespace HSDetection
                                              (lhs.frame == rhs.frame && lhs.channel < rhs.channel); }); });
         }
 
-        // TODO: with frameBound only in decay???
         pQueue->remove_if([this, frameBound, maxChannel, maxAmp](const Spike &spike)
                           { return spike.frame < frameBound &&
                                    pLayout->areInnerNeighbors(spike.channel, maxChannel) &&

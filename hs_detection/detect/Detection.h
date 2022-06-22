@@ -14,18 +14,18 @@ namespace HSDetection
     {
         // constants
     private:
-        const IntVolt Tau_m0 = 4;        // timescale for updating Qb (increment is Qv/Tau_m)
-        const IntVolt Qvmin = 200;       // set minimum value of Qv
-        const IntVolt Voffset = 0 * -64; // mean ADC counts, as initial value for Qb
-        const IntVolt Qvstart = 400;     // start value of Qv // TODO: ???
-        const IntVolt QvChange = 1;      // TODO: Qv change amount?
+        const IntVolt initBase = 0 * -64; // TODO: 64? mean ADC counts, as initial value for Qb
+        const IntVolt initDev = 400;      // start value of Qv // TODO: ???
+        const IntVolt minDev = 200;       // set minimum value of Qv
+        const IntVolt tauBase = 4;        // timescale for updating Qb (increment is Qv/Tau_m)
+        const IntVolt devChange = 1;      // TODO: Qv change amount?
 
         // input trace
     public:
         TraceWrapper trace;
         TraceWrapper commonRef;
-        RollingArray runningBaseline; // median
-        RollingArray runningVariance; // noise amplitude
+        RollingArray runningBaseline;  // median
+        RollingArray runningDeviation; // noise amplitude
 
     private:
         IntVolt *_commonRef; // for commonRef

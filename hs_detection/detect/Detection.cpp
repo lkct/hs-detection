@@ -15,7 +15,7 @@ namespace HSDetection
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
           commonRef(chunkLeftMargin, 1, chunkSize),
-          runningBaseline(numChannels), runningVariance(numChannels),
+          runningBaseline(numChannels), runningDeviation(numChannels),
           _commonRef(new IntVolt[chunkSize + chunkLeftMargin]),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
@@ -29,8 +29,8 @@ namespace HSDetection
           saveShape(saveShape), filename(filename),
           cutoutStart(cutoutStart), cutoutLen(cutoutLen)
     {
-        fill_n(runningBaseline[-1], numChannels, Voffset);
-        fill_n(runningVariance[-1], numChannels, Qvstart);
+        fill_n(runningBaseline[-1], numChannels, initBase);
+        fill_n(runningDeviation[-1], numChannels, initDev);
 
         fill_n(spikeTime, numChannels, (IntFrame)-1);
 
@@ -71,13 +71,6 @@ namespace HSDetection
             }
             commonRef(t, 0) = sum / numChannels * 64;
         }
-        // TODO: ???
-        // for (int t = chunkStart - 1; t >= chunkStart - chunkLeftMargin; t--)
-        // {
-        //     // TODO: why? but keep behaviour
-        //     // but exactly kept at t==chunkStart
-        //     commonRef(t, 0) = commonRef(t + spikeLen - 1, 0);
-        // }
     }
 
     void Detection::step(IntVolt *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)
@@ -95,25 +88,25 @@ namespace HSDetection
         {
             IntVolt *input = trace[t];
             IntVolt ref = commonRef(t, 0);
-            IntVolt *QbPrev = runningBaseline[t - 1]; // TODO: name?
-            IntVolt *QvPrev = runningVariance[t - 1];
-            IntVolt *Qb = runningBaseline[t];
-            IntVolt *Qv = runningVariance[t];
+            IntVolt *basePrev = runningBaseline[t - 1]; // TODO: name?
+            IntVolt *devPrev = runningDeviation[t - 1];
+            IntVolt *baselines = runningBaseline[t];
+            IntVolt *deviations = runningDeviation[t];
 
             for (IntChannel i = 0; i < numChannels; i++)
             {
-                IntVolt volt = input[i] - ref - QbPrev[i];
+                IntVolt volt = input[i] - ref - basePrev[i];
 
                 IntVolt dltBase = 0;
-                dltBase = (QvPrev[i] < volt) ? QvPrev[i] / Tau_m0 : dltBase;
-                dltBase = (volt < -QvPrev[i]) ? -QvPrev[i] / (Tau_m0 * 2) : dltBase;
-                Qb[i] = QbPrev[i] + dltBase;
+                dltBase = (devPrev[i] < volt) ? devPrev[i] / tauBase : dltBase;
+                dltBase = (volt < -devPrev[i]) ? -devPrev[i] / (tauBase * 2) : dltBase;
+                baselines[i] = basePrev[i] + dltBase;
 
-                IntVolt dltVar = 0;
-                dltVar = (QvPrev[i] < volt && volt < 5 * QvPrev[i]) ? QvChange : dltVar;
-                dltVar = ((0 < volt && volt <= QvPrev[i]) || 6 * QvPrev[i] < volt) ? -QvChange : dltVar; // TODO: split two cmov?
-                IntVolt Qvi = QvPrev[i] + dltVar;
-                Qv[i] = (Qvi < Qvmin) ? Qvmin : Qvi; // clamp Qv at Qvmin
+                IntVolt dltDev = 0;
+                dltDev = (devPrev[i] < volt && volt < 5 * devPrev[i]) ? devChange : dltDev;
+                dltDev = ((0 < volt && volt <= devPrev[i]) || 6 * devPrev[i] < volt) ? -devChange : dltDev; // TODO: split two cmov?
+                IntVolt devI = devPrev[i] + dltDev;
+                deviations[i] = (devI < minDev) ? minDev : devI; // clamp deviations at minDev
             }
         }
 
@@ -121,18 +114,18 @@ namespace HSDetection
         {
             IntVolt *input = trace[t];
             IntVolt ref = commonRef(t, 0);
-            IntVolt *Qb = runningBaseline[t];
-            IntVolt *Qv = runningVariance[t];
+            IntVolt *baselines = runningBaseline[t];
+            IntVolt *deviations = runningDeviation[t];
 
             for (IntChannel i = 0; i < numChannels; i++)
             {
                 // // TODO: should chunkLeftMargin be subtracted here??
-                IntVolt volt = input[i] - ref - Qb[i]; // calc against updated Qb
-                IntVolt Qvi = Qv[i];
+                IntVolt volt = input[i] - ref - baselines[i]; // calc against updated baselines
+                IntVolt devI = deviations[i];
 
                 if (spikeTime[i] < 0) // not in spike
                 {
-                    if (volt > threshold * Qvi / 2) // threshold crossing // TODO: why /2
+                    if (volt > threshold * devI / 2) // threshold crossing // TODO: why /2
                     {
                         spikeTime[i] = 0;
                         spikeAmp[i] = volt;
@@ -161,7 +154,7 @@ namespace HSDetection
 
                 if (spikeTime[i] < spikeLen - 1)
                 {
-                    if (volt < maxAHPAmp * Qvi) // AHP found
+                    if (volt < maxAHPAmp * devI) // AHP found
                     {
                         hasAHP[i] = true;
                     }
@@ -177,8 +170,8 @@ namespace HSDetection
                 // else: spikeTime[i] == spikeLen - 1, spike end
 
                 // TODO: if not AHP, whether connect spike?
-                if (2 * spikeArea[i] > (IntFxV)peakLen * minAvgAmp * Qvi && // reach min area // TODO: why *2
-                    (hasAHP[i] || volt < maxAHPAmp * Qvi))                  // AHP exist
+                if (2 * spikeArea[i] > (IntFxV)peakLen * minAvgAmp * devI && // reach min area // TODO: why *2
+                    (hasAHP[i] || volt < maxAHPAmp * devI))                  // AHP exist
                 {
                     pQueue->push_back(Spike(t - spikeLen + 1, i, spikeAmp[i]));
                 }

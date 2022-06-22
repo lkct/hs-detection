@@ -10,7 +10,7 @@ namespace HSDetection
                              FloatGeom neighborRadius, FloatGeom innerRadius)
         : positions(numChannels), distances(numChannels, vector<FloatGeom>(numChannels)),
           neighborList(numChannels), innerNeighborList(numChannels),
-          neighborRadius(neighborRadius), innerRadius(innerRadius)
+          neighborRadius(neighborRadius + 1e-3), innerRadius(innerRadius + 1e-3)
     {
         for (IntChannel i = 0; i < numChannels; i++)
         {
@@ -26,7 +26,7 @@ namespace HSDetection
                 if (dis < neighborRadius)
                 {
                     neighborList[i].push_back(j);
-                    if (dis < innerRadius) // TODO: <=?
+                    if (dis < innerRadius)
                     {
                         innerNeighborList[i].push_back(j);
                     }
