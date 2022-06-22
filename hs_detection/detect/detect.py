@@ -202,9 +202,6 @@ class HSDetection(object):
             position[i, 0] = det_res[i].position.x
             position[i, 1] = det_res[i].position.y
 
-        # TODO: ???
-        location = np.floor(position * 1000 + 0.5).astype(np.int32) / 1000
-
         del det
 
         if out_file and out_file.stat().st_size > 0:
@@ -218,7 +215,7 @@ class HSDetection(object):
                                         'sample_ind': sample_ind,
                                         'amplitude': amplitude}
         if self.localize:
-            result |= {'location': location}
+            result |= {'location': position}
         if self.save_shape:
             result |= {'spike_shape': spikes}
             if spikes.shape[0] < 10000:  # TODO: ???
