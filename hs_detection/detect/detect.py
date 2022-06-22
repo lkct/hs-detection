@@ -39,13 +39,15 @@ class HSDetection(object):
             self.scale: NDArray[np.float32] = np.array(1.0, dtype=np.float32)
             self.offset: NDArray[np.float32] = np.array(0.0, dtype=np.float32)
 
-        positions: NDArray[np.float64] = np.array([
-            recording.get_channel_property(ch, 'location') for ch in recording.get_channel_ids()])
+        positions: NDArray[np.single] = np.array(
+            [recording.get_channel_property(ch, 'location')
+             for ch in recording.get_channel_ids()],
+            dtype=np.single)
         if positions.shape[1] > 2:
             warnings.warn(f'Channel locations have {positions.shape[1]} dimensions, '
                           'using the last two.')
             positions = positions[:, -2:]
-        self.positions = positions.astype(np.float32)
+        self.positions = np.ascontiguousarray(positions)
 
         self.spike_peak_duration = int(
             params['event_length'] * self.fps / 1000)
@@ -141,8 +143,7 @@ class HSDetection(object):
                     self.num_frames[segment_index] - t_cut - t_cut2)
         t_cut = 2048  # TODO: can be smaller? effect of band pass?
 
-        position_matrix: cython.float[:, :] = np.ascontiguousarray(
-            self.positions, dtype=np.float32)
+        position_matrix: cython.float[:, :] = self.positions
         out_file = self.out_file.with_stem(
             self.out_file.stem + f'-{segment_index}') if self.out_file else None
         det: cython.pointer(Detection) = new Detection(
@@ -195,7 +196,7 @@ class HSDetection(object):
         channel_ind = np.empty(det_len, dtype=np.int32)
         sample_ind = np.empty(det_len, dtype=np.int32)
         amplitude = np.empty(det_len, dtype=np.int32)
-        position = np.empty((det_len, 2), dtype=np.float32)
+        position = np.empty((det_len, 2), dtype=np.single)
         for i in range(det_len):
             sample_ind[i] = det_res[i].frame
             channel_ind[i] = det_res[i].channel
@@ -203,6 +204,7 @@ class HSDetection(object):
             position[i, 0] = det_res[i].position.x
             position[i, 1] = det_res[i].position.y
 
+        # TODO: ???
         location = np.floor(position * 1000 + 0.5).astype(np.int32) / 1000
 
         del det
