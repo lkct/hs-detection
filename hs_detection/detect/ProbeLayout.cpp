@@ -14,8 +14,8 @@ namespace HSDetection
     {
         for (IntChannel i = 0; i < numChannels; i++)
         {
-            positions[i].x = (int)channelPositions[i * 2]; // TODO: int cast???
-            positions[i].y = (int)channelPositions[i * 2 + 1];
+            positions[i].x = channelPositions[i * 2];
+            positions[i].y = channelPositions[i * 2 + 1];
         }
 
         for (IntChannel i = 0; i < numChannels; i++)
