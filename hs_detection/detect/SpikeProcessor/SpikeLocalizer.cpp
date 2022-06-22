@@ -8,19 +8,19 @@ namespace HSDetection
 {
     SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout, TraceWrapper *pTrace,
                                    TraceWrapper *pRef, RollingArray *pBaseline,
-                                   IntFrame noiseDuration, IntFrame spikePeakDuration)
+                                   IntFrame jitterTol, IntFrame peakLen)
         : pLayout(pLayout), pTrace(pTrace), pRef(pRef), pBaseline(pBaseline),
-          noiseDuration(noiseDuration), spikePeakDuration(spikePeakDuration) {}
+          jitterTol(jitterTol), peakLen(peakLen) {}
 
     SpikeLocalizer::~SpikeLocalizer() {}
 
     void SpikeLocalizer::operator()(Spike *pSpike)
     {
-        IntFrame frameLeft = pSpike->frame - noiseDuration; // TODO: name?
-        IntFrame frameRight = pSpike->frame + noiseDuration;
+        IntFrame frameLeft = pSpike->frame - jitterTol; // TODO: name?
+        IntFrame frameRight = pSpike->frame + jitterTol;
 
         IntVolt ref = (*pRef)(pSpike->frame, 0);
-        const IntVolt *baselines = (*pBaseline)[pSpike->frame - spikePeakDuration];
+        const IntVolt *baselines = (*pBaseline)[pSpike->frame - peakLen];
 
         vector<pair<IntChannel, IntFxV>> chAmps;
 

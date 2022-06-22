@@ -17,13 +17,13 @@ namespace HSDetection
         TraceWrapper *pRef;      // passed in, should not release here
         RollingArray *pBaseline; // passed in, should not release here
 
-        IntFrame noiseDuration;
-        IntFrame spikePeakDuration;
+        IntFrame jitterTol;
+        IntFrame peakLen;
 
     public:
         SpikeLocalizer(ProbeLayout *pLayout, TraceWrapper *pTrace,
                        TraceWrapper *pRef, RollingArray *pBaseline,
-                       IntFrame noiseDuration, IntFrame spikePeakDuration);
+                       IntFrame jitterTol, IntFrame peakLen);
         ~SpikeLocalizer();
 
         using SpikeProcessor::operator(); // allow call on iterator

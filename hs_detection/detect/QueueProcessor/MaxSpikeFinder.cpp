@@ -6,8 +6,8 @@ using namespace std;
 
 namespace HSDetection
 {
-    MaxSpikeFinder::MaxSpikeFinder(ProbeLayout *pLayout, IntFrame noiseDuration)
-        : pLayout(pLayout), framesFilter(noiseDuration + 1) {}
+    MaxSpikeFinder::MaxSpikeFinder(ProbeLayout *pLayout, IntFrame jitterTol)
+        : pLayout(pLayout), framesFilter(jitterTol + 1) {}
 
     MaxSpikeFinder::~MaxSpikeFinder() {}
 

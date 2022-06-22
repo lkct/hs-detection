@@ -23,18 +23,18 @@ namespace HSDetection
 {
     SpikeQueue::SpikeQueue(Detection *pDet)
         : queue(), queProcs(), spkProcs(), result(&pDet->result),
-          framesInQueue(pDet->noiseDuration + pDet->spikePeakDuration),
-          framesToContinue(pDet->noiseDuration + 1)
+          framesInQueue(pDet->jitterTol + pDet->peakLen),
+          framesToContinue(pDet->jitterTol + 1)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;
 
-        pQueProc = new MaxSpikeFinder(&pDet->probeLayout, pDet->noiseDuration);
+        pQueProc = new MaxSpikeFinder(&pDet->probeLayout, pDet->jitterTol);
         queProcs.push_back(pQueProc);
 
         if (pDet->decayFilter)
         {
-            pQueProc = new SpikeDecayFilterer(&pDet->probeLayout, pDet->noiseDuration, pDet->noiseAmpPercent);
+            pQueProc = new SpikeDecayFilterer(&pDet->probeLayout, pDet->jitterTol, pDet->decayRatio);
         }
         else
         {
@@ -45,7 +45,7 @@ namespace HSDetection
         if (pDet->localize)
         {
             pSpkProc = new SpikeLocalizer(&pDet->probeLayout, &pDet->trace, &pDet->commonRef, &pDet->runningBaseline,
-                                          pDet->noiseDuration, pDet->spikePeakDuration);
+                                          pDet->jitterTol, pDet->peakLen);
             pushFirstElemProc(pSpkProc);
         }
 

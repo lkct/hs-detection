@@ -13,7 +13,7 @@ namespace HSDetection
         IntFrame framesFilter; // TODO: name???
 
     public:
-        MaxSpikeFinder(ProbeLayout *pLayout, IntFrame noiseDuration);
+        MaxSpikeFinder(ProbeLayout *pLayout, IntFrame jitterTol);
         ~MaxSpikeFinder();
 
         void operator()(SpikeQueue *pQueue);
