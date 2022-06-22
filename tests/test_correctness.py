@@ -7,7 +7,7 @@ from data_utils import download_small, str2Path
 from run_hs2 import run_herdingspikes, run_hsdet
 
 
-def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
+def test_correctness(data_fn: str = 'mearec_test_10s.h5') -> None:
     data_path = str2Path(data_fn)
     if not data_path.exists():
         download_small(data_fn)
@@ -58,4 +58,4 @@ def test_corectness(data_fn: str = 'mearec_test_10s.h5') -> None:
 
 
 if __name__ == '__main__':
-    test_corectness()
+    test_correctness()
