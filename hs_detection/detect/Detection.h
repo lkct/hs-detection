@@ -12,8 +12,10 @@ namespace HSDetection
 {
     class Detection
     {
-        // constants
     private:
+        friend SpikeQueue; // allow access to the whole param set
+
+        // constants
         const IntVolt initBase = 0 * -64; // initial value of baseline // TODO: 64?
         const IntVolt initDev = 400;      // initial value of deviation
         const IntVolt tauBase = 4;        // time constant for baseline update
@@ -21,20 +23,17 @@ namespace HSDetection
         const IntVolt minDev = 200;       // minimum level of deviation
 
         // input data
-    public:
         TraceWrapper trace;            // input trace
         TraceWrapper commonRef;        // common median/average reference
         RollingArray runningBaseline;  // running estimation of baseline (33 percentile)
         RollingArray runningDeviation; // running estimation of deviation from baseline
 
-    private:
         IntVolt *_commonRef;      // internal buffer for commonRef
         IntChannel numChannels;   // number of probe channels
         IntFrame chunkSize;       // size of each chunk, only the last chunk can be of a different (smaller) size
         IntFrame chunkLeftMargin; // margin on the left of each chunk
 
         // detection
-    private:
         IntFrame *spikeTime; // counter for time since spike peak
         IntVolt *spikeAmp;   // spike peak amplitude
         IntFxV *spikeArea;   // area under spike used for average amplitude, actually integral*fps
@@ -47,10 +46,8 @@ namespace HSDetection
         IntVolt maxAHPAmp;  // threshold for voltage level of AHP, used as multiplier of deviation
 
         // queue processing
-    private:
         SpikeQueue *pQueue; // spike queue, must be a pointer to be new-ed later
 
-    public:
         ProbeLayout probeLayout; // geometry for probe layout
 
         std::vector<Spike> result; // detection result, use vector to expand as needed
@@ -59,22 +56,18 @@ namespace HSDetection
         IntFrame peakDur;   // duration of spike peaks
 
         // decay filtering
-    public:
         bool decayFilter;      // whether to use decay filtering instead of normal one
         FloatRatio decayRatio; // ratio of amplitude to be considered as decayed
 
         // localization
-    public:
         bool localize; // whether to turn on localization
 
         // save shape
-    public:
         bool saveShape;       // whether to save spike shapes to file
         std::string filename; // filename for saving
         IntFrame cutoutStart; // the start of spike shape cutout
         IntFrame cutoutLen;   // the length of shape cutout
 
-        // methods
     private:
         void commonMedian(IntFrame chunkStart, IntFrame chunkLen);
         void commonAverage(IntFrame chunkStart, IntFrame chunkLen);

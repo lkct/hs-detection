@@ -28,7 +28,7 @@ namespace HSDetection
         IntFrame peakDurWithTol; // peakDur + jitterTol
 
     public:
-        SpikeQueue(Detection *pDet); // passing thw whole param set altogether
+        SpikeQueue(Detection *pDet); // passing the whole param set altogether
         ~SpikeQueue();
 
         // copy constructor deleted to protect container content
