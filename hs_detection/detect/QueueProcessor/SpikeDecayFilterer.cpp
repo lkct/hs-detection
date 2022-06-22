@@ -46,24 +46,6 @@ namespace HSDetection
         IntChannel outerChannel = outerSpike.channel;
         FloatGeom outerDist = pLayout->getChannelDistance(outerChannel, maxChannel);
 
-        // TODO: merge loop?
-        for (IntChannel innerOfOuter : pLayout->getInnerNeighbors(outerChannel))
-        {
-            if (pLayout->areInnerNeighbors(innerOfOuter, maxChannel))
-            {
-                SpikeQueue::const_iterator itSpikeOnInner = find_if(
-                    pQueue->begin(), pQueue->end(),
-                    [innerOfOuter](const Spike &spike)
-                    { return spike.channel == innerOfOuter; });
-
-                if (itSpikeOnInner != pQueue->end()) // exist spike on innerOfOuter
-                {
-                    return outerSpike.amplitude < itSpikeOnInner->amplitude * noiseAmpPercent && // and outer decayed
-                           itSpikeOnInner->frame - noiseDuration <= outerSpike.frame;            // and outer not too early
-                }
-            }
-        }
-
         for (IntChannel innerOfOuter : pLayout->getInnerNeighbors(outerChannel))
         {
             if (pLayout->getChannelDistance(innerOfOuter, maxChannel) < outerDist)
@@ -72,10 +54,20 @@ namespace HSDetection
                     pQueue->begin(), pQueue->end(),
                     [innerOfOuter](const Spike &spike)
                     { return spike.channel == innerOfOuter; });
+                if (itSpikeOnInner == pQueue->end()) // spike on innerOfOuter channel not found
+                {
+                    continue;
+                }
 
-                if (itSpikeOnInner != pQueue->end() &&                                    // exist spike on innerOfOuter
-                    outerSpike.amplitude < itSpikeOnInner->amplitude * noiseAmpPercent && // and outer decayed
-                    itSpikeOnInner->frame - noiseDuration <= outerSpike.frame)            // and outer not too early
+                bool isDecay = outerSpike.amplitude < itSpikeOnInner->amplitude * noiseAmpPercent && // outer decayed
+                               itSpikeOnInner->frame - noiseDuration <= outerSpike.frame;            // and outer time correct
+
+                if (pLayout->areInnerNeighbors(innerOfOuter, maxChannel))
+                {
+                    return isDecay;
+                }
+                // else: outer neighbor that is closer
+                if (isDecay)
                 {
                     return shouldFilterOuter(pQueue, *itSpikeOnInner);
                 }
