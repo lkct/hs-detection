@@ -7,9 +7,9 @@ using namespace std;
 namespace HSDetection
 {
     Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
-                         IntFrame spikeLen, IntFrame ampAvgLen, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
+                         IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                          FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
-                         IntFrame jitterTol, IntFrame peakLen,
+                         IntFrame jitterTol, IntFrame peakDur,
                          bool decayFiltering, float decayRatio, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
@@ -19,10 +19,10 @@ namespace HSDetection
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
           spikeArea(new IntFxV[numChannels]), hasAHP(new bool[numChannels]),
-          spikeLen(spikeLen), ampAvgLen(ampAvgLen), threshold(threshold),
+          spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold),
           minAvgAmp(minAvgAmp), maxAHPAmp(maxAHPAmp), // pQueue not ready
           probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
-          result(), jitterTol(jitterTol), peakLen(peakLen),
+          result(), jitterTol(jitterTol), peakDur(peakDur),
           decayFilter(decayFiltering), decayRatio(decayRatio),
           localize(localize), saveShape(saveShape), filename(filename),
           cutoutStart(cutoutStart), cutoutLen(cutoutLen)
@@ -136,7 +136,7 @@ namespace HSDetection
                 spikeTime[i]++;
                 // 1 <= spikeTime[i]
 
-                if (spikeTime[i] < ampAvgLen - 1) // sum up area in ampAvgLen // TODO: inconsistent - 1
+                if (spikeTime[i] < ampAvgDur - 1) // sum up area in ampAvgDur // TODO: inconsistent - 1
                 {
                     spikeArea[i] += volt;   // TODO: ??? added twice
                     if (spikeAmp[i] < volt) // larger amp found
@@ -148,9 +148,9 @@ namespace HSDetection
                     }
                     continue;
                 }
-                // else: ampAvgLen - 1 <= spikeTime[i]
+                // else: ampAvgDur - 1 <= spikeTime[i]
 
-                if (spikeTime[i] < spikeLen - 1) // TODO: inconsistent - 1
+                if (spikeTime[i] < spikeDur - 1) // TODO: inconsistent - 1
                 {
                     if (volt < maxAHPAmp * devI) // AHP found
                     {
@@ -165,13 +165,13 @@ namespace HSDetection
                     }
                     continue;
                 }
-                // else: spikeTime[i] == spikeLen - 1, spike end
+                // else: spikeTime[i] == spikeDur - 1, spike end
 
                 // TODO: if not AHP, whether connect spike?
-                if (2 * spikeArea[i] > (IntFxV)ampAvgLen * minAvgAmp * devI && // reach min area // TODO: why *2
+                if (2 * spikeArea[i] > (IntFxV)ampAvgDur * minAvgAmp * devI && // reach min area // TODO: why *2
                     (hasAHP[i] || volt < maxAHPAmp * devI))                    // AHP exist
                 {
-                    pQueue->push_back(Spike(t - (spikeLen - 1), i, spikeAmp[i]));
+                    pQueue->push_back(Spike(t - (spikeDur - 1), i, spikeAmp[i]));
                 }
 
                 spikeTime[i] = -1;

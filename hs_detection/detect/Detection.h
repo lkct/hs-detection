@@ -40,23 +40,23 @@ namespace HSDetection
         IntFxV *spikeArea;   // integrates over spike // actually area*fps
         bool *hasAHP;        // counter for repolarizing current
 
-        IntFrame spikeLen; // dead time in frames after peak, used for further testing
-        IntFrame ampAvgLen;  // length considered for determining avg. spike amplitude
-        IntVolt threshold; // threshold to detect spikes >11 is likely to be real spikes, but can and should be sorted afterwards(in units of Qv)
-        IntVolt minAvgAmp; // minimal avg. amplitude of peak (in units of Qv)
-        IntVolt maxAHPAmp; // signal should go below that threshold within MaxSl-MinSl frames(in units of Qv)
+        IntFrame spikeDur;  // dead time in frames after peak, used for further testing
+        IntFrame ampAvgDur; // length considered for determining avg. spike amplitude
+        IntVolt threshold;  // threshold to detect spikes >11 is likely to be real spikes, but can and should be sorted afterwards(in units of Qv)
+        IntVolt minAvgAmp;  // minimal avg. amplitude of peak (in units of Qv)
+        IntVolt maxAHPAmp;  // signal should go below that threshold within MaxSl-MinSl frames(in units of Qv)
 
         // queue processing
     private:
-        SpikeQueue *pQueue;
+        SpikeQueue *pQueue; // must be a pointer to be new-ed later
 
     public:
         ProbeLayout probeLayout;
 
         std::vector<Spike> result;
 
-        IntFrame jitterTol;     // The number of frames that the true spike can occur after the first detection.
-        IntFrame peakLen; // The number of frames it takes a spike amplitude to fully decay.
+        IntFrame jitterTol; // The number of frames that the true spike can occur after the first detection.
+        IntFrame peakDur;   // The number of frames it takes a spike amplitude to fully decay.
 
         // decay filtering
     public:
@@ -81,9 +81,9 @@ namespace HSDetection
 
     public:
         Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
-                  IntFrame spikeLen, IntFrame ampAvgLen, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
+                  IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                   FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
-                  IntFrame jitterTol, IntFrame peakLen,
+                  IntFrame jitterTol, IntFrame peakDur,
                   bool decayFiltering, float decayRatio, bool localize,
                   bool saveShape, std::string filename, IntFrame cutoutStart, IntFrame cutoutLen);
         ~Detection();
