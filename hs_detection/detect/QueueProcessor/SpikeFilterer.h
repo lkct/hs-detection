@@ -9,12 +9,12 @@ namespace HSDetection
     class SpikeFilterer : public QueueProcessor
     {
     private:
-        ProbeLayout *pLayout; // passed in, should not release here
+        const ProbeLayout *pLayout; // passed in, should not release here
 
         IntFrame jitterTol;
 
     public:
-        SpikeFilterer(ProbeLayout *pLayout, IntFrame jitterTol);
+        SpikeFilterer(const ProbeLayout *pLayout, IntFrame jitterTol);
         ~SpikeFilterer();
 
         void operator()(SpikeQueue *pQueue);

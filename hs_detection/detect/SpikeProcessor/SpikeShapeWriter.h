@@ -15,13 +15,13 @@ namespace HSDetection
         std::ofstream spikeFile;
         IntVolt *buffer; // created and released here
 
-        TraceWrapper *pTrace; // passed in, should not release here
+        const TraceWrapper *pTrace; // passed in, should not release here
 
         IntFrame cutoutStart;
         IntFrame cutoutLen;
 
     public:
-        SpikeShapeWriter(const std::string &filename, TraceWrapper *pTrace,
+        SpikeShapeWriter(const std::string &filename, const TraceWrapper *pTrace,
                          IntFrame cutoutStart, IntFrame cutoutLen);
         ~SpikeShapeWriter();
 

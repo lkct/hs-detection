@@ -20,7 +20,7 @@ namespace HSDetection
         FloatGeom innerRadius;
 
     public:
-        ProbeLayout(IntChannel numChannels, FloatGeom *channelPositions,
+        ProbeLayout(IntChannel numChannels, const FloatGeom *channelPositions,
                     FloatGeom neighborRadius, FloatGeom innerRadius);
         ~ProbeLayout();
 

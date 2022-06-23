@@ -9,7 +9,7 @@ namespace HSDetection
     class SpikeDecayFilterer : public QueueProcessor
     {
     private:
-        ProbeLayout *pLayout; // passed in, should not release here
+        const ProbeLayout *pLayout; // passed in, should not release here
 
         IntFrame jitterTol;
         FloatRatio decayRatio;
@@ -17,7 +17,7 @@ namespace HSDetection
         bool shouldFilterOuter(SpikeQueue *pQueue, const Spike &outerSpike) const;
 
     public:
-        SpikeDecayFilterer(ProbeLayout *pLayout, IntFrame jitterTol, FloatRatio decayRatio);
+        SpikeDecayFilterer(const ProbeLayout *pLayout, IntFrame jitterTol, FloatRatio decayRatio);
         ~SpikeDecayFilterer();
 
         void operator()(SpikeQueue *pQueue);

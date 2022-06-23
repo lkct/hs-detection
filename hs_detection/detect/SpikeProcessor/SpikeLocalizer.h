@@ -11,17 +11,17 @@ namespace HSDetection
     class SpikeLocalizer : public SpikeProcessor
     {
     private:
-        ProbeLayout *pLayout;    // passed in, should not release here
-        TraceWrapper *pTrace;    // passed in, should not release here
-        TraceWrapper *pRef;      // passed in, should not release here
-        RollingArray *pBaseline; // passed in, should not release here
+        const ProbeLayout *pLayout;    // passed in, should not release here
+        const TraceWrapper *pTrace;    // passed in, should not release here
+        const TraceWrapper *pRef;      // passed in, should not release here
+        const RollingArray *pBaseline; // passed in, should not release here
 
         IntFrame jitterTol;
         IntFrame peakDur;
 
     public:
-        SpikeLocalizer(ProbeLayout *pLayout, TraceWrapper *pTrace,
-                       TraceWrapper *pRef, RollingArray *pBaseline,
+        SpikeLocalizer(const ProbeLayout *pLayout, const TraceWrapper *pTrace,
+                       const TraceWrapper *pRef, const RollingArray *pBaseline,
                        IntFrame jitterTol, IntFrame peakDur);
         ~SpikeLocalizer();
 

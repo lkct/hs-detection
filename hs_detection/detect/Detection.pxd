@@ -27,7 +27,7 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   short threshold,
                   short minAvgAmp,
                   short maxAHPAmp,
-                  float *channelPositions,
+                  const float *channelPositions,
                   float neighborRadius,
                   float innerRadius,
                   int jitterTol,

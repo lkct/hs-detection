@@ -6,7 +6,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    ProbeLayout::ProbeLayout(IntChannel numChannels, FloatGeom *channelPositions,
+    ProbeLayout::ProbeLayout(IntChannel numChannels, const FloatGeom *channelPositions,
                              FloatGeom neighborRadius, FloatGeom innerRadius)
         : positions(numChannels), distances(numChannels, vector<FloatGeom>(numChannels)),
           neighborList(numChannels), innerNeighborList(numChannels),

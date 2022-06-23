@@ -9,7 +9,7 @@ namespace HSDetection
 {
     Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin, bool medianReference,
                          IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
-                         FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
+                         const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                          IntFrame jitterTol, IntFrame peakDur,
                          bool decayFiltering, FloatRatio decayRatio, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
@@ -102,10 +102,10 @@ namespace HSDetection
         // // TODO: Does this need to end at chunkLen + chunkLeftMargin? (Cole+Martino)
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            IntVolt *input = trace[t];
+            const IntVolt *input = trace[t];
             IntVolt ref = commonRef(t, 0);
-            IntVolt *basePrev = runningBaseline[t - 1];
-            IntVolt *devPrev = runningDeviation[t - 1];
+            const IntVolt *basePrev = runningBaseline[t - 1];
+            const IntVolt *devPrev = runningDeviation[t - 1];
             IntVolt *baselines = runningBaseline[t];
             IntVolt *deviations = runningDeviation[t];
 
@@ -128,10 +128,10 @@ namespace HSDetection
 
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            IntVolt *input = trace[t];
+            const IntVolt *input = trace[t];
             IntVolt ref = commonRef(t, 0);
-            IntVolt *baselines = runningBaseline[t];
-            IntVolt *deviations = runningDeviation[t];
+            const IntVolt *baselines = runningBaseline[t];
+            const IntVolt *deviations = runningDeviation[t];
 
             for (IntChannel i = 0; i < numChannels; i++)
             {

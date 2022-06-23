@@ -16,11 +16,11 @@ namespace HSDetection
         friend SpikeQueue; // allow access to the whole param set
 
         // constants
-        const IntVolt initBase = 0 * -64; // initial value of baseline // TODO: 64?
-        const IntVolt initDev = 400;      // initial value of deviation
-        const IntVolt tauBase = 4;        // time constant for baseline update
-        const IntVolt devChange = 1;      // changing for deviation update
-        const IntVolt minDev = 200;       // minimum level of deviation
+        static constexpr IntVolt initBase = 0 * -64; // initial value of baseline // TODO: 64?
+        static constexpr IntVolt initDev = 400;      // initial value of deviation
+        static constexpr IntVolt tauBase = 4;        // time constant for baseline update
+        static constexpr IntVolt devChange = 1;      // changing for deviation update
+        static constexpr IntVolt minDev = 200;       // minimum level of deviation
 
         // input data
         TraceWrapper trace;       // input trace
@@ -79,7 +79,7 @@ namespace HSDetection
     public:
         Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin, bool medianReference,
                   IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
-                  FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
+                  const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                   IntFrame jitterTol, IntFrame peakDur,
                   bool decayFiltering, FloatRatio decayRatio, bool localize,
                   bool saveShape, std::string filename, IntFrame cutoutStart, IntFrame cutoutLen);

@@ -4,7 +4,7 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeShapeWriter::SpikeShapeWriter(const string &filename, TraceWrapper *pTrace,
+    SpikeShapeWriter::SpikeShapeWriter(const string &filename, const TraceWrapper *pTrace,
                                        IntFrame cutoutStart, IntFrame cutoutLen)
         : spikeFile(filename, ios::binary | ios::trunc),
           buffer(new IntVolt[cutoutLen]), pTrace(pTrace),

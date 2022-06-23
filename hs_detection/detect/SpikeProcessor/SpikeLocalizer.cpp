@@ -6,8 +6,8 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeLocalizer::SpikeLocalizer(ProbeLayout *pLayout, TraceWrapper *pTrace,
-                                   TraceWrapper *pRef, RollingArray *pBaseline,
+    SpikeLocalizer::SpikeLocalizer(const ProbeLayout *pLayout, const TraceWrapper *pTrace,
+                                   const TraceWrapper *pRef, const RollingArray *pBaseline,
                                    IntFrame jitterTol, IntFrame peakDur)
         : pLayout(pLayout), pTrace(pTrace), pRef(pRef), pBaseline(pBaseline),
           jitterTol(jitterTol), peakDur(peakDur) {}

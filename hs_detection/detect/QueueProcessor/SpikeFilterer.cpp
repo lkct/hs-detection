@@ -2,7 +2,7 @@
 
 namespace HSDetection
 {
-    SpikeFilterer::SpikeFilterer(ProbeLayout *pLayout, IntFrame jitterTol)
+    SpikeFilterer::SpikeFilterer(const ProbeLayout *pLayout, IntFrame jitterTol)
         : pLayout(pLayout), jitterTol(jitterTol) {}
 
     SpikeFilterer::~SpikeFilterer() {}
