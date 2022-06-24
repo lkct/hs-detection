@@ -67,7 +67,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 sources = glob.glob('hs_detection/detect/**/[A-Z]*.cpp', recursive=True)
 sources += [os.path.join('hs_detection/detect', fn) for fn in ext_src]
 
-extra_compile_args = ['-std=c++14', '-O3']
+extra_compile_args = ['-std=c++17', '-O3']
 link_extra_args = []
 # OS X support  # TODO: test on mac
 if platform.system() == 'Darwin':

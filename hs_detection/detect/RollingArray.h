@@ -13,6 +13,8 @@ namespace HSDetection
         IntFrame frameMask; // rolling length will be 2^n and mask is 2^n-1 for bit ops
         IntChannel numChannels;
 
+        static constexpr std::align_val_t memAlign = std::align_val_t(4096); // align to 4K anyway
+
         static constexpr IntFrame getMask(IntFrame x) // get minimum 0...01...1 >= x
         {
             x |= x >> 1;
@@ -26,7 +28,10 @@ namespace HSDetection
 
     public:
         RollingArray(IntFrame rollingLen, IntChannel numChannels)
-            : frameMask(getMask(rollingLen)), numChannels(numChannels) { arrayBuffer = new IntVolt[(IntMax)(frameMask + 1) * numChannels]; }
+            : frameMask(getMask(rollingLen)), numChannels(numChannels)
+        {
+            arrayBuffer = new (memAlign) IntVolt[(IntMax)(frameMask + 1) * numChannels];
+        }
         ~RollingArray() { delete[] arrayBuffer; }
 
         // copy constructor deleted to protect buffer

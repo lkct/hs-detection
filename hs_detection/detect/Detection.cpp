@@ -17,12 +17,13 @@ namespace HSDetection
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : traceRaw(chunkLeftMargin, numChannels, chunkSize),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
-          rescale(rescale), scale(new FloatRaw[numChannels]), offset(new FloatRaw[numChannels]),
-          trace(chunkSize + chunkLeftMargin, numChannels),
+          rescale(rescale), scale(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignChannel(numChannels)]),
+          offset(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignChannel(numChannels)]),
+          trace(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
           medianReference(medianReference), averageReference(averageReference),
           commonRef(chunkSize + chunkLeftMargin, 1),
-          runningBaseline(chunkSize + chunkLeftMargin, numChannels),
-          runningDeviation(chunkSize + chunkLeftMargin, numChannels),
+          runningBaseline(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
+          runningDeviation(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
           spikeArea(new IntMax[numChannels]), hasAHP(new bool[numChannels]),
           spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold),
@@ -33,8 +34,14 @@ namespace HSDetection
           localize(localize), saveShape(saveShape), filename(filename),
           cutoutStart(cutoutStart), cutoutLen(cutoutLen)
     {
-        copy_n(scale, numChannels, this->scale);
-        copy_n(offset, numChannels, this->offset);
+        fill_n(this->scale, alignChannel(numChannels), (FloatRaw)1);
+        fill_n(this->offset, alignChannel(numChannels), (FloatRaw)0);
+
+        if (rescale)
+        {
+            copy_n(scale, numChannels, this->scale);
+            copy_n(offset, numChannels, this->offset);
+        }
 
         fill_n(runningBaseline[-1], numChannels, initBase);
         fill_n(runningDeviation[-1], numChannels, initDev);
@@ -102,7 +109,7 @@ namespace HSDetection
             const FloatRaw *input = traceRaw[t];
             IntVolt *trace = this->trace[t];
 
-            for (IntChannel i = 0; i < numChannels; i++)
+            for (IntChannel i = 0; i < alignChannel(numChannels); i++)
             {
                 trace[i] = input[i] * scale[i] + offset[i];
                 trace[i] *= -64; // TODO: 64?
@@ -117,7 +124,7 @@ namespace HSDetection
             const FloatRaw *input = traceRaw[t];
             IntVolt *trace = this->trace[t];
 
-            for (IntChannel i = 0; i < numChannels; i++)
+            for (IntChannel i = 0; i < alignChannel(numChannels); i++)
             {
                 trace[i] = input[i];
                 trace[i] *= -64; // TODO: 64?
@@ -164,7 +171,7 @@ namespace HSDetection
             IntVolt *baselines = runningBaseline[t];
             IntVolt *deviations = runningDeviation[t];
 
-            for (IntChannel i = 0; i < numChannels; i++)
+            for (IntChannel i = 0; i < alignChannel(numChannels); i++)
             {
                 IntVolt volt = trace[i] - ref - basePrev[i];
 
