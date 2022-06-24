@@ -163,8 +163,8 @@ class HSDetection(object):
             cython.address(offset[0]),
             self.common_reference == 'median',
             self.common_reference == 'average',
-            self.maxsl,
-            self.minsl,
+            self.maxsl - 1,  # TODO:??? -1
+            self.minsl - 1,
             self.threshold,
             self.maa,
             self.ahpthr,
@@ -232,7 +232,7 @@ class HSDetection(object):
             result |= {'location': position}
         if self.save_shape:
             result |= {'spike_shape': spikes}
-            if spikes.shape[0] < 10000:  # TODO: ???
+            if spikes.shape[0] < 10000:  # TODO:??? 64
                 result['spike_shape'] = result['spike_shape'] // -64
 
         return result

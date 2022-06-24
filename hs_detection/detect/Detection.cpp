@@ -112,7 +112,7 @@ namespace HSDetection
             for (IntChannel i = 0; i < alignChannel(numChannels); i++)
             {
                 trace[i] = input[i] * scale[i] + offset[i];
-                trace[i] *= -64; // TODO: 64?
+                trace[i] *= -64; // TODO:??? 64
             }
         }
     }
@@ -127,7 +127,7 @@ namespace HSDetection
             for (IntChannel i = 0; i < alignChannel(numChannels); i++)
             {
                 trace[i] = input[i];
-                trace[i] *= -64; // TODO: 64?
+                trace[i] *= -64; // TODO:??? 64
             }
         }
     }
@@ -135,7 +135,7 @@ namespace HSDetection
     void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen)
     {
         IntVolt *frame = new IntVolt[numChannels]; // nth_element modifies container
-        IntChannel mid = numChannels / 2 - 1;      // TODO: no need - 1
+        IntChannel mid = numChannels / 2 - 1;      // TODO:??? -1
 
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
@@ -153,7 +153,7 @@ namespace HSDetection
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntMax)0, // TODO: 64?
+            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntMax)0, // TODO:??? 64
                                          [](IntMax sum, IntVolt data)
                                          { return sum + data / 64; }) /
                               numChannels * 64;
@@ -182,7 +182,7 @@ namespace HSDetection
 
                 IntVolt dltDev = 0;
                 dltDev = (devPrev[i] < volt && volt < 5 * devPrev[i]) ? devChange : dltDev;
-                dltDev = ((0 < volt && volt <= devPrev[i]) || 6 * devPrev[i] < volt) ? -devChange : dltDev; // TODO: split two cmov?
+                dltDev = ((0 < volt && volt <= devPrev[i]) || 6 * devPrev[i] < volt) ? -devChange : dltDev;
                 IntVolt dev = devPrev[i] + dltDev;
                 deviations[i] = (dev < minDev) ? minDev : dev; // clamp deviations at minDev
             }
@@ -218,21 +218,21 @@ namespace HSDetection
                 spikeTime[i]++;
                 // 1 <= spikeTime[i]
 
-                if (spikeTime[i] < ampAvgDur - 1) // sum up area in ampAvgDur // TODO: inconsistent - 1
+                if (spikeTime[i] < ampAvgDur) // sum up area in ampAvgDur
                 {
                     spikeArea[i] += volt;
                     if (spikeAmp[i] < volt) // larger amp found
                     {
                         spikeTime[i] = 0; // reset peak to current
                         spikeAmp[i] = volt;
-                        spikeArea[i] += volt; // but accumulate area // TODO: should not add twice
+                        spikeArea[i] += volt; // but accumulate area // TODO:??? should not add twice
                         hasAHP[i] = false;
                     }
                     continue;
                 }
-                // else: ampAvgDur - 1 <= spikeTime[i]
+                // else: ampAvgDur <= spikeTime[i]
 
-                if (spikeTime[i] < spikeDur - 1) // TODO: inconsistent - 1
+                if (spikeTime[i] < spikeDur)
                 {
                     if (volt < maxAHPAmp * dev) // AHP found
                     {
@@ -247,13 +247,12 @@ namespace HSDetection
                     }
                     continue;
                 }
-                // else: spikeTime[i] == spikeDur - 1, spike end
+                // else: spikeTime[i] == spikeDur, spike end
 
-                // TODO: if not AHP, whether connect spike?
-                if (2 * spikeArea[i] > (IntMax)ampAvgDur * minAvgAmp * dev && // reach min area, *2 for precision
-                    (hasAHP[i] || volt < maxAHPAmp * dev))                    // AHP exist
+                if (2 * spikeArea[i] > (IntMax)(ampAvgDur + 1) * minAvgAmp * dev && // reach min area, *2 for precision // TODO:??? -1
+                    (hasAHP[i] || volt < maxAHPAmp * dev))                          // AHP exist
                 {
-                    pQueue->push_back(Spike(t - (spikeDur - 1), i, spikeAmp[i]));
+                    pQueue->push_back(Spike(t - spikeDur, i, spikeAmp[i]));
                 }
 
                 spikeTime[i] = -1; // reset counter even if not spike

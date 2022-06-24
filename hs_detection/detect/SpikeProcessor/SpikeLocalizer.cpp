@@ -47,7 +47,7 @@ namespace HSDetection
         IntVolt baseline = (*pBaseline)[frame - peakDur][channel]; // baseline at the start of event
 
         IntMax sum = 0;
-        for (IntFrame t = frame - jitterTol; t < frame + jitterTol; t++) // TODO: use <=
+        for (IntFrame t = frame - jitterTol; t < frame + jitterTol; t++) // TODO:??? <=
         {
             IntVolt volt = (*pTrace)(t, channel) - baseline - (*pRef)(frame, 0); // TODO: shoule be ref(t)
             if (volt > 0)

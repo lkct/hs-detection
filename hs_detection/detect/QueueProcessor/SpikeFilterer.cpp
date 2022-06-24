@@ -10,7 +10,7 @@ namespace HSDetection
     void SpikeFilterer::operator()(SpikeQueue *pQueue)
     {
 #ifndef FRAMEBOUND
-        jitterTol = 1000000; // TODO: ???
+        jitterTol = 1000000; // TODO:??? remove
 #endif
         IntFrame frameBound = pQueue->begin()->frame + jitterTol;
         IntChannel maxChannel = pQueue->begin()->channel;
