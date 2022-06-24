@@ -19,6 +19,8 @@ namespace HSDetection
         IntFrame jitterTol;
         IntFrame peakDur;
 
+        static constexpr FloatGeom eps = 1e-12;
+
     public:
         SpikeLocalizer(const ProbeLayout *pLayout, const TraceWrapper *pTrace,
                        const TraceWrapper *pRef, const RollingArray *pBaseline,

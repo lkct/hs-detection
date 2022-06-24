@@ -58,33 +58,18 @@ namespace HSDetection
         }
 
         Point CoM(0, 0);
-        IntMax sumAmp = 0;
+        FloatGeom sumAmp = 0;
         for (const pair<IntChannel, IntMax> &chAmp : chAmps)
         {
             IntMax amp = chAmp.second - median; // correction and threshold
-            if (amp > 0)
+            if (amp >= 0)
             {
-                CoM += amp * pLayout->getChannelPosition(chAmp.first);
-                sumAmp += amp;
+                CoM += (amp + eps) * pLayout->getChannelPosition(chAmp.first);
+                sumAmp += amp + eps;
             }
         }
 
-        if (sumAmp == 0)
-        {
-            // NOTE: amp > 0 never entered, all <= median, i.e. max <= median
-            // NOTE: this iff. max == median, i.e. upper half value all same
-            // NOTE: unlikely happens, therefore loop again instead of merge into previous
-            // NOTE: choose any point with amp == median == max
-            // TODO: really need? choose any?
-            pSpike->position = pLayout->getChannelPosition(find_if(chAmps.begin(), chAmps.end(),
-                                                                   [median](const pair<IntChannel, IntMax> &chAmp)
-                                                                   { return chAmp.second == median; })
-                                                               ->first);
-        }
-        else
-        {
-            pSpike->position = CoM /= sumAmp;
-        }
+        pSpike->position = CoM /= sumAmp;
     }
 
 } // namespace HSDetection
