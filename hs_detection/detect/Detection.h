@@ -29,8 +29,9 @@ namespace HSDetection
         IntFrame chunkLeftMargin; // margin on the left of each chunk
 
         // common reference
-        bool medianReference;   // whether to use median instead of average
-        TraceWrapper commonRef; // common average/median reference
+        bool medianReference;   // whether to use CMR (overrides CAR)
+        bool averageReference;  // whether to use CAR
+        TraceWrapper commonRef; // common median/average reference
         IntVolt *_commonRef;    // internal buffer for commonRef
 
         // running estimation
@@ -77,7 +78,8 @@ namespace HSDetection
         void commonAverage(IntFrame chunkStart, IntFrame chunkLen);
 
     public:
-        Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin, bool medianReference,
+        Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
+                  bool medianReference, bool averageReference,
                   IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                   const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                   IntFrame jitterTol, IntFrame peakDur,

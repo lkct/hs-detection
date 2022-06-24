@@ -41,7 +41,7 @@ default_kwargs = {
     'rescale_value': 20.0,
 
     # added switches
-    'median_reference': False,
+    'common_reference': 'average',
     'localize': True,
     'save_shape': True,
     'verbose': True

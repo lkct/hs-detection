@@ -22,6 +22,7 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   int chunkSize,
                   int chunkLeftMargin,
                   bool medianReference,
+                  bool averageReference,
                   int spikeDur,
                   int ampAvgDur,
                   short threshold,

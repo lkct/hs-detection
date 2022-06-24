@@ -70,7 +70,10 @@ class HSDetection(object):
         self.ahpthr: int = params['ahpthr']
         self.decay_filtering: bool = params['decay_filtering']
 
-        self.median_reference: bool = params['median_reference']
+        self.common_reference: str = params['common_reference']
+        if self.num_channels < 20 and self.common_reference in ['median', 'average']:
+            warnings.warn(
+                f'Number of channels too few for common {self.common_reference} reference')
         self.localize: bool = params['localize']
         self.save_shape: bool = params['save_shape']
         self.verbose: bool = params['verbose']
@@ -150,7 +153,8 @@ class HSDetection(object):
             self.num_channels,
             t_inc,
             t_cut,
-            self.median_reference,
+            self.common_reference == 'median',
+            self.common_reference == 'average',
             self.maxsl,
             self.minsl,
             self.threshold,

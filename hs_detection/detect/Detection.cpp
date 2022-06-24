@@ -7,7 +7,8 @@ using namespace std;
 
 namespace HSDetection
 {
-    Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin, bool medianReference,
+    Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
+                         bool medianReference, bool averageReference,
                          IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                          const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                          IntFrame jitterTol, IntFrame peakDur,
@@ -15,7 +16,8 @@ namespace HSDetection
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
-          medianReference(medianReference), commonRef(chunkLeftMargin, 1, chunkSize),
+          medianReference(medianReference), averageReference(averageReference),
+          commonRef(chunkLeftMargin, 1, chunkSize),
           _commonRef(new IntVolt[chunkSize + chunkLeftMargin]),
           runningBaseline(chunkSize + chunkLeftMargin, numChannels),
           runningDeviation(chunkSize + chunkLeftMargin, numChannels),
@@ -88,16 +90,13 @@ namespace HSDetection
         trace.updateChunk(traceBuffer);
         commonRef.updateChunk(_commonRef);
 
-        if (numChannels >= 20) // TODO: magic number?
+        if (medianReference)
         {
-            if (medianReference)
-            {
-                commonMedian(chunkStart, chunkLen);
-            }
-            else
-            {
-                commonAverage(chunkStart, chunkLen);
-            }
+            commonMedian(chunkStart, chunkLen);
+        }
+        else if (averageReference)
+        {
+            commonAverage(chunkStart, chunkLen);
         }
 
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
