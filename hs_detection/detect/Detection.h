@@ -31,8 +31,7 @@ namespace HSDetection
         // common reference
         bool medianReference;   // whether to use CMR (overrides CAR)
         bool averageReference;  // whether to use CAR
-        TraceWrapper commonRef; // common median/average reference
-        IntVolt *_commonRef;    // internal buffer for commonRef
+        RollingArray commonRef; // common median/average reference
 
         // running estimation
         RollingArray runningBaseline;  // running estimation of baseline (33 percentile)

@@ -13,7 +13,7 @@ namespace HSDetection
     private:
         const ProbeLayout *pLayout;    // passed in, should not release here
         const TraceWrapper *pTrace;    // passed in, should not release here
-        const TraceWrapper *pRef;      // passed in, should not release here
+        const RollingArray *pRef;      // passed in, should not release here
         const RollingArray *pBaseline; // passed in, should not release here
 
         IntFrame jitterTol;
@@ -26,7 +26,7 @@ namespace HSDetection
 
     public:
         SpikeLocalizer(const ProbeLayout *pLayout, const TraceWrapper *pTrace,
-                       const TraceWrapper *pRef, const RollingArray *pBaseline,
+                       const RollingArray *pRef, const RollingArray *pBaseline,
                        IntFrame jitterTol, IntFrame peakDur);
         ~SpikeLocalizer();
 

@@ -17,8 +17,7 @@ namespace HSDetection
         : trace(chunkLeftMargin, numChannels, chunkSize),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
           medianReference(medianReference), averageReference(averageReference),
-          commonRef(chunkLeftMargin, 1, chunkSize),
-          _commonRef(new IntVolt[chunkSize + chunkLeftMargin]),
+          commonRef(chunkSize + chunkLeftMargin, 1),
           runningBaseline(chunkSize + chunkLeftMargin, numChannels),
           runningDeviation(chunkSize + chunkLeftMargin, numChannels),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
@@ -47,14 +46,11 @@ namespace HSDetection
         delete[] spikeAmp;
         delete[] spikeArea;
         delete[] hasAHP;
-
-        delete[] _commonRef;
     }
 
     void Detection::step(IntVolt *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)
     {
         trace.updateChunk(traceBuffer);
-        commonRef.updateChunk(_commonRef);
 
         if (medianReference)
         {
@@ -83,9 +79,6 @@ namespace HSDetection
 
     void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen)
     {
-        copy_n(commonRef[chunkStart + chunkSize - chunkLeftMargin], chunkLeftMargin,
-               commonRef[chunkStart - chunkLeftMargin]);
-
         IntVolt *frame = new IntVolt[numChannels]; // nth_element modifies container
         IntChannel mid = numChannels / 2 - 1;      // TODO: no need - 1
 
@@ -103,9 +96,6 @@ namespace HSDetection
 
     void Detection::commonAverage(IntFrame chunkStart, IntFrame chunkLen)
     {
-        copy_n(commonRef[chunkStart + chunkSize - chunkLeftMargin], chunkLeftMargin,
-               commonRef[chunkStart - chunkLeftMargin]);
-
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
             commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntMax)0, // TODO: 64?
