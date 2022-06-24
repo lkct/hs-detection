@@ -43,6 +43,6 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   string filename,
                   int cutoutStart,
                   int cutoutLen) except +
-        void step(short *traceBuffer, int chunkStart, int chunkLen) except +
+        void step(float *traceBuffer, int chunkStart, int chunkLen) except +
         int finish() except +
         const Spike *getResult() except +

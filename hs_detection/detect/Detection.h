@@ -23,15 +23,16 @@ namespace HSDetection
         static constexpr IntVolt minDev = 200;       // minimum level of deviation
 
         // input data
-        TraceWrapper trace;       // input trace
+        TraceWrapper traceRaw;    // input trace
         IntChannel numChannels;   // number of probe channels
         IntFrame chunkSize;       // size of each chunk, only the last chunk can be of a different (smaller) size
         IntFrame chunkLeftMargin; // margin on the left of each chunk
 
         // rescaling
-        bool rescale;     // whether to scale the input
-        FloatRaw *scale;  // scale for rescaling
-        FloatRaw *offset; // offset for rescaling
+        bool rescale;       // whether to scale the input
+        FloatRaw *scale;    // scale for rescaling
+        FloatRaw *offset;   // offset for rescaling
+        RollingArray trace; // rescaled and quantized trace to be used
 
         // common reference
         bool medianReference;   // whether to use CMR (overrides CAR)
@@ -78,6 +79,8 @@ namespace HSDetection
         IntFrame cutoutLen;   // the length of shape cutout
 
     private:
+        void traceScaleCast(IntFrame chunkStart, IntFrame chunkLen);
+        void traceCast(IntFrame chunkStart, IntFrame chunkLen);
         void commonMedian(IntFrame chunkStart, IntFrame chunkLen);
         void commonAverage(IntFrame chunkStart, IntFrame chunkLen);
         void runningEstimation(IntFrame chunkStart, IntFrame chunkLen);
@@ -99,7 +102,7 @@ namespace HSDetection
         // copy assignment deleted to protect internals
         Detection &operator=(const Detection &) = delete;
 
-        void step(IntVolt *traceBuffer, IntFrame chunkStart, IntFrame chunkLen);
+        void step(FloatRaw *traceBuffer, IntFrame chunkStart, IntFrame chunkLen);
         IntResult finish();
         const Spike *getResult() const;
 

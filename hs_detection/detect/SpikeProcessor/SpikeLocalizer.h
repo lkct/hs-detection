@@ -3,7 +3,6 @@
 
 #include "SpikeProcessor.h"
 #include "../ProbeLayout.h"
-#include "../TraceWrapper.h"
 #include "../RollingArray.h"
 
 namespace HSDetection
@@ -12,7 +11,7 @@ namespace HSDetection
     {
     private:
         const ProbeLayout *pLayout;    // passed in, should not release here
-        const TraceWrapper *pTrace;    // passed in, should not release here
+        const RollingArray *pTrace;    // passed in, should not release here
         const RollingArray *pRef;      // passed in, should not release here
         const RollingArray *pBaseline; // passed in, should not release here
 
@@ -25,7 +24,7 @@ namespace HSDetection
         IntMax getMedian(std::vector<IntMax> weights) const; // copy param to be modified inside
 
     public:
-        SpikeLocalizer(const ProbeLayout *pLayout, const TraceWrapper *pTrace,
+        SpikeLocalizer(const ProbeLayout *pLayout, const RollingArray *pTrace,
                        const RollingArray *pRef, const RollingArray *pBaseline,
                        IntFrame jitterTol, IntFrame peakDur);
         ~SpikeLocalizer();

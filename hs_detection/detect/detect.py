@@ -114,7 +114,7 @@ class HSDetection(object):
                     segment_index=seg, start_frame=start_frame, end_frame=start_frame + chunk_size))
         return np.concatenate(chunks, axis=0, dtype=np.float32)
 
-    def get_traces(self, segment_index: int, start_frame: int, end_frame: int) -> NDArray[np.int16]:
+    def get_traces(self, segment_index: int, start_frame: int, end_frame: int) -> NDArray[np.single]:
         if start_frame < 0:
             lpad = -start_frame * self.num_channels
             start_frame = 0
@@ -130,18 +130,14 @@ class HSDetection(object):
         traces: RealArray = self.recording.get_traces(
             segment_index=segment_index, start_frame=start_frame, end_frame=end_frame)
 
-        if self.rescale:
-            traces = traces.astype(np.float32, copy=False) * \
-                self.scale + self.offset
-
-        traces_int: NDArray[np.int16] = traces.astype(
-            np.int16, copy=False).reshape(-1) * -64  # TODO: ???
+        traces_float: NDArray[np.single] = traces.astype(
+            np.single, copy=False).reshape(-1)
 
         if lpad or rpad:
-            traces_int = np.pad(traces_int, (lpad, rpad),
-                                mode='constant', constant_values=0)
+            traces_float = np.pad(traces_float, (lpad, rpad),
+                                  mode='constant', constant_values=0)
 
-        return traces_int
+        return traces_float
 
     def detect(self) -> Sequence[Mapping[str, RealArray]]:
         return [self.detect_seg(seg) for seg in range(self.num_segments)]
@@ -186,8 +182,8 @@ class HSDetection(object):
             self.cutout_length
         )
 
-        vm: cython.short[:] = np.zeros(
-            self.num_channels * (t_inc + t_cut + t_cut2), dtype=np.int16)
+        vm: cython.float[:] = np.zeros(
+            self.num_channels * (t_inc + t_cut + t_cut2), dtype=np.single)
 
         t0 = 0
         while t0 + t_inc + t_cut2 <= self.num_frames[segment_index]:

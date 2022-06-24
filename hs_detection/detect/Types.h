@@ -11,15 +11,14 @@ namespace HSDetection
     // used in interface
     typedef int32_t IntFrame;   // number of frames
     typedef int32_t IntChannel; // number of channels
-    typedef int16_t IntVolt;    // quantized voltage
+    typedef float FloatRaw;     // raw trace, correspond to np.single and cython.float
     typedef float FloatGeom;    // spatial dimension, correspond to np.single and cython.float
     typedef float FloatRatio;   // 0.0~1.0
     typedef int32_t IntResult;  // expected number of spikes
 
     // used only internally
+    typedef int16_t IntVolt; // quantized voltage
     typedef intmax_t IntMax; // larger range for internal calc
-
-    typedef float FloatRaw; // raw trace, correspond to np.single and cython.float
 
 } // namespace HSDetection
 

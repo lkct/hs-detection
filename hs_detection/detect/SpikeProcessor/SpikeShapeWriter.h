@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "SpikeProcessor.h"
-#include "../TraceWrapper.h"
+#include "../RollingArray.h"
 
 namespace HSDetection
 {
@@ -15,13 +15,13 @@ namespace HSDetection
         std::ofstream spikeFile;
         IntVolt *buffer; // created and released here
 
-        const TraceWrapper *pTrace; // passed in, should not release here
+        const RollingArray *pTrace; // passed in, should not release here
 
         IntFrame cutoutStart;
         IntFrame cutoutLen;
 
     public:
-        SpikeShapeWriter(const std::string &filename, const TraceWrapper *pTrace,
+        SpikeShapeWriter(const std::string &filename, const RollingArray *pTrace,
                          IntFrame cutoutStart, IntFrame cutoutLen);
         ~SpikeShapeWriter();
 

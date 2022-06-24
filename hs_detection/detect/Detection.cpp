@@ -15,9 +15,10 @@ namespace HSDetection
                          IntFrame jitterTol, IntFrame peakDur,
                          bool decayFiltering, FloatRatio decayRatio, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
-        : trace(chunkLeftMargin, numChannels, chunkSize),
+        : traceRaw(chunkLeftMargin, numChannels, chunkSize),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
           rescale(rescale), scale(new FloatRaw[numChannels]), offset(new FloatRaw[numChannels]),
+          trace(chunkSize + chunkLeftMargin, numChannels),
           medianReference(medianReference), averageReference(averageReference),
           commonRef(chunkSize + chunkLeftMargin, 1),
           runningBaseline(chunkSize + chunkLeftMargin, numChannels),
@@ -56,9 +57,18 @@ namespace HSDetection
         delete[] offset;
     }
 
-    void Detection::step(IntVolt *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)
+    void Detection::step(FloatRaw *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)
     {
-        trace.updateChunk(traceBuffer);
+        traceRaw.updateChunk(traceBuffer);
+
+        if (rescale)
+        {
+            traceScaleCast(chunkStart, chunkLen);
+        }
+        else
+        {
+            traceCast(chunkStart, chunkLen);
+        }
 
         if (medianReference)
         {
@@ -83,6 +93,36 @@ namespace HSDetection
     const Spike *Detection::getResult() const
     {
         return result.data();
+    }
+
+    void Detection::traceScaleCast(IntFrame chunkStart, IntFrame chunkLen)
+    {
+        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+        {
+            const FloatRaw *input = traceRaw[t];
+            IntVolt *trace = this->trace[t];
+
+            for (IntChannel i = 0; i < numChannels; i++)
+            {
+                trace[i] = input[i] * scale[i] + offset[i];
+                trace[i] *= -64; // TODO: 64?
+            }
+        }
+    }
+
+    void Detection::traceCast(IntFrame chunkStart, IntFrame chunkLen)
+    {
+        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+        {
+            const FloatRaw *input = traceRaw[t];
+            IntVolt *trace = this->trace[t];
+
+            for (IntChannel i = 0; i < numChannels; i++)
+            {
+                trace[i] = input[i];
+                trace[i] *= -64; // TODO: 64?
+            }
+        }
     }
 
     void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen)
@@ -117,7 +157,7 @@ namespace HSDetection
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            const IntVolt *input = trace[t];
+            const IntVolt *trace = this->trace[t];
             IntVolt ref = commonRef(t, 0);
             const IntVolt *basePrev = runningBaseline[t - 1];
             const IntVolt *devPrev = runningDeviation[t - 1];
@@ -126,7 +166,7 @@ namespace HSDetection
 
             for (IntChannel i = 0; i < numChannels; i++)
             {
-                IntVolt volt = input[i] - ref - basePrev[i];
+                IntVolt volt = trace[i] - ref - basePrev[i];
 
                 IntVolt dltBase = 0;
                 dltBase = (devPrev[i] < volt) ? devPrev[i] / tauBase : dltBase;
@@ -146,14 +186,14 @@ namespace HSDetection
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            const IntVolt *input = trace[t];
+            const IntVolt *trace = this->trace[t];
             IntVolt ref = commonRef(t, 0);
             const IntVolt *baselines = runningBaseline[t];
             const IntVolt *deviations = runningDeviation[t];
 
             for (IntChannel i = 0; i < numChannels; i++)
             {
-                IntVolt volt = input[i] - ref - baselines[i]; // calc against updated baselines
+                IntVolt volt = trace[i] - ref - baselines[i]; // calc against updated baselines
                 IntVolt dev = deviations[i];
 
                 if (spikeTime[i] < 0) // not in spike
