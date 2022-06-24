@@ -8,6 +8,7 @@ using namespace std;
 namespace HSDetection
 {
     Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
+                         bool rescale, const FloatRaw *scale, const FloatRaw *offset,
                          bool medianReference, bool averageReference,
                          IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                          const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
@@ -16,6 +17,7 @@ namespace HSDetection
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
         : trace(chunkLeftMargin, numChannels, chunkSize),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
+          rescale(rescale), scale(new FloatRaw[numChannels]), offset(new FloatRaw[numChannels]),
           medianReference(medianReference), averageReference(averageReference),
           commonRef(chunkSize + chunkLeftMargin, 1),
           runningBaseline(chunkSize + chunkLeftMargin, numChannels),
@@ -30,6 +32,9 @@ namespace HSDetection
           localize(localize), saveShape(saveShape), filename(filename),
           cutoutStart(cutoutStart), cutoutLen(cutoutLen)
     {
+        copy_n(scale, numChannels, this->scale);
+        copy_n(offset, numChannels, this->offset);
+
         fill_n(runningBaseline[-1], numChannels, initBase);
         fill_n(runningDeviation[-1], numChannels, initDev);
 
@@ -46,6 +51,9 @@ namespace HSDetection
         delete[] spikeAmp;
         delete[] spikeArea;
         delete[] hasAHP;
+
+        delete[] scale;
+        delete[] offset;
     }
 
     void Detection::step(IntVolt *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)

@@ -29,17 +29,21 @@ class HSDetection(object):
         self.rescale: bool = params['rescale']
         if self.rescale:
             l, m, r = np.quantile(self.get_random_data_chunks(recording),
-                                  q=[0.05, 0.5, 1 - 0.05], axis=0, keepdims=True)
+                                  q=[0.05, 0.5, 1 - 0.05], axis=0)
             # quantile gives float64 on float32 data
-            l: NDArray[np.float32] = l.astype(np.float32)
-            m: NDArray[np.float32] = m.astype(np.float32)
-            r: NDArray[np.float32] = r.astype(np.float32)
+            l: NDArray[np.single] = l.astype(np.single)
+            m: NDArray[np.single] = m.astype(np.single)
+            r: NDArray[np.single] = r.astype(np.single)
 
-            self.scale: NDArray[np.float32] = params['rescale_value'] / (r - l)
-            self.offset: NDArray[np.float32] = -m * self.scale
+            self.scale: NDArray[np.single] = np.ascontiguousarray(
+                params['rescale_value'] / (r - l), dtype=np.single)
+            self.offset: NDArray[np.single] = np.ascontiguousarray(
+                -m * self.scale, dtype=np.single)
         else:
-            self.scale: NDArray[np.float32] = np.array(1.0, dtype=np.float32)
-            self.offset: NDArray[np.float32] = np.array(0.0, dtype=np.float32)
+            self.scale: NDArray[np.single] = np.ones(
+                self.num_channels, dtype=np.single)
+            self.offset: NDArray[np.single] = np.zeros(
+                self.num_channels, dtype=np.single)
 
         positions: NDArray[np.single] = np.array(
             [recording.get_channel_property(ch, 'location')
@@ -49,7 +53,7 @@ class HSDetection(object):
             warnings.warn(f'Channel locations have {positions.shape[1]} dimensions, '
                           'using the last two.')
             positions = positions[:, -2:]
-        self.positions = np.ascontiguousarray(positions)
+        self.positions = np.ascontiguousarray(positions, dtype=np.single)
 
         self.spike_peak_duration = int(
             params['event_length'] * self.fps / 1000)
@@ -149,6 +153,8 @@ class HSDetection(object):
                     self.num_frames[segment_index] - t_cut - t_cut2)
         t_cut = 2048  # TODO: can be smaller? effect of band pass?
 
+        scale: cython.float[:] = self.scale
+        offset: cython.float[:] = self.offset
         position_matrix: cython.float[:, :] = self.positions
         out_file = self.out_file.with_stem(
             self.out_file.stem + f'-{segment_index}') if self.out_file else None
@@ -156,6 +162,9 @@ class HSDetection(object):
             self.num_channels,
             t_inc,
             t_cut,
+            self.rescale,
+            cython.address(scale[0]),
+            cython.address(offset[0]),
             self.common_reference == 'median',
             self.common_reference == 'average',
             self.maxsl,

@@ -17,7 +17,9 @@ namespace HSDetection
     typedef int32_t IntResult;  // expected number of spikes
 
     // used only internally
-    typedef intmax_t IntMax;
+    typedef intmax_t IntMax; // larger range for internal calc
+
+    typedef float FloatRaw; // raw trace, correspond to np.single and cython.float
 
 } // namespace HSDetection
 

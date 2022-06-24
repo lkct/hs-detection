@@ -28,6 +28,11 @@ namespace HSDetection
         IntFrame chunkSize;       // size of each chunk, only the last chunk can be of a different (smaller) size
         IntFrame chunkLeftMargin; // margin on the left of each chunk
 
+        // rescaling
+        bool rescale;     // whether to scale the input
+        FloatRaw *scale;  // scale for rescaling
+        FloatRaw *offset; // offset for rescaling
+
         // common reference
         bool medianReference;   // whether to use CMR (overrides CAR)
         bool averageReference;  // whether to use CAR
@@ -80,6 +85,7 @@ namespace HSDetection
 
     public:
         Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
+                  bool rescale, const FloatRaw *scale, const FloatRaw *offset,
                   bool medianReference, bool averageReference,
                   IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
                   const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
