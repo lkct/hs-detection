@@ -19,7 +19,7 @@ namespace HSDetection
         pQueue->remove_if([this, frameBound, maxChannel, maxAmp](const Spike &spike)
                           { return spike.frame <= frameBound &&
                                    pLayout->areNeighbors(spike.channel, maxChannel) &&
-                                   spike.amplitude < maxAmp; });
+                                   spike.amplitude < maxAmp; }); // TODO: use <=, remember to add maxSpike back
     }
 
 } // namespace HSDetection

@@ -21,7 +21,7 @@ namespace HSDetection
             [this, frameBound, centerChannel](const Spike &lhs, const Spike &rhs)
             { return rhs.frame <= frameBound &&
                      pLayout->areNeighbors(rhs.channel, centerChannel) &&
-                     lhs.amplitude <= rhs.amplitude; }); // not sure whether <= or <
+                     lhs.amplitude <= rhs.amplitude; }); // TODO: not sure whether <= or <
 
         pQueue->push_front(move(*itMax));
         pQueue->erase(itMax);

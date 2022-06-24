@@ -99,7 +99,6 @@ namespace HSDetection
             }
         }
 
-        // // TODO: Does this need to end at chunkLen + chunkLeftMargin? (Cole+Martino)
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
             const IntVolt *input = trace[t];
@@ -135,13 +134,12 @@ namespace HSDetection
 
             for (IntChannel i = 0; i < numChannels; i++)
             {
-                // // TODO: should chunkLeftMargin be subtracted here??
                 IntVolt volt = input[i] - ref - baselines[i]; // calc against updated baselines
                 IntVolt devI = deviations[i];
 
                 if (spikeTime[i] < 0) // not in spike
                 {
-                    if (volt > threshold * devI / 2) // threshold crossing // TODO: why /2
+                    if (2 * volt > threshold * devI) // threshold crossing, *2 for precision
                     {
                         spikeTime[i] = 0;
                         spikeAmp[i] = volt;
@@ -156,12 +154,12 @@ namespace HSDetection
 
                 if (spikeTime[i] < ampAvgDur - 1) // sum up area in ampAvgDur // TODO: inconsistent - 1
                 {
-                    spikeArea[i] += volt;   // TODO: ??? added twice
+                    spikeArea[i] += volt;
                     if (spikeAmp[i] < volt) // larger amp found
                     {
                         spikeTime[i] = 0; // reset peak to current
                         spikeAmp[i] = volt;
-                        spikeArea[i] += volt; // but accumulate area
+                        spikeArea[i] += volt; // but accumulate area // TODO: should not add twice
                         hasAHP[i] = false;
                     }
                     continue;
@@ -186,7 +184,7 @@ namespace HSDetection
                 // else: spikeTime[i] == spikeDur - 1, spike end
 
                 // TODO: if not AHP, whether connect spike?
-                if (2 * spikeArea[i] > (IntFxV)ampAvgDur * minAvgAmp * devI && // reach min area // TODO: why *2
+                if (2 * spikeArea[i] > (IntFxV)ampAvgDur * minAvgAmp * devI && // reach min area, *2 for precision
                     (hasAHP[i] || volt < maxAHPAmp * devI))                    // AHP exist
                 {
                     pQueue->push_back(Spike(t - (spikeDur - 1), i, spikeAmp[i]));
