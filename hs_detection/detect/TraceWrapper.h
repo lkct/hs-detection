@@ -23,8 +23,8 @@ namespace HSDetection
         // should be called to both provide a buffer and advance the offset
         void updateChunk(IntVolt *traceBuffer) { this->traceBuffer = traceBuffer, frameOffset += chunkSize; }
 
-        const IntVolt *operator[](IntFrame frame) const { return traceBuffer + ((IntFxC)frame - frameOffset) * numChannels; }
-        IntVolt *operator[](IntFrame frame) { return traceBuffer + ((IntFxC)frame - frameOffset) * numChannels; }
+        const IntVolt *operator[](IntFrame frame) const { return traceBuffer + (IntMax)(frame - frameOffset) * numChannels; }
+        IntVolt *operator[](IntFrame frame) { return traceBuffer + (IntMax)(frame - frameOffset) * numChannels; }
 
         const IntVolt &operator()(IntFrame frame, IntChannel channel) const { return (*this)[frame][channel]; }
         IntVolt &operator()(IntFrame frame, IntChannel channel) { return (*this)[frame][channel]; }

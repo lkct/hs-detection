@@ -16,7 +16,7 @@ namespace HSDetection
         static constexpr IntFrame length = 131072; // rolling length
 
     public:
-        RollingArray(IntChannel numChannels) : arrayBuffer(new IntVolt[(IntFxC)length * numChannels]), numChannels(numChannels) {}
+        RollingArray(IntChannel numChannels) : arrayBuffer(new IntVolt[(IntMax)length * numChannels]), numChannels(numChannels) {}
         ~RollingArray() { delete[] arrayBuffer; }
 
         // copy constructor deleted to protect buffer
@@ -24,8 +24,8 @@ namespace HSDetection
         // copy assignment deleted to protect buffer
         RollingArray &operator=(const RollingArray &) = delete;
 
-        const IntVolt *operator[](IntFrame frame) const { return arrayBuffer + ((IntFxC)frame + length) % length * numChannels; }
-        IntVolt *operator[](IntFrame frame) { return arrayBuffer + ((IntFxC)frame + length) % length * numChannels; }
+        const IntVolt *operator[](IntFrame frame) const { return arrayBuffer + ((IntMax)frame + length) % length * numChannels; }
+        IntVolt *operator[](IntFrame frame) { return arrayBuffer + ((IntMax)frame + length) % length * numChannels; }
         // allow negative idx within one length, due to c++ mod property
 
         const IntVolt &operator()(IntFrame frame, IntChannel channel) const { return (*this)[frame][channel]; }

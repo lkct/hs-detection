@@ -8,17 +8,16 @@
 
 namespace HSDetection
 {
-    typedef int32_t IntFrame;
-    typedef int32_t IntChannel;
-    typedef int16_t IntVolt;
-    typedef float FloatGeom; // correspond to np.single and cython.float
-    typedef float FloatRatio;
+    // used in interface
+    typedef int32_t IntFrame;   // number of frames
+    typedef int32_t IntChannel; // number of channels
+    typedef int16_t IntVolt;    // quantized voltage
+    typedef float FloatGeom;    // spatial dimension, correspond to np.single and cython.float
+    typedef float FloatRatio;   // 0.0~1.0
+    typedef int32_t IntResult;  // expected number of spikes
 
-    typedef int64_t IntFxC;
-    typedef int32_t IntFxV;
-    typedef int32_t IntCxV;
-    typedef int64_t IntFCV;
-    typedef int32_t IntResult; // TODO: ??? or FxC
+    // used only internally
+    typedef intmax_t IntMax;
 
 } // namespace HSDetection
 

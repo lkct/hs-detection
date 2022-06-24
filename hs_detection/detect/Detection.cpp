@@ -19,7 +19,7 @@ namespace HSDetection
           _commonRef(new IntVolt[chunkSize + chunkLeftMargin]),
           runningBaseline(numChannels), runningDeviation(numChannels),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
-          spikeArea(new IntFxV[numChannels]), hasAHP(new bool[numChannels]),
+          spikeArea(new IntMax[numChannels]), hasAHP(new bool[numChannels]),
           spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold),
           minAvgAmp(minAvgAmp), maxAHPAmp(maxAHPAmp), // pQueue not ready
           probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
@@ -75,8 +75,8 @@ namespace HSDetection
 
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntCxV)0, // TODO: 64?
-                                         [](IntCxV sum, IntVolt data)
+            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntMax)0, // TODO: 64?
+                                         [](IntMax sum, IntVolt data)
                                          { return sum + data / 64; }) /
                               numChannels * 64;
         }
@@ -184,7 +184,7 @@ namespace HSDetection
                 // else: spikeTime[i] == spikeDur - 1, spike end
 
                 // TODO: if not AHP, whether connect spike?
-                if (2 * spikeArea[i] > (IntFxV)ampAvgDur * minAvgAmp * devI && // reach min area, *2 for precision
+                if (2 * spikeArea[i] > (IntMax)ampAvgDur * minAvgAmp * devI && // reach min area, *2 for precision
                     (hasAHP[i] || volt < maxAHPAmp * devI))                    // AHP exist
                 {
                     pQueue->push_back(Spike(t - (spikeDur - 1), i, spikeAmp[i]));

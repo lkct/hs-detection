@@ -40,7 +40,7 @@ namespace HSDetection
         // detection
         IntFrame *spikeTime; // counter for time since spike peak
         IntVolt *spikeAmp;   // spike peak amplitude
-        IntFxV *spikeArea;   // area under spike used for average amplitude, actually integral*fps
+        IntMax *spikeArea;   // area under spike used for average amplitude, actually integral*fps
         bool *hasAHP;        // flag for AHP existence
 
         IntFrame spikeDur;  // duration of a whole spike

@@ -22,12 +22,12 @@ namespace HSDetection
         IntVolt ref = (*pRef)(pSpike->frame, 0); // TODO: why not -peakDur
         const IntVolt *baselines = (*pBaseline)[pSpike->frame - peakDur];
 
-        vector<pair<IntChannel, IntFxV>> chAmps;
+        vector<pair<IntChannel, IntMax>> chAmps;
 
         for (IntChannel neighborChannel : pLayout->getInnerNeighbors(pSpike->channel))
         {
             IntVolt baseline = ref + baselines[neighborChannel];
-            IntFxV sumVolt = 0;
+            IntMax sumVolt = 0;
             for (IntFrame t = frameLeft; t < frameRight; t++) // TODO: why not <=
             {
                 IntVolt volt = (*pTrace)(t, neighborChannel) - baseline;
@@ -39,18 +39,18 @@ namespace HSDetection
             chAmps.push_back(make_pair(neighborChannel, sumVolt));
         }
 
-        IntFxV median;
+        IntMax median;
         {
             // TODO: extract as a class?
-            vector<pair<IntChannel, IntFxV>>::iterator middle = chAmps.begin() + (chAmps.size() - 1) / 2;
+            vector<pair<IntChannel, IntMax>>::iterator middle = chAmps.begin() + (chAmps.size() - 1) / 2;
             nth_element(chAmps.begin(), middle, chAmps.end(),
-                        [](const pair<IntChannel, IntFxV> &lhs, const pair<IntChannel, IntFxV> &rhs)
+                        [](const pair<IntChannel, IntMax> &lhs, const pair<IntChannel, IntMax> &rhs)
                         { return lhs.second < rhs.second; });
             median = middle->second;
             if (chAmps.size() % 2 == 0)
             {
-                IntFxV med1 = min_element(middle + 1, chAmps.end(),
-                                          [](const pair<IntChannel, IntFxV> &lhs, const pair<IntChannel, IntFxV> &rhs)
+                IntMax med1 = min_element(middle + 1, chAmps.end(),
+                                          [](const pair<IntChannel, IntMax> &lhs, const pair<IntChannel, IntMax> &rhs)
                                           { return lhs.second < rhs.second; })
                                   ->second;
                 median = (median + med1) / 2;
@@ -58,10 +58,10 @@ namespace HSDetection
         }
 
         Point CoM(0, 0);
-        IntFCV sumAmp = 0;
-        for (const pair<IntChannel, IntFxV> &chAmp : chAmps)
+        IntMax sumAmp = 0;
+        for (const pair<IntChannel, IntMax> &chAmp : chAmps)
         {
-            IntFxV amp = chAmp.second - median; // correction and threshold
+            IntMax amp = chAmp.second - median; // correction and threshold
             if (amp > 0)
             {
                 CoM += amp * pLayout->getChannelPosition(chAmp.first);
@@ -77,7 +77,7 @@ namespace HSDetection
             // NOTE: choose any point with amp == median == max
             // TODO: really need? choose any?
             pSpike->position = pLayout->getChannelPosition(find_if(chAmps.begin(), chAmps.end(),
-                                                                   [median](const pair<IntChannel, IntFxV> &chAmp)
+                                                                   [median](const pair<IntChannel, IntMax> &chAmp)
                                                                    { return chAmp.second == median; })
                                                                ->first);
         }
