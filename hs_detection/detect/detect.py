@@ -16,6 +16,8 @@ class HSDetection(object):
     """TODO:
     """
 
+    RADIUS_EPS = 1e-3  # 1nm
+
     def __init__(self, recording: Recording, params: Mapping[str, Any]) -> None:
         self.recording = recording
         self.num_channels = recording.get_num_channels()
@@ -53,8 +55,9 @@ class HSDetection(object):
             params['event_length'] * self.fps / 1000)
         self.noise_duration = int(params['peak_jitter'] * self.fps / 1000)
         self.noise_amp_percent: float = params['noise_amp_percent']
-        self.neighbor_radius: float = params['neighbor_radius'] + 1e-3
-        self.inner_radius: float = params['inner_radius'] + 1e-3
+        self.neighbor_radius: float = params['neighbor_radius'] + \
+            self.RADIUS_EPS
+        self.inner_radius: float = params['inner_radius'] + self.RADIUS_EPS
 
         self.cutout_start = int(
             params['left_cutout_time'] * self.fps / 1000 + 0.5)
