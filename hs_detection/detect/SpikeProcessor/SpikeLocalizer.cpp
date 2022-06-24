@@ -16,60 +16,60 @@ namespace HSDetection
 
     void SpikeLocalizer::operator()(Spike *pSpike)
     {
-        IntFrame frameLeft = pSpike->frame - jitterTol; // TODO: name?
-        IntFrame frameRight = pSpike->frame + jitterTol;
+        const vector<IntChannel> &neighbors = pLayout->getInnerNeighbors(pSpike->channel);
+        int numNeighbors = neighbors.size();
 
-        IntVolt ref = (*pRef)(pSpike->frame, 0); // TODO: why not -peakDur
-        const IntVolt *baselines = (*pBaseline)[pSpike->frame - peakDur];
-
-        vector<pair<IntChannel, IntMax>> chAmps;
-
-        for (IntChannel neighborChannel : pLayout->getInnerNeighbors(pSpike->channel))
+        vector<IntMax> weights(numNeighbors);
+        for (int i = 0; i < numNeighbors; i++)
         {
-            IntVolt baseline = ref + baselines[neighborChannel];
-            IntMax sumVolt = 0;
-            for (IntFrame t = frameLeft; t < frameRight; t++) // TODO: why not <=
-            {
-                IntVolt volt = (*pTrace)(t, neighborChannel) - baseline;
-                if (volt > 0)
-                {
-                    sumVolt += volt;
-                }
-            }
-            chAmps.push_back(make_pair(neighborChannel, sumVolt));
+            weights[i] = sumCutout(pSpike->frame, neighbors[i]);
         }
 
-        IntMax median;
+        IntMax median = getMedian(weights);
+
+        Point sumPoint(0, 0);
+        FloatGeom sumWeight = 0;
+        for (int i = 0; i < numNeighbors; i++)
         {
-            // TODO: extract as a class?
-            vector<pair<IntChannel, IntMax>>::iterator middle = chAmps.begin() + (chAmps.size() - 1) / 2;
-            nth_element(chAmps.begin(), middle, chAmps.end(),
-                        [](const pair<IntChannel, IntMax> &lhs, const pair<IntChannel, IntMax> &rhs)
-                        { return lhs.second < rhs.second; });
-            median = middle->second;
-            if (chAmps.size() % 2 == 0)
+            IntMax weight = weights[i] - median; // correction and threshold on median
+            if (weight >= 0)
             {
-                IntMax med1 = min_element(middle + 1, chAmps.end(),
-                                          [](const pair<IntChannel, IntMax> &lhs, const pair<IntChannel, IntMax> &rhs)
-                                          { return lhs.second < rhs.second; })
-                                  ->second;
-                median = (median + med1) / 2;
+                sumPoint += (weight + eps) * pLayout->getChannelPosition(neighbors[i]);
+                sumWeight += weight + eps;
             }
         }
 
-        Point CoM(0, 0);
-        FloatGeom sumAmp = 0;
-        for (const pair<IntChannel, IntMax> &chAmp : chAmps)
+        pSpike->position = sumPoint / sumWeight;
+    }
+
+    IntMax SpikeLocalizer::sumCutout(IntFrame frame, IntChannel channel) const
+    {
+        IntVolt baseline = (*pBaseline)[frame - peakDur][channel]; // baseline at the start of event
+
+        IntMax sum = 0;
+        for (IntFrame t = frame - jitterTol; t < frame + jitterTol; t++) // TODO: use <=
         {
-            IntMax amp = chAmp.second - median; // correction and threshold
-            if (amp >= 0)
+            IntVolt volt = (*pTrace)(t, channel) - baseline - (*pRef)(frame, 0); // TODO: shoule be ref(t)
+            if (volt > 0)
             {
-                CoM += (amp + eps) * pLayout->getChannelPosition(chAmp.first);
-                sumAmp += amp + eps;
+                sum += volt;
             }
         }
+        return sum;
+    }
 
-        pSpike->position = CoM /= sumAmp;
+    IntMax SpikeLocalizer::getMedian(vector<IntMax> weights) const // copy param to be modified inside
+    {
+        vector<IntMax>::iterator middle = weights.begin() + weights.size() / 2;
+        nth_element(weights.begin(), middle, weights.end());
+        if (weights.size() % 2 == 0)
+        {
+            return (*middle + *max_element(weights.begin(), middle)) / 2;
+        }
+        else
+        {
+            return *middle;
+        }
     }
 
 } // namespace HSDetection
