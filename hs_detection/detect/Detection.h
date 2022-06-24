@@ -76,6 +76,8 @@ namespace HSDetection
     private:
         void commonMedian(IntFrame chunkStart, IntFrame chunkLen);
         void commonAverage(IntFrame chunkStart, IntFrame chunkLen);
+        void runningEstimation(IntFrame chunkStart, IntFrame chunkLen);
+        void detectSpikes(IntFrame chunkStart, IntFrame chunkLen);
 
     public:
         Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,

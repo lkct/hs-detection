@@ -51,6 +51,36 @@ namespace HSDetection
         delete[] _commonRef;
     }
 
+    void Detection::step(IntVolt *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)
+    {
+        trace.updateChunk(traceBuffer);
+        commonRef.updateChunk(_commonRef);
+
+        if (medianReference)
+        {
+            commonMedian(chunkStart, chunkLen);
+        }
+        else if (averageReference)
+        {
+            commonAverage(chunkStart, chunkLen);
+        }
+
+        runningEstimation(chunkStart, chunkLen);
+
+        detectSpikes(chunkStart, chunkLen);
+    }
+
+    IntResult Detection::finish()
+    {
+        pQueue->finalize();
+        return result.size();
+    }
+
+    const Spike *Detection::getResult() const
+    {
+        return result.data();
+    }
+
     void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen)
     {
         copy_n(commonRef[chunkStart + chunkSize - chunkLeftMargin], chunkLeftMargin,
@@ -85,20 +115,8 @@ namespace HSDetection
         }
     }
 
-    void Detection::step(IntVolt *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)
+    void Detection::runningEstimation(IntFrame chunkStart, IntFrame chunkLen)
     {
-        trace.updateChunk(traceBuffer);
-        commonRef.updateChunk(_commonRef);
-
-        if (medianReference)
-        {
-            commonMedian(chunkStart, chunkLen);
-        }
-        else if (averageReference)
-        {
-            commonAverage(chunkStart, chunkLen);
-        }
-
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
             const IntVolt *input = trace[t];
@@ -120,11 +138,14 @@ namespace HSDetection
                 IntVolt dltDev = 0;
                 dltDev = (devPrev[i] < volt && volt < 5 * devPrev[i]) ? devChange : dltDev;
                 dltDev = ((0 < volt && volt <= devPrev[i]) || 6 * devPrev[i] < volt) ? -devChange : dltDev; // TODO: split two cmov?
-                IntVolt devI = devPrev[i] + dltDev;
-                deviations[i] = (devI < minDev) ? minDev : devI; // clamp deviations at minDev
+                IntVolt dev = devPrev[i] + dltDev;
+                deviations[i] = (dev < minDev) ? minDev : dev; // clamp deviations at minDev
             }
         }
+    }
 
+    void Detection::detectSpikes(IntFrame chunkStart, IntFrame chunkLen)
+    {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
             const IntVolt *input = trace[t];
@@ -135,11 +156,11 @@ namespace HSDetection
             for (IntChannel i = 0; i < numChannels; i++)
             {
                 IntVolt volt = input[i] - ref - baselines[i]; // calc against updated baselines
-                IntVolt devI = deviations[i];
+                IntVolt dev = deviations[i];
 
                 if (spikeTime[i] < 0) // not in spike
                 {
-                    if (2 * volt > threshold * devI) // threshold crossing, *2 for precision
+                    if (2 * volt > threshold * dev) // threshold crossing, *2 for precision
                     {
                         spikeTime[i] = 0;
                         spikeAmp[i] = volt;
@@ -168,7 +189,7 @@ namespace HSDetection
 
                 if (spikeTime[i] < spikeDur - 1) // TODO: inconsistent - 1
                 {
-                    if (volt < maxAHPAmp * devI) // AHP found
+                    if (volt < maxAHPAmp * dev) // AHP found
                     {
                         hasAHP[i] = true;
                     }
@@ -184,29 +205,18 @@ namespace HSDetection
                 // else: spikeTime[i] == spikeDur - 1, spike end
 
                 // TODO: if not AHP, whether connect spike?
-                if (2 * spikeArea[i] > (IntMax)ampAvgDur * minAvgAmp * devI && // reach min area, *2 for precision
-                    (hasAHP[i] || volt < maxAHPAmp * devI))                    // AHP exist
+                if (2 * spikeArea[i] > (IntMax)ampAvgDur * minAvgAmp * dev && // reach min area, *2 for precision
+                    (hasAHP[i] || volt < maxAHPAmp * dev))                    // AHP exist
                 {
                     pQueue->push_back(Spike(t - (spikeDur - 1), i, spikeAmp[i]));
                 }
 
-                spikeTime[i] = -1;
+                spikeTime[i] = -1; // reset counter even if not spike
 
             } // for i
 
         } // for t
 
-    } // Detection::step
-
-    IntResult Detection::finish()
-    {
-        pQueue->finalize();
-        return result.size();
-    }
-
-    const Spike *Detection::getResult() const
-    {
-        return result.data();
-    }
+    } // Detection::detectSpikes
 
 } // namespace HSDetection
