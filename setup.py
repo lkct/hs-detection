@@ -63,13 +63,13 @@ with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 
-# should only have capital started cpp, except for cython generated
+# all cpp should start with capital, except for cython generated
 sources = glob.glob('hs_detection/detect/**/[A-Z]*.cpp', recursive=True)
 sources += [os.path.join('hs_detection/detect', fn) for fn in ext_src]
 
 extra_compile_args = ['-std=c++17', '-O3']
 link_extra_args = []
-# OS X support  # TODO: test on mac
+# OS X support
 if platform.system() == 'Darwin':
     extra_compile_args += ['-mmacosx-version-min=10.9', '-F.']
     link_extra_args += ['-stdlib=libc++', '-mmacosx-version-min=10.9']
