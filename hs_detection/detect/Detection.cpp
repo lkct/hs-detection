@@ -204,13 +204,18 @@ namespace HSDetection
                 IntVolt volt = trace[i] - ref - baselines[i]; // calc against updated baselines
                 IntVolt dev = deviations[i];
 
+                IntMax voltThr = volt * thrQuant;
+                IntMax thr = threshold * dev;
+                IntMax minAvg = minAvgAmp * dev;
+                IntMax maxAHP = maxAHPAmp * dev;
+
                 if (spikeTime[i] < 0) // not in spike
                 {
-                    if (thrQuant * volt > threshold * dev) // threshold crossing
+                    if (voltThr > thr) // threshold crossing
                     {
                         spikeTime[i] = 0;
                         spikeAmp[i] = volt;
-                        spikeArea[i] = volt;
+                        spikeArea[i] = voltThr;
                         hasAHP[i] = false;
                     }
                     continue;
@@ -221,12 +226,12 @@ namespace HSDetection
 
                 if (spikeTime[i] < ampAvgDur) // sum up area in ampAvgDur
                 {
-                    spikeArea[i] += volt;
+                    spikeArea[i] += voltThr;
                     if (spikeAmp[i] < volt) // larger amp found
                     {
                         spikeTime[i] = 0; // reset peak to current
                         spikeAmp[i] = volt;
-                        spikeArea[i] += volt; // but accumulate area // TODO:??? should not add twice
+                        spikeArea[i] += voltThr; // but accumulate area // TODO:??? should not add twice
                         hasAHP[i] = false;
                     }
                     continue;
@@ -235,7 +240,7 @@ namespace HSDetection
 
                 if (spikeTime[i] < spikeDur)
                 {
-                    if (thrQuant * volt < maxAHPAmp * dev) // AHP found
+                    if (voltThr < maxAHP) // AHP found
                     {
                         hasAHP[i] = true;
                     }
@@ -243,15 +248,15 @@ namespace HSDetection
                     {
                         spikeTime[i] = 0; // reset peak to current
                         spikeAmp[i] = volt;
-                        spikeArea[i] += volt; // but accumulate area
+                        spikeArea[i] += voltThr; // but accumulate area
                         hasAHP[i] = false;
                     }
                     continue;
                 }
                 // else: spikeTime[i] == spikeDur, spike end
 
-                if (thrQuant * spikeArea[i] > minAvgAmp * dev * (ampAvgDur + 1) && // reach min area // TODO:??? -1
-                    (hasAHP[i] || thrQuant * volt < maxAHPAmp * dev))              // AHP exist
+                if (spikeArea[i] > minAvg * (ampAvgDur + 1) && // reach min area // TODO:??? -1
+                    (hasAHP[i] || voltThr < maxAHP))           // AHP exist
                 {
                     pQueue->push_back(Spike(t - spikeDur, i, spikeAmp[i]));
                 }
