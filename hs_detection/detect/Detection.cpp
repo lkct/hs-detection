@@ -10,7 +10,8 @@ namespace HSDetection
     Detection::Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
                          bool rescale, const FloatRaw *scale, const FloatRaw *offset,
                          bool medianReference, bool averageReference,
-                         IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
+                         IntFrame spikeDur, IntFrame ampAvgDur,
+                         FloatRatio threshold, FloatRatio minAvgAmp, FloatRatio maxAHPAmp,
                          const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                          IntFrame jitterTol, IntFrame peakDur,
                          bool decayFiltering, FloatRatio decayRatio, bool localize,
@@ -26,8 +27,8 @@ namespace HSDetection
           runningDeviation(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
           spikeArea(new IntMax[numChannels]), hasAHP(new bool[numChannels]),
-          spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold),
-          minAvgAmp(minAvgAmp), maxAHPAmp(maxAHPAmp), // pQueue not ready
+          spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold * thrQuant),
+          minAvgAmp(minAvgAmp * thrQuant), maxAHPAmp(maxAHPAmp * thrQuant),
           probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
           result(), jitterTol(jitterTol), peakDur(peakDur),
           decayFilter(decayFiltering), decayRatio(decayRatio),
@@ -205,7 +206,7 @@ namespace HSDetection
 
                 if (spikeTime[i] < 0) // not in spike
                 {
-                    if (2 * volt > threshold * dev) // threshold crossing, *2 for precision
+                    if (thrQuant * volt > threshold * dev) // threshold crossing
                     {
                         spikeTime[i] = 0;
                         spikeAmp[i] = volt;
@@ -234,7 +235,7 @@ namespace HSDetection
 
                 if (spikeTime[i] < spikeDur)
                 {
-                    if (volt < maxAHPAmp * dev) // AHP found
+                    if (thrQuant * volt < maxAHPAmp * dev) // AHP found
                     {
                         hasAHP[i] = true;
                     }
@@ -249,8 +250,8 @@ namespace HSDetection
                 }
                 // else: spikeTime[i] == spikeDur, spike end
 
-                if (2 * spikeArea[i] > (IntMax)(ampAvgDur + 1) * minAvgAmp * dev && // reach min area, *2 for precision // TODO:??? -1
-                    (hasAHP[i] || volt < maxAHPAmp * dev))                          // AHP exist
+                if (thrQuant * spikeArea[i] > minAvgAmp * dev * (ampAvgDur + 1) && // reach min area // TODO:??? -1
+                    (hasAHP[i] || thrQuant * volt < maxAHPAmp * dev))              // AHP exist
                 {
                     pQueue->push_back(Spike(t - spikeDur, i, spikeAmp[i]));
                 }

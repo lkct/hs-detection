@@ -13,7 +13,7 @@ namespace HSDetection
     typedef int32_t IntChannel; // number of channels
     typedef float FloatRaw;     // raw trace, correspond to np.single and cython.float
     typedef float FloatGeom;    // spatial dimension, correspond to np.single and cython.float
-    typedef float FloatRatio;   // 0.0~1.0
+    typedef float FloatRatio;   // ratio between values
     typedef int32_t IntResult;  // expected number of spikes
 
     // used only internally

@@ -165,8 +165,8 @@ class HSDetection(object):
             self.common_reference == 'average',
             self.maxsl - 1,  # TODO:??? -1
             self.minsl - 1,
-            self.threshold,
-            self.maa,
+            self.threshold / 2,  # TODO:??? /2
+            self.maa / 2,
             self.ahpthr,
             cython.address(position_matrix[0, 0]),
             self.neighbor_radius,

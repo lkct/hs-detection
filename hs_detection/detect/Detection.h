@@ -22,6 +22,8 @@ namespace HSDetection
         static constexpr IntVolt devChange = 1;      // changing for deviation update
         static constexpr IntVolt minDev = 200;       // minimum level of deviation
 
+        static constexpr IntMax thrQuant = 256; // 8bit precision
+
         static constexpr size_t channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
 
         static constexpr IntChannel alignChannel(IntChannel x) { return (x + channelAlign - 1) & (-channelAlign); }
@@ -55,9 +57,9 @@ namespace HSDetection
 
         IntFrame spikeDur;  // duration of a whole spike
         IntFrame ampAvgDur; // duration to average amplitude
-        IntVolt threshold;  // threshold to detect spikes, used as multiplier of deviation
-        IntVolt minAvgAmp;  // threshold for average amplitude of peak, used as multiplier of deviation
-        IntVolt maxAHPAmp;  // threshold for voltage level of AHP, used as multiplier of deviation
+        IntMax threshold;   // threshold to detect spikes, used as multiplier of deviation
+        IntMax minAvgAmp;   // threshold for average amplitude of peak, used as multiplier of deviation
+        IntMax maxAHPAmp;   // threshold for voltage level of AHP, used as multiplier of deviation
 
         // queue processing
         SpikeQueue *pQueue; // spike queue, must be a pointer to be new-ed later
@@ -94,7 +96,8 @@ namespace HSDetection
         Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,
                   bool rescale, const FloatRaw *scale, const FloatRaw *offset,
                   bool medianReference, bool averageReference,
-                  IntFrame spikeDur, IntFrame ampAvgDur, IntVolt threshold, IntVolt minAvgAmp, IntVolt maxAHPAmp,
+                  IntFrame spikeDur, IntFrame ampAvgDur,
+                  FloatRatio threshold, FloatRatio minAvgAmp, FloatRatio maxAHPAmp,
                   const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                   IntFrame jitterTol, IntFrame peakDur,
                   bool decayFiltering, FloatRatio decayRatio, bool localize,
