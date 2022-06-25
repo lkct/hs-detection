@@ -70,8 +70,7 @@ namespace HSDetection
     {
         IntFrame frameBound = nextFrame - peakDurWithTol;
 
-        // TODO: frame pattern?
-        while (!queue.empty() && !(frameBound <= queue.front().frame)) // keep everything after bound
+        while (!queue.empty() && !(frameBound <= queue.front().frame))
         {
             IntFrame lastFrame = queue.front().frame;
 

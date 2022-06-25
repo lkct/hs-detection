@@ -21,7 +21,8 @@ namespace HSDetection
             [this, frameBound, centerChannel](const Spike &lhs, const Spike &rhs)
             { return rhs.frame <= frameBound &&
                      pLayout->areNeighbors(rhs.channel, centerChannel) &&
-                     lhs.amplitude <= rhs.amplitude; }); // TODO: not sure whether <= or <
+                     lhs.amplitude <= rhs.amplitude; });
+        // using amp <=, so it's the latest max spike in spatial-temporal neighborhood
 
         pQueue->push_front(move(*itMax));
         pQueue->erase(itMax);

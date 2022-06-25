@@ -56,7 +56,7 @@ class HSDetection(object):
         self.positions = np.ascontiguousarray(positions, dtype=np.single)
 
         self.spike_peak_duration = int(
-            params['event_length'] * self.fps / 1000)
+            params['event_length'] * self.fps / 1000)  # TODO:??? round or floor?
         self.noise_duration = int(params['peak_jitter'] * self.fps / 1000)
         self.noise_amp_percent: float = params['noise_amp_percent']
         self.neighbor_radius: float = params['neighbor_radius'] + \
@@ -64,7 +64,7 @@ class HSDetection(object):
         self.inner_radius: float = params['inner_radius'] + self.RADIUS_EPS
 
         self.cutout_start = int(
-            params['left_cutout_time'] * self.fps / 1000 + 0.5)
+            params['left_cutout_time'] * self.fps / 1000 + 0.5)  # TODO:??? round or floor?
         self.cutout_end = int(
             params['right_cutout_time'] * self.fps / 1000 + 0.5)
         self.minsl = int(params['amp_evaluation_time'] * self.fps / 1000 + 0.5)
@@ -147,7 +147,7 @@ class HSDetection(object):
         t_cut2 = self.cutout_end + self.maxsl
         t_inc = min(self.chunk_size,
                     self.num_frames[segment_index] - t_cut - t_cut2)
-        t_cut = 2048  # TODO: can be smaller? effect of band pass?
+        t_cut = 2048  # TODO:??? band pass problem
 
         scale: cython.float[:] = self.scale
         offset: cython.float[:] = self.offset

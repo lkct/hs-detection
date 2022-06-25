@@ -55,7 +55,7 @@ namespace HSDetection
         IntMax *spikeArea;   // area under spike used for average amplitude, actually integral*fps
         bool *hasAHP;        // flag for AHP existence
 
-        IntFrame spikeDur;  // duration of a whole spike
+        IntFrame spikeDur;  // duration of a spike since peak
         IntFrame ampAvgDur; // duration to average amplitude
         IntMax threshold;   // threshold to detect spikes, used as multiplier of deviation
         IntMax minAvgAmp;   // threshold for average amplitude of peak, used as multiplier of deviation
@@ -68,8 +68,8 @@ namespace HSDetection
 
         std::vector<Spike> result; // detection result, use vector to expand as needed
 
-        IntFrame jitterTol; // tolerance of jitter in raw data
-        IntFrame peakDur;   // duration of spike peaks
+        IntFrame jitterTol; // tolerance of jitter in electrical signal
+        IntFrame peakDur;   // duration that a spike rises to peak
 
         // decay filtering
         bool decayFilter;      // whether to use decay filtering instead of normal one

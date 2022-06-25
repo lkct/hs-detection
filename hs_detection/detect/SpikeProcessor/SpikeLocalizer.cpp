@@ -49,7 +49,7 @@ namespace HSDetection
         IntMax sum = 0;
         for (IntFrame t = frame - jitterTol; t < frame + jitterTol; t++) // TODO:??? <=
         {
-            IntVolt volt = (*pTrace)(t, channel) - baseline - (*pRef)(frame, 0); // TODO: shoule be ref(t)
+            IntVolt volt = (*pTrace)(t, channel) - baseline - (*pRef)(frame, 0); // TODO:??? shoule be ref(t)
             if (volt > 0)
             {
                 sum += volt;
