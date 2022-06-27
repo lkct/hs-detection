@@ -26,7 +26,7 @@ namespace HSDetection
 
         static constexpr size_t channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
 
-        static constexpr IntChannel alignChannel(IntChannel x) { return (x + channelAlign - 1) & (-channelAlign); }
+        static constexpr IntChannel alignChannel(IntChannel x) { return (x + (channelAlign - 1)) & (-channelAlign); }
 
         // input data
         TraceWrapper traceRaw;    // input trace

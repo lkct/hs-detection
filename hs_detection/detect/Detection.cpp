@@ -109,8 +109,9 @@ namespace HSDetection
         {
             const FloatRaw *input = traceRaw[t];
             IntVolt *trace = this->trace[t];
+            IntChannel alignedChannels = alignChannel(numChannels);
 
-            for (IntChannel i = 0; i < alignChannel(numChannels); i++)
+            for (IntChannel i = 0; i < alignedChannels; i++)
             {
                 trace[i] = input[i] * scale[i] + offset[i];
                 trace[i] *= -64; // TODO:??? 64
@@ -124,8 +125,9 @@ namespace HSDetection
         {
             const FloatRaw *input = traceRaw[t];
             IntVolt *trace = this->trace[t];
+            IntChannel alignedChannels = alignChannel(numChannels);
 
-            for (IntChannel i = 0; i < alignChannel(numChannels); i++)
+            for (IntChannel i = 0; i < alignedChannels; i++)
             {
                 trace[i] = input[i];
                 trace[i] *= -64; // TODO:??? 64
@@ -171,8 +173,9 @@ namespace HSDetection
             const IntVolt *devPrev = runningDeviation[t - 1];
             IntVolt *baselines = runningBaseline[t];
             IntVolt *deviations = runningDeviation[t];
+            IntChannel alignedChannels = alignChannel(numChannels);
 
-            for (IntChannel i = 0; i < alignChannel(numChannels); i++)
+            for (IntChannel i = 0; i < alignedChannels; i++)
             {
                 IntVolt volt = trace[i] - ref - basePrev[i];
 
