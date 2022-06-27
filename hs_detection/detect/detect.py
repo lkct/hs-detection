@@ -56,15 +56,16 @@ class HSDetection(object):
         self.positions = np.ascontiguousarray(positions, dtype=np.single)
 
         self.spike_peak_duration = int(
-            params['event_length'] * self.fps / 1000)  # TODO:??? round or floor?
-        self.noise_duration = int(params['peak_jitter'] * self.fps / 1000)
+            params['event_length'] * self.fps / 1000 + 0.5)
+        self.noise_duration = int(
+            params['peak_jitter'] * self.fps / 1000 + 0.5)
         self.noise_amp_percent: float = params['noise_amp_percent']
         self.neighbor_radius: float = params['neighbor_radius'] + \
             self.RADIUS_EPS
         self.inner_radius: float = params['inner_radius'] + self.RADIUS_EPS
 
         self.cutout_start = int(
-            params['left_cutout_time'] * self.fps / 1000 + 0.5)  # TODO:??? round or floor?
+            params['left_cutout_time'] * self.fps / 1000 + 0.5)
         self.cutout_end = int(
             params['right_cutout_time'] * self.fps / 1000 + 0.5)
         self.minsl = int(params['amp_evaluation_time'] * self.fps / 1000 + 0.5)
