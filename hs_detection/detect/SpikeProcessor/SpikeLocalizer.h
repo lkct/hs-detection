@@ -20,8 +20,8 @@ namespace HSDetection
 
         static constexpr FloatGeom eps = 1e-12;
 
-        IntMax sumCutout(IntFrame frame, IntChannel channel) const;
-        IntMax getMedian(std::vector<IntMax> weights) const; // copy param to be modified inside
+        IntCalc sumCutout(IntFrame frame, IntChannel channel) const;
+        IntCalc getMedian(std::vector<IntCalc> weights) const; // copy param to be modified inside
 
     public:
         SpikeLocalizer(const ProbeLayout *pLayout, const RollingArray *pTrace,

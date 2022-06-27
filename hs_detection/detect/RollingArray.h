@@ -30,7 +30,7 @@ namespace HSDetection
         RollingArray(IntFrame rollingLen, IntChannel numChannels)
             : frameMask(getMask(rollingLen)), numChannels(numChannels)
         {
-            arrayBuffer = new (memAlign) IntVolt[(IntMax)(frameMask + 1) * numChannels];
+            arrayBuffer = new (memAlign) IntVolt[(IntCalc)(frameMask + 1) * numChannels];
         }
         ~RollingArray() { delete[] arrayBuffer; }
 
@@ -39,8 +39,8 @@ namespace HSDetection
         // copy assignment deleted to protect buffer
         RollingArray &operator=(const RollingArray &) = delete;
 
-        const IntVolt *operator[](IntFrame frame) const { return arrayBuffer + ((IntMax)frame & frameMask) * numChannels; }
-        IntVolt *operator[](IntFrame frame) { return arrayBuffer + ((IntMax)frame & frameMask) * numChannels; }
+        const IntVolt *operator[](IntFrame frame) const { return arrayBuffer + ((IntCalc)frame & frameMask) * numChannels; }
+        IntVolt *operator[](IntFrame frame) { return arrayBuffer + ((IntCalc)frame & frameMask) * numChannels; }
 
         const IntVolt &operator()(IntFrame frame, IntChannel channel) const { return (*this)[frame][channel]; }
         IntVolt &operator()(IntFrame frame, IntChannel channel) { return (*this)[frame][channel]; }

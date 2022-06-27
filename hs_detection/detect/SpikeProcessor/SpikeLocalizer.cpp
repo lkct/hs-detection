@@ -19,19 +19,19 @@ namespace HSDetection
         const vector<IntChannel> &neighbors = pLayout->getInnerNeighbors(pSpike->channel);
         int numNeighbors = neighbors.size();
 
-        vector<IntMax> weights(numNeighbors);
+        vector<IntCalc> weights(numNeighbors);
         for (int i = 0; i < numNeighbors; i++)
         {
             weights[i] = sumCutout(pSpike->frame, neighbors[i]);
         }
 
-        IntMax median = getMedian(weights);
+        IntCalc median = getMedian(weights);
 
         Point sumPoint(0, 0);
         FloatGeom sumWeight = 0;
         for (int i = 0; i < numNeighbors; i++)
         {
-            IntMax weight = weights[i] - median; // correction and threshold on median
+            IntCalc weight = weights[i] - median; // correction and threshold on median
             if (weight >= 0)
             {
                 sumPoint += (weight + eps) * pLayout->getChannelPosition(neighbors[i]);
@@ -42,11 +42,11 @@ namespace HSDetection
         pSpike->position = sumPoint / sumWeight;
     }
 
-    IntMax SpikeLocalizer::sumCutout(IntFrame frame, IntChannel channel) const
+    IntCalc SpikeLocalizer::sumCutout(IntFrame frame, IntChannel channel) const
     {
         IntVolt baseline = (*pBaseline)[frame - peakDur][channel]; // baseline at the start of event
 
-        IntMax sum = 0;
+        IntCalc sum = 0;
         for (IntFrame t = frame - jitterTol; t < frame + jitterTol; t++) // TODO:??? <=
         {
             IntVolt volt = (*pTrace)(t, channel) - baseline - (*pRef)(frame, 0); // TODO:??? shoule be ref(t)
@@ -58,9 +58,9 @@ namespace HSDetection
         return sum;
     }
 
-    IntMax SpikeLocalizer::getMedian(vector<IntMax> weights) const // copy param to be modified inside
+    IntCalc SpikeLocalizer::getMedian(vector<IntCalc> weights) const // copy param to be modified inside
     {
-        vector<IntMax>::iterator middle = weights.begin() + weights.size() / 2;
+        vector<IntCalc>::iterator middle = weights.begin() + weights.size() / 2;
         nth_element(weights.begin(), middle, weights.end());
         if (weights.size() % 2 == 0)
         {

@@ -23,8 +23,8 @@ namespace HSDetection
         // should be called to both provide a buffer and advance the offset
         void updateChunk(FloatRaw *traceBuffer) { this->traceBuffer = traceBuffer, frameOffset += chunkSize; }
 
-        const FloatRaw *operator[](IntFrame frame) const { return traceBuffer + (IntMax)(frame - frameOffset) * numChannels; }
-        FloatRaw *operator[](IntFrame frame) { return traceBuffer + (IntMax)(frame - frameOffset) * numChannels; }
+        const FloatRaw *operator[](IntFrame frame) const { return traceBuffer + (IntCalc)(frame - frameOffset) * numChannels; }
+        FloatRaw *operator[](IntFrame frame) { return traceBuffer + (IntCalc)(frame - frameOffset) * numChannels; }
 
         const FloatRaw &operator()(IntFrame frame, IntChannel channel) const { return (*this)[frame][channel]; }
         FloatRaw &operator()(IntFrame frame, IntChannel channel) { return (*this)[frame][channel]; }

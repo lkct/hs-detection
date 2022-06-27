@@ -26,7 +26,7 @@ namespace HSDetection
           runningBaseline(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
           runningDeviation(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
-          spikeArea(new IntMax[numChannels]), hasAHP(new bool[numChannels]),
+          spikeArea(new IntCalc[numChannels]), hasAHP(new bool[numChannels]),
           spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold * thrQuant),
           minAvgAmp(minAvgAmp * thrQuant), maxAHPAmp(maxAHPAmp * thrQuant),
           probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
@@ -156,8 +156,8 @@ namespace HSDetection
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntMax)0, // TODO:??? 64
-                                         [](IntMax sum, IntVolt data)
+            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntCalc)0, // TODO:??? 64
+                                         [](IntCalc sum, IntVolt data)
                                          { return sum + data / 64; }) /
                               numChannels * 64;
         }
@@ -207,10 +207,10 @@ namespace HSDetection
                 IntVolt volt = trace[i] - ref - baselines[i]; // calc against updated baselines
                 IntVolt dev = deviations[i];
 
-                IntMax voltThr = volt * thrQuant;
-                IntMax thr = threshold * dev;
-                IntMax minAvg = minAvgAmp * dev;
-                IntMax maxAHP = maxAHPAmp * dev;
+                IntCalc voltThr = volt * thrQuant;
+                IntCalc thr = threshold * dev;
+                IntCalc minAvg = minAvgAmp * dev;
+                IntCalc maxAHP = maxAHPAmp * dev;
 
                 if (spikeTime[i] < 0) // not in spike
                 {

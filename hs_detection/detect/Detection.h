@@ -22,7 +22,7 @@ namespace HSDetection
         static constexpr IntVolt devChange = 1;      // changing for deviation update
         static constexpr IntVolt minDev = 200;       // minimum level of deviation
 
-        static constexpr IntMax thrQuant = 256; // 8bit precision
+        static constexpr IntCalc thrQuant = 256; // 8bit precision
 
         static constexpr size_t channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
 
@@ -52,14 +52,14 @@ namespace HSDetection
         // detection
         IntFrame *spikeTime; // counter for time since spike peak
         IntVolt *spikeAmp;   // spike peak amplitude
-        IntMax *spikeArea;   // area under spike used for average amplitude, actually integral*fps
+        IntCalc *spikeArea;  // area under spike used for average amplitude, actually integral*fps
         bool *hasAHP;        // flag for AHP existence
 
         IntFrame spikeDur;  // duration of a spike since peak
         IntFrame ampAvgDur; // duration to average amplitude
-        IntMax threshold;   // threshold to detect spikes, used as multiplier of deviation
-        IntMax minAvgAmp;   // threshold for average amplitude of peak, used as multiplier of deviation
-        IntMax maxAHPAmp;   // threshold for voltage level of AHP, used as multiplier of deviation
+        IntCalc threshold;  // threshold to detect spikes, used as multiplier of deviation
+        IntCalc minAvgAmp;  // threshold for average amplitude of peak, used as multiplier of deviation
+        IntCalc maxAHPAmp;  // threshold for voltage level of AHP, used as multiplier of deviation
 
         // queue processing
         SpikeQueue *pQueue; // spike queue, must be a pointer to be new-ed later
