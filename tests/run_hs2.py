@@ -81,7 +81,7 @@ def run_hsdet(recording: Recording,
 
     if params['filter'] and params['freq_min'] is not None and params['freq_max'] is not None:
         recording = st.bandpass_filter(
-            recording, freq_min=params['freq_min'], freq_max=params['freq_max'])
+            recording, freq_min=params['freq_min'], freq_max=params['freq_max'], margin_ms=100)
 
     det = HSDetection(recording, params)
 
@@ -105,6 +105,11 @@ def run_herdingspikes(recording: BaseRecording,
     cutout_start = int(params['left_cutout_time'] * fps / 1000 + 0.5)
     cutout_end = int(params['right_cutout_time'] * fps / 1000 + 0.5)
     cutout_length = cutout_start + cutout_end + 1
+
+    if params['filter'] and params['freq_min'] is not None and params['freq_max'] is not None:
+        recording = st.bandpass_filter(
+            recording, freq_min=params['freq_min'], freq_max=params['freq_max'], margin_ms=100)
+        kwargs['filter'] = False
 
     segments = recording._recording_segments
     result = []
