@@ -22,7 +22,7 @@ using namespace std;
 namespace HSDetection
 {
     SpikeQueue::SpikeQueue(Detection *pDet)
-        : queue(), queProcs(), spkProcs(), result(&pDet->result),
+        : queue(), queProcs(), spkProcs(), pRresult(&pDet->result),
           jitterTol(pDet->jitterTol), peakDurWithTol(pDet->peakDur + pDet->jitterTol)
     {
         SpikeProcessor *pSpkProc;
@@ -82,7 +82,7 @@ namespace HSDetection
                          [this](QueueProcessor *pQueProc)
                          { (*pQueProc)(this); });
 
-                result->push_back(move(*queue.begin()));
+                pRresult->push_back(move(*queue.begin()));
                 queue.erase(queue.begin());
             }
         }

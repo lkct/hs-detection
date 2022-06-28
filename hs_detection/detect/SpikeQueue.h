@@ -22,7 +22,7 @@ namespace HSDetection
         std::vector<QueueProcessor *> queProcs; // content created and released here
         std::vector<SpikeProcessor *> spkProcs; // content created and released here
 
-        std::vector<Spike> *result; // passed in, should not release here
+        std::vector<Spike> *pRresult; // passed in, should not release here
 
         IntFrame jitterTol;
         IntFrame peakDurWithTol; // peakDur + jitterTol
