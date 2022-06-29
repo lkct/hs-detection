@@ -13,12 +13,13 @@ namespace HSDetection
                          IntFrame spikeDur, IntFrame ampAvgDur,
                          FloatRatio threshold, FloatRatio minAvgAmp, FloatRatio maxAHPAmp,
                          const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
-                         IntFrame jitterTol, IntFrame peakDur,
+                         IntFrame jitterTol, IntFrame riseDur,
                          bool decayFiltering, FloatRatio decayRatio, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutEnd)
         : traceRaw(chunkLeftMargin, numChannels, chunkSize),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
-          rescale(rescale), scale(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignChannel(numChannels)]),
+          rescale(rescale),
+          scale(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignChannel(numChannels)]),
           offset(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignChannel(numChannels)]),
           trace(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
           medianReference(medianReference), averageReference(averageReference),
@@ -30,10 +31,9 @@ namespace HSDetection
           spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold * thrQuant),
           minAvgAmp(minAvgAmp * thrQuant), maxAHPAmp(maxAHPAmp * thrQuant),
           probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
-          result(), jitterTol(jitterTol), peakDur(peakDur),
-          decayFilter(decayFiltering), decayRatio(decayRatio),
-          localize(localize), saveShape(saveShape), filename(filename),
-          cutoutStart(cutoutStart), cutoutEnd(cutoutEnd)
+          result(), jitterTol(jitterTol), riseDur(riseDur),
+          decayFilter(decayFiltering), decayRatio(decayRatio), localize(localize),
+          saveShape(saveShape), filename(filename), cutoutStart(cutoutStart), cutoutEnd(cutoutEnd)
     {
         fill_n(this->scale, alignChannel(numChannels), (FloatRaw)1);
         fill_n(this->offset, alignChannel(numChannels), (FloatRaw)0);

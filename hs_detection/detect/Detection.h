@@ -69,7 +69,7 @@ namespace HSDetection
         std::vector<Spike> result; // detection result, use vector to expand as needed
 
         IntFrame jitterTol; // tolerance of jitter in electrical signal
-        IntFrame peakDur;   // duration that a spike rises to peak
+        IntFrame riseDur;   // duration that a spike rises to peak
 
         // decay filtering
         bool decayFilter;      // whether to use decay filtering instead of normal one
@@ -99,7 +99,7 @@ namespace HSDetection
                   IntFrame spikeDur, IntFrame ampAvgDur,
                   FloatRatio threshold, FloatRatio minAvgAmp, FloatRatio maxAHPAmp,
                   const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
-                  IntFrame jitterTol, IntFrame peakDur,
+                  IntFrame jitterTol, IntFrame riseDur,
                   bool decayFiltering, FloatRatio decayRatio, bool localize,
                   bool saveShape, std::string filename, IntFrame cutoutStart, IntFrame cutoutEnd);
         ~Detection();

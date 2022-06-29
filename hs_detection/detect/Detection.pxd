@@ -36,7 +36,7 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   float neighborRadius,
                   float innerRadius,
                   int32_t jitterTol,
-                  int32_t peakDur,
+                  int32_t riseDur,
                   bool decayFiltering,
                   float decayRatio,
                   bool localize,

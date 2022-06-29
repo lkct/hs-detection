@@ -23,7 +23,7 @@ namespace HSDetection
 {
     SpikeQueue::SpikeQueue(Detection *pDet)
         : queue(), queProcs(), spkProcs(), pRresult(&pDet->result),
-          procDelay(pDet->peakDur + pDet->jitterTol + pDet->spikeDur)
+          procDelay(pDet->riseDur + pDet->jitterTol + pDet->spikeDur)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;
@@ -44,7 +44,7 @@ namespace HSDetection
         if (pDet->localize)
         {
             pSpkProc = new SpikeLocalizer(&pDet->probeLayout, &pDet->trace, &pDet->commonRef, &pDet->runningBaseline,
-                                          pDet->jitterTol, pDet->peakDur);
+                                          pDet->jitterTol, pDet->riseDur);
             pushFirstElemProc(pSpkProc);
         }
 
