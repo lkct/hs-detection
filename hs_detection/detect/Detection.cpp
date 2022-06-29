@@ -197,6 +197,11 @@ namespace HSDetection
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
+            while (pQueue->checkDelay(t))
+            {
+                pQueue->process();
+            }
+
             const IntVolt *trace = this->trace[t];
             IntVolt ref = commonRef(t, 0);
             const IntVolt *baselines = runningBaseline[t];

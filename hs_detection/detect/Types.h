@@ -2,9 +2,6 @@
 #define TYPES_H
 
 #include <cstdint>
-#include <limits>
-
-#define MAX_FRAME std::numeric_limits<IntFrame>::max()
 
 // no standard FP type defined by C/C++, float corresponds to np.single and cython.float
 

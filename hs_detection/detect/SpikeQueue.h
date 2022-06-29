@@ -35,8 +35,10 @@ namespace HSDetection
         // copy assignment deleted to protect container content
         SpikeQueue &operator=(const SpikeQueue &) = delete;
 
-        void process(IntFrame nextFrame);
+        bool checkDelay(IntFrame curFrame) { return !queue.empty() && queue.front().frame < curFrame - procDelay; }
+        void process();
         void finalize();
+        // cannot inline process because no definition of Processor here
 
         // wrappers of container interface
 
@@ -53,7 +55,7 @@ namespace HSDetection
 
         void push_front(Spike &&spike) { queue.push_front(std::move(spike)); }
 
-        void push_back(Spike &&spike) { process(spike.frame), queue.push_back(std::move(spike)); }
+        void push_back(Spike &&spike) { queue.push_back(std::move(spike)); }
 
         iterator erase(const_iterator position) { return queue.erase(position); }
 
