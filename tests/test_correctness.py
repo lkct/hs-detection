@@ -58,7 +58,7 @@ def test_correctness(data_fn: str = 'mearec_test_10s.h5', expected: int = -1, **
 
 
 if __name__ == '__main__':
-    test_correctness(filter=False, expected=593)
-    test_correctness(expected=717)
+    test_correctness(filter=False, expected=619)
+    test_correctness(expected=738)
     test_correctness(filter=False, decay_filtering=True, expected=620)
     test_correctness(decay_filtering=True, expected=739)
