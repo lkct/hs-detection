@@ -24,7 +24,6 @@ namespace HSDetection
 
         std::vector<Spike> *pRresult; // passed in, should not release here
 
-        IntFrame jitterTol;
         IntFrame peakDurWithTol; // peakDur + jitterTol
 
     public:
