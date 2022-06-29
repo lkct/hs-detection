@@ -24,7 +24,7 @@ namespace HSDetection
 
         std::vector<Spike> *pRresult; // passed in, should not release here
 
-        IntFrame peakDurWithTol; // peakDur + jitterTol
+        IntFrame procDelay; // delayed frames from push to process
 
     public:
         SpikeQueue(Detection *pDet); // passing the whole param set altogether

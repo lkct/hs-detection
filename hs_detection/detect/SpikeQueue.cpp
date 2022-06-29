@@ -23,7 +23,7 @@ namespace HSDetection
 {
     SpikeQueue::SpikeQueue(Detection *pDet)
         : queue(), queProcs(), spkProcs(), pRresult(&pDet->result),
-          peakDurWithTol(pDet->peakDur + pDet->jitterTol)
+          procDelay(pDet->peakDur + pDet->jitterTol)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;
@@ -68,7 +68,7 @@ namespace HSDetection
 
     void SpikeQueue::process(IntFrame nextFrame)
     {
-        IntFrame frameBound = nextFrame - peakDurWithTol;
+        IntFrame frameBound = nextFrame - procDelay;
 
         while (!queue.empty() && !(frameBound <= queue.front().frame))
         {
