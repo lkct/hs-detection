@@ -75,7 +75,7 @@ class HSDetection(object):
         self.chunk_size: int = params['chunk_size']
         self.threshold: int = params['threshold']
         self.maa: int = params['maa']
-        self.ahpthr: int = params['ahpthr']
+        self.ahpthr: int = params['ahpthr']  # TODO:??? should be negative
         self.decay_filtering: bool = params['decay_filtering']
 
         self.common_reference: str = params['common_reference']
