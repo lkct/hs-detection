@@ -180,7 +180,7 @@ class HSDetection(object):
             self.save_shape,
             str(out_file).encode(),
             self.cutout_start,
-            self.cutout_length
+            self.cutout_end
         )
 
         vm: cython.float[:] = np.zeros(

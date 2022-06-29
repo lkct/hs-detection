@@ -43,7 +43,7 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   bool saveShape,
                   string filename,
                   int32_t cutoutStart,
-                  int32_t cutoutLen) except +
+                  int32_t cutoutEnd) except +
         void step(float *traceBuffer, int32_t chunkStart, int32_t chunkLen) except +
         int32_t finish() except +
         const Spike *getResult() except +

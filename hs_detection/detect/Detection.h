@@ -82,7 +82,7 @@ namespace HSDetection
         bool saveShape;       // whether to save spike shapes to file
         std::string filename; // filename for saving
         IntFrame cutoutStart; // the start of spike shape cutout
-        IntFrame cutoutLen;   // the length of shape cutout
+        IntFrame cutoutEnd;   // the end of cutout
 
     private:
         void traceScaleCast(IntFrame chunkStart, IntFrame chunkLen);
@@ -101,7 +101,7 @@ namespace HSDetection
                   const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                   IntFrame jitterTol, IntFrame peakDur,
                   bool decayFiltering, FloatRatio decayRatio, bool localize,
-                  bool saveShape, std::string filename, IntFrame cutoutStart, IntFrame cutoutLen);
+                  bool saveShape, std::string filename, IntFrame cutoutStart, IntFrame cutoutEnd);
         ~Detection();
 
         // copy constructor deleted to protect internals

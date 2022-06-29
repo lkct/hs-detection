@@ -18,11 +18,11 @@ namespace HSDetection
         const RollingArray *pTrace; // passed in, should not release here
 
         IntFrame cutoutStart;
-        IntFrame cutoutLen;
+        IntFrame cutoutLen; // cutoutStart + 1 + cutoutEnd, 1 is peak frame
 
     public:
         SpikeShapeWriter(const std::string &filename, const RollingArray *pTrace,
-                         IntFrame cutoutStart, IntFrame cutoutLen);
+                         IntFrame cutoutStart, IntFrame cutoutEnd);
         ~SpikeShapeWriter();
 
         using SpikeProcessor::operator(); // allow call on iterator

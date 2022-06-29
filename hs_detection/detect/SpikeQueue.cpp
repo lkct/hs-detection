@@ -50,7 +50,7 @@ namespace HSDetection
 
         if (pDet->saveShape)
         {
-            pSpkProc = new SpikeShapeWriter(pDet->filename, &pDet->trace, pDet->cutoutStart, pDet->cutoutLen);
+            pSpkProc = new SpikeShapeWriter(pDet->filename, &pDet->trace, pDet->cutoutStart, pDet->cutoutEnd);
             pushFirstElemProc(pSpkProc);
         }
     }

@@ -15,7 +15,7 @@ namespace HSDetection
                          const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
                          IntFrame jitterTol, IntFrame peakDur,
                          bool decayFiltering, FloatRatio decayRatio, bool localize,
-                         bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutLen)
+                         bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutEnd)
         : traceRaw(chunkLeftMargin, numChannels, chunkSize),
           numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
           rescale(rescale), scale(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignChannel(numChannels)]),
@@ -33,7 +33,7 @@ namespace HSDetection
           result(), jitterTol(jitterTol), peakDur(peakDur),
           decayFilter(decayFiltering), decayRatio(decayRatio),
           localize(localize), saveShape(saveShape), filename(filename),
-          cutoutStart(cutoutStart), cutoutLen(cutoutLen)
+          cutoutStart(cutoutStart), cutoutEnd(cutoutEnd)
     {
         fill_n(this->scale, alignChannel(numChannels), (FloatRaw)1);
         fill_n(this->offset, alignChannel(numChannels), (FloatRaw)0);
