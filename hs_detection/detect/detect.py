@@ -148,7 +148,8 @@ class HSDetection(object):
         t_cut2 = self.cutout_end + self.maxsl
         t_inc = min(self.chunk_size,
                     self.num_frames[segment_index] - t_cut - t_cut2)
-        t_cut = 2048  # TODO:??? queue flush?
+        t_cut = self.noise_duration + max(self.cutout_length,
+                                          self.spike_peak_duration + 1 + self.maxsl)
 
         scale: cython.float[:] = self.scale
         offset: cython.float[:] = self.offset
