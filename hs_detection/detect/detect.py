@@ -11,6 +11,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..recording import RealArray, Recording
+from . import DEFAULT_PARAMS as _DEFAULT_PARAMS
 from . import Params
 
 bool_t = cython.typedef(_bool)  # type: ignore
@@ -27,6 +28,8 @@ RADIUS_EPS: float = cython.declare(single, 1e-3)  # type: ignore  # 1nm
 class HSDetection(object):
     """TODO:
     """
+
+    DEFAULT_PARAMS: Params = _DEFAULT_PARAMS
 
     recording: Recording = cython.declare(object)  # type: ignore
     num_segments: int = cython.declare(int32_t)  # type: ignore
@@ -109,13 +112,14 @@ class HSDetection(object):
             warnings.warn(
                 f'Number of channels too few for common {common_reference} reference')
 
-        duration_float = params['spk_evaluation_time']
+        duration_float = params['spike_duration']
         self.spike_duration = int(duration_float * fps / 1000 + 0.5)
-        duration_float = params['amp_evaluation_time']
+        duration_float = params['amp_avg_duration']
         self.amp_avg_duration = int(duration_float * fps / 1000 + 0.5)
         self.threshold = params['threshold']
-        self.min_avg_amp = params['maa']
-        self.max_AHP_amp = -params['ahpthr']
+        self.min_avg_amp = params['min_avg_amp']
+        self.max_AHP_amp = params['AHP_thr']
+        self.max_AHP_amp = -self.max_AHP_amp
 
         positions: NDArray[np.single] = np.array(
             [recording.get_channel_property(ch, 'location')
@@ -134,11 +138,11 @@ class HSDetection(object):
 
         duration_float = params['peak_jitter']
         self.noise_duration = int(duration_float * fps / 1000 + 0.5)
-        duration_float = params['event_length']
+        duration_float = params['rise_duration']
         self.rise_duration = int(duration_float * fps / 1000 + 0.5)
 
         self.decay_filtering = params['decay_filtering']
-        self.decay_ratio = params['noise_amp_percent']
+        self.decay_ratio = params['decay_ratio']
 
         self.localize = params['localize']
 
