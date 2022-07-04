@@ -15,6 +15,7 @@ from . import Params
 
 bool_t = cython.typedef(_bool)  # type: ignore
 int32_t = cython.typedef(_int32_t)  # type: ignore
+p_i32 = cython.typedef(cython.pointer(int32_t))  # type: ignore
 single = cython.typedef(cython.float)  # type: ignore
 p_single = cython.typedef(cython.p_float)  # type: ignore
 vector_i32 = cython.typedef(vector[int32_t])  # type: ignore
@@ -164,23 +165,27 @@ class HSDetection(object):
         self.verbose = params['verbose']
 
     @cython.cfunc
-    @cython.locals(num_chunks_per_segment=object, chunk_size=object, seed=object,
-                   chunks=list, seg=int32_t, random_starts=np.ndarray, start_frame=object)
+    @cython.locals(chunks_per_seg=int32_t, chunk_size=int32_t, seed=object,
+                   chunks=list, seg=int32_t, i=int32_t,
+                   _random_starts=np.ndarray, random_starts=p_i32)
     @cython.returns(np.ndarray)
     def get_random_data_chunks(self,
-                               num_chunks_per_segment: int = 20,
+                               chunks_per_seg: int = 20,
                                chunk_size: int = 10000,
                                seed: int = 0
                                ) -> NDArray[np.float32]:
         # TODO: sample uniformly on samples instead of segments
         chunks: list[RealArray] = []
         for seg in range(self.num_segments):
-            # TODO: new generator api, or use c++ random
-            random_starts = np.random.RandomState(seed).randint(
-                0, self.num_frames[seg] - chunk_size, size=num_chunks_per_segment)
-            for start_frame in random_starts:
+            _random_starts = np.random.default_rng(seed).integers(  # keep a reference
+                0, self.num_frames[seg] - chunk_size,
+                size=chunks_per_seg, dtype=np.int32, endpoint=True)
+            random_starts = cython.cast(p_i32, _random_starts.data)
+            for i in range(chunks_per_seg):
                 chunks.append(self.recording.get_traces(
-                    segment_index=seg, start_frame=start_frame, end_frame=start_frame + chunk_size))
+                    segment_index=seg,
+                    start_frame=random_starts[i],
+                    end_frame=random_starts[i] + chunk_size))
         return np.concatenate(chunks, axis=0, dtype=np.float32)
 
     @cython.cfunc
