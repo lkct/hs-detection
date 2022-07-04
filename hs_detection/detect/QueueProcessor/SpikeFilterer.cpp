@@ -1,4 +1,8 @@
+#include <utility>
+
 #include "SpikeFilterer.h"
+
+using namespace std;
 
 namespace HSDetection
 {
@@ -9,14 +13,18 @@ namespace HSDetection
 
     void SpikeFilterer::operator()(SpikeQueue *pQueue)
     {
-        IntFrame frameBound = pQueue->begin()->frame + jitterTol;
-        IntChannel maxChannel = pQueue->begin()->channel;
-        IntVolt maxAmp = pQueue->begin()->amplitude;
+        Spike maxSpike = move(*pQueue->begin());
+        pQueue->erase(pQueue->begin());
+
+        IntFrame frameBound = maxSpike.frame + jitterTol;
+        IntChannel maxChannel = maxSpike.channel;
+        IntVolt maxAmp = maxSpike.amplitude;
 
         pQueue->remove_if([this, frameBound, maxChannel, maxAmp](const Spike &spike)
                           { return spike.frame <= frameBound &&
                                    pLayout->areNeighbors(spike.channel, maxChannel) &&
-                                   spike.amplitude < maxAmp; }); // TODO:??? <=, remember to add maxSpike back
+                                   spike.amplitude <= maxAmp; });
+        pQueue->push_front(move(maxSpike));
     }
 
 } // namespace HSDetection

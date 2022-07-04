@@ -13,7 +13,7 @@ default_kwargs = {
     # core params
     'left_cutout_time': 0.3,
     'right_cutout_time': 1.8,
-    'threshold': 20,
+    'threshold': 10.0,
 
     # extra probe params
     'inner_radius': 70.0,
@@ -24,12 +24,12 @@ default_kwargs = {
 
     # extra detection params
     'chunk_size': 100000,
-    'maa': 12,
-    'ahpthr': 11,
+    'maa': 6.0,  # TODO: value?
+    'ahpthr': 11.0,  # TODO: value?
     'out_file': 'HS2_detected',
     'decay_filtering': False,
-    'amp_evaluation_time': 0.4,
-    'spk_evaluation_time': 1.0,
+    'amp_evaluation_time': 0.4,  # TODO: value?
+    'spk_evaluation_time': 1.0,  # TODO: value?
 
     # bandpass filter
     'freq_min': 300.0,
@@ -38,7 +38,7 @@ default_kwargs = {
 
     # rescale traces
     'rescale': True,
-    'rescale_value': 20.0,
+    'rescale_value': -1280.0,
 
     # added switches
     'common_reference': 'average',

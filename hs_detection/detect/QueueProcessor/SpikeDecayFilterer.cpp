@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <utility>
 
 #include "SpikeDecayFilterer.h"
 
@@ -13,9 +14,12 @@ namespace HSDetection
 
     void SpikeDecayFilterer::operator()(SpikeQueue *pQueue)
     {
-        IntFrame frameBound = pQueue->begin()->frame + jitterTol;
-        IntChannel maxChannel = pQueue->begin()->channel;
-        IntVolt maxAmp = pQueue->begin()->amplitude;
+        Spike maxSpike = move(*pQueue->begin());
+        pQueue->erase(pQueue->begin());
+
+        IntFrame frameBound = maxSpike.frame + jitterTol;
+        IntChannel maxChannel = maxSpike.channel;
+        IntVolt maxAmp = maxSpike.amplitude;
 
         { // filter outer neighbors
             vector<Spike> outerSpikes;
@@ -37,7 +41,8 @@ namespace HSDetection
         pQueue->remove_if([this, frameBound, maxChannel, maxAmp](const Spike &spike)
                           { return spike.frame <= frameBound &&
                                    pLayout->areInnerNeighbors(spike.channel, maxChannel) &&
-                                   spike.amplitude < maxAmp; }); // TODO:??? <=, remember to add maxSpike back
+                                   spike.amplitude <= maxAmp; });
+        pQueue->push_front(move(maxSpike));
     }
 
     bool SpikeDecayFilterer::shouldFilterOuter(SpikeQueue *pQueue, const Spike &outerSpike) const

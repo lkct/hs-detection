@@ -114,11 +114,7 @@ class HSDetection(object):
         self.amp_avg_duration = int(duration_float * fps / 1000 + 0.5)
         self.threshold = params['threshold']
         self.min_avg_amp = params['maa']
-        self.max_AHP_amp = params['ahpthr']  # TODO:??? should be negative
-        self.spike_duration -= 1  # TODO:??? -1
-        self.amp_avg_duration -= 1
-        self.threshold /= 2  # TODO:??? /2
-        self.min_avg_amp /= 2
+        self.max_AHP_amp = -params['ahpthr']
 
         positions: NDArray[np.single] = np.array(
             [recording.get_channel_property(ch, 'location')
@@ -262,8 +258,7 @@ class HSDetection(object):
             self.cutout_end
         )
 
-        num_frames = self.num_frames[segment_index] \
-            - self.cutout_end - self.spike_duration  # TODO:??? no need to subtract this
+        num_frames = self.num_frames[segment_index]
         chunk_start = 0
         chunk_len = min(self.chunk_size, num_frames)
         while chunk_start < num_frames:
@@ -311,7 +306,5 @@ class HSDetection(object):
             result |= {'location': location}
         if self.save_shape:
             result |= {'spike_shape': spikes}
-            if spikes.shape[0] < 10000:  # TODO:??? 64
-                result['spike_shape'] = result['spike_shape'] // -64
 
         return result
