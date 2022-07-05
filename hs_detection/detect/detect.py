@@ -119,7 +119,6 @@ class HSDetection(object):
         self.threshold = params['threshold']
         self.min_avg_amp = params['min_avg_amp']
         self.max_AHP_amp = params['AHP_thr']
-        self.max_AHP_amp = -self.max_AHP_amp
 
         positions: NDArray[np.single] = np.array(
             [recording.get_channel_property(ch, 'location')

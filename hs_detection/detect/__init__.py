@@ -41,11 +41,11 @@ DEFAULT_PARAMS: Params = {
 
     'common_reference': 'average',
 
-    'spike_duration': 1.0,  # TODO: value?
-    'amp_avg_duration': 0.4,  # TODO: value?
+    'spike_duration': 1.0,
+    'amp_avg_duration': 0.4,
     'threshold': 10.0,
-    'min_avg_amp': 6.0,  # TODO: value?
-    'AHP_thr': 11.0,  # TODO: value?
+    'min_avg_amp': 5.0,
+    'AHP_thr': 0.0,
 
     'neighbor_radius': 90.0,
     'inner_radius': 70.0,
