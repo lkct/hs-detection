@@ -47,9 +47,9 @@ namespace HSDetection
         IntVolt baseline = (*pBaseline)[frame - riseDur][channel]; // baseline at the start of event
 
         IntCalc sum = 0;
-        for (IntFrame t = frame - jitterTol; t < frame + jitterTol; t++) // TODO:??? <=
+        for (IntFrame t = frame - jitterTol; t <= frame + jitterTol; t++)
         {
-            IntVolt volt = (*pTrace)(t, channel) - baseline - (*pRef)(frame, 0); // TODO:??? shoule be ref(t)
+            IntVolt volt = (*pTrace)(t, channel) - baseline - (*pRef)(t, 0);
             if (volt > 0)
             {
                 sum += volt;

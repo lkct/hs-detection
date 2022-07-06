@@ -16,11 +16,11 @@ namespace HSDetection
         friend SpikeQueue; // allow access to the whole param set
 
         // constants
-        static constexpr IntVolt initBase = 0 * -64; // initial value of baseline // TODO:??? 64
-        static constexpr IntVolt initDev = 400;      // initial value of deviation
-        static constexpr IntVolt tauBase = 4;        // time constant for baseline update
-        static constexpr IntVolt devChange = 1;      // changing for deviation update
-        static constexpr IntVolt minDev = 200;       // minimum level of deviation
+        static constexpr IntVolt initBase = 0;  // initial value of baseline
+        static constexpr IntVolt initDev = 400; // initial value of deviation
+        static constexpr IntVolt tauBase = 4;   // time constant for baseline update
+        static constexpr IntVolt devChange = 1; // changing for deviation update
+        static constexpr IntVolt minDev = 200;  // minimum level of deviation
 
         static constexpr IntCalc thrQuant = 256; // 8bit precision
 

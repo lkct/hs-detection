@@ -11,10 +11,12 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..recording import RealArray, Recording
+from . import DEFAULT_PARAMS as _DEFAULT_PARAMS
 from . import Params
 
 bool_t = cython.typedef(_bool)  # type: ignore
 int32_t = cython.typedef(_int32_t)  # type: ignore
+p_i32 = cython.typedef(cython.pointer(int32_t))  # type: ignore
 single = cython.typedef(cython.float)  # type: ignore
 p_single = cython.typedef(cython.p_float)  # type: ignore
 vector_i32 = cython.typedef(vector[int32_t])  # type: ignore
@@ -26,6 +28,8 @@ RADIUS_EPS: float = cython.declare(single, 1e-3)  # type: ignore  # 1nm
 class HSDetection(object):
     """TODO:
     """
+
+    DEFAULT_PARAMS: Params = _DEFAULT_PARAMS
 
     recording: Recording = cython.declare(object)  # type: ignore
     num_segments: int = cython.declare(int32_t)  # type: ignore
@@ -108,17 +112,13 @@ class HSDetection(object):
             warnings.warn(
                 f'Number of channels too few for common {common_reference} reference')
 
-        duration_float = params['spk_evaluation_time']
+        duration_float = params['spike_duration']
         self.spike_duration = int(duration_float * fps / 1000 + 0.5)
-        duration_float = params['amp_evaluation_time']
+        duration_float = params['amp_avg_duration']
         self.amp_avg_duration = int(duration_float * fps / 1000 + 0.5)
         self.threshold = params['threshold']
-        self.min_avg_amp = params['maa']
-        self.max_AHP_amp = params['ahpthr']  # TODO:??? should be negative
-        self.spike_duration -= 1  # TODO:??? -1
-        self.amp_avg_duration -= 1
-        self.threshold /= 2  # TODO:??? /2
-        self.min_avg_amp /= 2
+        self.min_avg_amp = params['min_avg_amp']
+        self.max_AHP_amp = params['AHP_thr']
 
         positions: NDArray[np.single] = np.array(
             [recording.get_channel_property(ch, 'location')
@@ -137,11 +137,11 @@ class HSDetection(object):
 
         duration_float = params['peak_jitter']
         self.noise_duration = int(duration_float * fps / 1000 + 0.5)
-        duration_float = params['event_length']
+        duration_float = params['rise_duration']
         self.rise_duration = int(duration_float * fps / 1000 + 0.5)
 
         self.decay_filtering = params['decay_filtering']
-        self.decay_ratio = params['noise_amp_percent']
+        self.decay_ratio = params['decay_ratio']
 
         self.localize = params['localize']
 
@@ -167,24 +167,43 @@ class HSDetection(object):
 
         self.verbose = params['verbose']
 
+        # sanity checks
+        assert self.num_channels > 0, f'Expect number of channels >0, got {self.num_channels}'
+        assert self.chunk_size > 0, f'Expect chunk size >0, got {self.chunk_size}'
+        assert self.threshold > 0, f'Expect detection threshold >0, got {self.threshold}'
+        assert self.min_avg_amp > 0, f'Expect min avg amplitude >0, got {self.min_avg_amp}'
+        assert self.max_AHP_amp <= 0, f'Expect AHP threshold <=0, got {self.max_AHP_amp}'
+        assert self.neighbor_radius >= 0, f'Expect neighbor radius >=0, got {self.neighbor_radius}'
+        assert self.inner_radius >= 0, f'Expect inner neighbor radius >=0, got {self.neighbor_radius}'
+        assert 0 <= self.decay_ratio <= 1, f'Expect decay filtering ratio >=0,<=1, got {self.decay_ratio}'
+        assert self.noise_duration >= 0, f'Expect temporal noise >=0, got {self.noise_duration}'
+        assert self.spike_duration >= self.noise_duration, f'Expect spike duration >=noise, got {self.spike_duration} <{self.noise_duration}'
+        assert self.rise_duration >= self.noise_duration, f'Expect rising duration >=noise, got {self.rise_duration} <{self.noise_duration}'
+        assert self.cutout_start >= self.noise_duration, f'Expect cutout start >=noise, got {self.cutout_start} <{self.noise_duration}'
+        assert self.cutout_end >= self.noise_duration, f'Expect cutout end >=noise, got {self.cutout_end} <{self.noise_duration}'
+
     @cython.cfunc
-    @cython.locals(num_chunks_per_segment=object, chunk_size=object, seed=object,
-                   chunks=list, seg=int32_t, random_starts=np.ndarray, start_frame=object)
+    @cython.locals(chunks_per_seg=int32_t, chunk_size=int32_t, seed=object,
+                   chunks=list, seg=int32_t, i=int32_t,
+                   _random_starts=np.ndarray, random_starts=p_i32)
     @cython.returns(np.ndarray)
     def get_random_data_chunks(self,
-                               num_chunks_per_segment: int = 20,
+                               chunks_per_seg: int = 20,
                                chunk_size: int = 10000,
                                seed: int = 0
                                ) -> NDArray[np.float32]:
         # TODO: sample uniformly on samples instead of segments
         chunks: list[RealArray] = []
         for seg in range(self.num_segments):
-            # TODO: new generator api, or use c++ random
-            random_starts = np.random.RandomState(seed).randint(
-                0, self.num_frames[seg] - chunk_size, size=num_chunks_per_segment)
-            for start_frame in random_starts:
+            _random_starts = np.random.default_rng(seed).integers(  # keep a reference
+                0, self.num_frames[seg] - chunk_size,
+                size=chunks_per_seg, dtype=np.int32, endpoint=True)
+            random_starts = cython.cast(p_i32, _random_starts.data)
+            for i in range(chunks_per_seg):
                 chunks.append(self.recording.get_traces(
-                    segment_index=seg, start_frame=start_frame, end_frame=start_frame + chunk_size))
+                    segment_index=seg,
+                    start_frame=random_starts[i],
+                    end_frame=random_starts[i] + chunk_size))
         return np.concatenate(chunks, axis=0, dtype=np.float32)
 
     @cython.cfunc
@@ -262,8 +281,7 @@ class HSDetection(object):
             self.cutout_end
         )
 
-        num_frames = self.num_frames[segment_index] \
-            - self.cutout_end - self.spike_duration  # TODO:??? no need to subtract this
+        num_frames = self.num_frames[segment_index]
         chunk_start = 0
         chunk_len = min(self.chunk_size, num_frames)
         while chunk_start < num_frames:
@@ -311,7 +329,5 @@ class HSDetection(object):
             result |= {'location': location}
         if self.save_shape:
             result |= {'spike_shape': spikes}
-            if spikes.shape[0] < 10000:  # TODO:??? 64
-                result['spike_shape'] = result['spike_shape'] // -64
 
         return result

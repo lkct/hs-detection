@@ -1,6 +1,6 @@
 import warnings
 from pathlib import Path
-from typing import Mapping, Sequence, Union
+from typing import Any, Mapping, Sequence, Union
 
 import numpy as np
 import spikeinterface.sorters as ss
@@ -9,55 +9,21 @@ from hs_detection import HSDetection
 from hs_detection.recording import RealArray, Recording
 from spikeinterface import BaseRecording
 
-default_kwargs = {
-    # core params
-    'left_cutout_time': 0.3,
-    'right_cutout_time': 1.8,
-    'threshold': 20,
-
-    # extra probe params
-    'inner_radius': 70.0,
-    'neighbor_radius': 90.0,
-    'event_length': 0.26,
-    'peak_jitter': 0.2,
-    'noise_amp_percent': 1.0,
-
-    # extra detection params
-    'chunk_size': 100000,
-    'maa': 12,
-    'ahpthr': 11,
-    'out_file': 'HS2_detected',
-    'decay_filtering': False,
-    'amp_evaluation_time': 0.4,
-    'spk_evaluation_time': 1.0,
-
-    # bandpass filter
-    'freq_min': 300.0,
-    'freq_max': 6000.0,
-    'filter': True,
-
-    # rescale traces
-    'rescale': True,
-    'rescale_value': 20.0,
-
-    # added switches
-    'common_reference': 'average',
-    'localize': True,
-    'save_shape': True,
-    'verbose': True
-}
-
-
 deprecation = {
-    'detect_threshold': 'threshold',
-    'probe_inner_radius': 'inner_radius',
-    'probe_neighbor_radius': 'neighbor_radius',
-    'probe_event_length': 'event_length',
-    'probe_peak_jitter': 'peak_jitter',
+    'filter': 'bandpass',
     't_inc': 'chunk_size',
-    'out_file_name': 'out_file',
     'pre_scale': 'rescale',
     'pre_scale_value': 'rescale_value',
+    'spk_evaluation_time': 'spike_duration',
+    'amp_evaluation_time': 'amp_avg_duration',
+    'detect_threshold': 'threshold',
+    'maa': 'min_avg_amp',
+    'ahpthr': 'AHP_thr',
+    'probe_neighbor_radius': 'neighbor_radius',
+    'probe_inner_radius': 'inner_radius',
+    'probe_peak_jitter': 'peak_jitter',
+    'probe_event_length': 'rise_duration',
+    'out_file_name': 'out_file',
     # following not supported anymore
     'probe_masked_channels': 'None',
     'num_com_centers': 'None',
@@ -69,17 +35,17 @@ def run_hsdet(recording: Recording,
               output_folder: Union[str, Path] = 'result_HS',
               **kwargs
               ) -> Sequence[Mapping[str, RealArray]]:
-    params = default_kwargs.copy()
+    params = HSDetection.DEFAULT_PARAMS.copy()
     for k, v in kwargs.items():
         if k in deprecation:
             warnings.warn(
-                f'HSDetection params: {k} deprecated, use {deprecation[k]} instead.')
+                f'HSDetection params: "{k}" deprecated, use "{deprecation[k]}" instead.')
             params[deprecation[k]] = v
         else:
             params[k] = v
     params['out_file'] = Path(output_folder) / params['out_file']
 
-    if params['filter'] and params['freq_min'] is not None and params['freq_max'] is not None:
+    if params['bandpass']:
         recording = st.bandpass_filter(
             recording, freq_min=params['freq_min'], freq_max=params['freq_max'], margin_ms=100)
 
@@ -92,8 +58,7 @@ def run_herdingspikes(recording: BaseRecording,
                       output_folder: Union[str, Path] = 'results_HS',
                       **kwargs
                       ) -> Sequence[Mapping[str, RealArray]]:
-    params = default_kwargs.copy()
-    params.update(kwargs)
+    params: dict[str, Any] = HSDetection.DEFAULT_PARAMS | kwargs
     if 'out_file_name' in params:
         params['out_file'] = params['out_file_name']
         del kwargs['out_file_name']  # must be in if in params
@@ -106,7 +71,7 @@ def run_herdingspikes(recording: BaseRecording,
     cutout_end = int(params['right_cutout_time'] * fps / 1000 + 0.5)
     cutout_length = cutout_start + cutout_end + 1
 
-    if params['filter'] and params['freq_min'] is not None and params['freq_max'] is not None:
+    if kwargs['filter'] if 'filter' in kwargs else params['bandpass']:
         recording = st.bandpass_filter(
             recording, freq_min=params['freq_min'], freq_max=params['freq_max'], margin_ms=100)
         kwargs['filter'] = False

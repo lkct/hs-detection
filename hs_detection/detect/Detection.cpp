@@ -114,7 +114,6 @@ namespace HSDetection
             for (IntChannel i = 0; i < alignedChannels; i++)
             {
                 trace[i] = input[i] * scale[i] + offset[i];
-                trace[i] *= -64; // TODO:??? 64
             }
         }
     }
@@ -130,7 +129,6 @@ namespace HSDetection
             for (IntChannel i = 0; i < alignedChannels; i++)
             {
                 trace[i] = input[i];
-                trace[i] *= -64; // TODO:??? 64
             }
         }
     }
@@ -138,7 +136,7 @@ namespace HSDetection
     void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen)
     {
         IntVolt *frame = new IntVolt[numChannels]; // nth_element modifies container
-        IntChannel mid = numChannels / 2 - 1;      // TODO:??? -1
+        IntChannel mid = numChannels / 2;
 
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
@@ -156,10 +154,10 @@ namespace HSDetection
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntCalc)0, // TODO:??? 64
+            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntCalc)0,
                                          [](IntCalc sum, IntVolt data)
-                                         { return sum + data / 64; }) /
-                              numChannels * 64;
+                                         { return sum + data; }) /
+                              numChannels;
         }
     }
 
@@ -239,7 +237,7 @@ namespace HSDetection
                     {
                         spikeTime[i] = 0; // reset peak to current
                         spikeAmp[i] = volt;
-                        spikeArea[i] += voltThr; // but accumulate area // TODO:??? should not add twice
+                        // but accumulate area (already added)
                         hasAHP[i] = false;
                     }
                     continue;
@@ -263,8 +261,8 @@ namespace HSDetection
                 }
                 // else: spikeTime[i] == spikeDur, spike end
 
-                if (spikeArea[i] > minAvg * (ampAvgDur + 1) && // reach min area // TODO:??? -1
-                    (hasAHP[i] || voltThr < maxAHP))           // AHP exist
+                if (spikeArea[i] > minAvg * ampAvgDur && // reach min area
+                    (hasAHP[i] || voltThr < maxAHP))     // AHP exist
                 {
                     pQueue->push_back(Spike(t - spikeDur, i, spikeAmp[i]));
                 }
