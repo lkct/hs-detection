@@ -167,6 +167,21 @@ class HSDetection(object):
 
         self.verbose = params['verbose']
 
+        # sanity checks
+        assert self.num_channels > 0, f'Expect number of channels >0, got {self.num_channels}'
+        assert self.chunk_size > 0, f'Expect chunk size >0, got {self.chunk_size}'
+        assert self.threshold > 0, f'Expect detection threshold >0, got {self.threshold}'
+        assert self.min_avg_amp > 0, f'Expect min avg amplitude >0, got {self.min_avg_amp}'
+        assert self.max_AHP_amp <= 0, f'Expect AHP threshold <=0, got {self.max_AHP_amp}'
+        assert self.neighbor_radius >= 0, f'Expect neighbor radius >=0, got {self.neighbor_radius}'
+        assert self.inner_radius >= 0, f'Expect inner neighbor radius >=0, got {self.neighbor_radius}'
+        assert 0 <= self.decay_ratio <= 1, f'Expect decay filtering ratio >=0,<=1, got {self.decay_ratio}'
+        assert self.noise_duration >= 0, f'Expect temporal noise >=0, got {self.noise_duration}'
+        assert self.spike_duration >= self.noise_duration, f'Expect spike duration >=noise, got {self.spike_duration} <{self.noise_duration}'
+        assert self.rise_duration >= self.noise_duration, f'Expect rising duration >=noise, got {self.rise_duration} <{self.noise_duration}'
+        assert self.cutout_start >= self.noise_duration, f'Expect cutout start >=noise, got {self.cutout_start} <{self.noise_duration}'
+        assert self.cutout_end >= self.noise_duration, f'Expect cutout end >=noise, got {self.cutout_end} <{self.noise_duration}'
+
     @cython.cfunc
     @cython.locals(chunks_per_seg=int32_t, chunk_size=int32_t, seed=object,
                    chunks=list, seg=int32_t, i=int32_t,
