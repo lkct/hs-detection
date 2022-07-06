@@ -1,3 +1,4 @@
+import glob
 import os
 import platform
 import subprocess
@@ -29,7 +30,7 @@ except ImportError:
     print('Not using Cython')
 
 
-PROFILE = 2
+PROFILE = 0
 
 
 def get_version() -> str:
@@ -62,29 +63,23 @@ with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 
-ext_folder = 'hs_detection/detect/'
-sources = ['SpkDonline.cpp',
-           'SpikeHandler.cpp',
-           'ProcessSpikes.cpp',
-           'FilterSpikes.cpp',
-           'LocalizeSpikes.cpp',
-           *ext_src]
-sources = [ext_folder + fn for fn in sources]
+# all cpp should start with capital, except for cython generated
+sources = glob.glob('hs_detection/detect/**/[A-Z]*.cpp', recursive=True)
+sources += [os.path.join('hs_detection/detect', fn) for fn in ext_src]
 
-extra_compile_args = ['-std=c++11', '-O3']
+extra_compile_args = ['-std=c++17', '-O3']
 link_extra_args = []
 # OS X support
 if platform.system() == 'Darwin':
-    extra_compile_args += ['-mmacosx-version-min=10.9', '-F.']
-    link_extra_args += ['-stdlib=libc++', '-mmacosx-version-min=10.9']
+    extra_compile_args += ['-mmacosx-version-min=10.14', '-F.']
+    link_extra_args += ['-stdlib=libc++', '-mmacosx-version-min=10.14']
 
 # compile with/without Cython
 detect_ext = cythonize(
     Extension(name='hs_detection.detect.detect',
               sources=sources,
               include_dirs=[numpy_include],
-              define_macros=[('CYTHON_TRACE_NOGIL', '1')
-                             ] if PROFILE >= 2 else [],
+              define_macros=[('CYTHON_TRACE_NOGIL', '1' if PROFILE >= 2 else '0')],
               extra_compile_args=extra_compile_args,
               extra_link_args=link_extra_args,
               language='c++'),
@@ -131,12 +126,13 @@ setup(
         'hs_detection': [
             '.commit_version',
             '../README.md',
-            'detect/*'
+            'detect/**'
         ]
     },
     exclude_package_data={
         'hs_detection': [
-            'detect/*.so'
+            'detect/*.so',
+            '**/__pycache__'
         ]
     },
     ext_modules=detect_ext,

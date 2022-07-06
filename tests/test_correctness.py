@@ -7,7 +7,7 @@ from data_utils import download_small, str2Path
 from run_hs2 import run_herdingspikes, run_hsdet
 
 
-def test_correctness(data_fn: str = 'mearec_test_10s.h5') -> None:
+def test_correctness(data_fn: str = 'mearec_test_10s.h5', expected: int = -1, **kwargs) -> None:
     data_path = str2Path(data_fn)
     if not data_path.exists():
         download_small(data_fn)
@@ -42,20 +42,23 @@ def test_correctness(data_fn: str = 'mearec_test_10s.h5') -> None:
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
-        sihs = run_herdingspikes(recording, output_folder=sihs_path)
-        hsdet = run_hsdet(recording, output_folder=hsdet_path)
+        sihs = run_herdingspikes(recording, output_folder=sihs_path, **kwargs)
+        hsdet = run_hsdet(recording, output_folder=hsdet_path, **kwargs)
     except Exception as e:
         sys.stdout, sys.stderr = stdout, stderr
         raise e
     else:
         sys.stdout, sys.stderr = stdout, stderr
 
-    assert all(hsdet[seg]['channel_ind'].shape[0] == 713
-               for seg in range(recording.get_num_segments()))
     for seg in range(recording.get_num_segments()):
+        assert hsdet[seg]['channel_ind'].shape[0] == expected, hsdet[seg]['channel_ind'].shape[0]
         for k in hsdet[seg].keys():
-            assert np.all(sihs[seg][k] == hsdet[seg][k])
+            assert np.allclose(sihs[seg][k], hsdet[seg][k],
+                               rtol=0, atol=0.6e-3), k
 
 
 if __name__ == '__main__':
-    test_correctness()
+    test_correctness(filter=False, expected=619)
+    test_correctness(expected=738)
+    test_correctness(filter=False, decay_filtering=True, expected=620)
+    test_correctness(decay_filtering=True, expected=739)

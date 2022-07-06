@@ -24,7 +24,6 @@ default_kwargs = {
 
     # extra detection params
     'chunk_size': 100000,
-    'num_com_centers': 1,
     'maa': 12,
     'ahpthr': 11,
     'out_file': 'HS2_detected',
@@ -42,6 +41,7 @@ default_kwargs = {
     'rescale_value': 20.0,
 
     # added switches
+    'common_reference': 'average',
     'localize': True,
     'save_shape': True,
     'verbose': True
@@ -60,6 +60,7 @@ deprecation = {
     'pre_scale_value': 'rescale_value',
     # following not supported anymore
     'probe_masked_channels': 'None',
+    'num_com_centers': 'None',
     'save_all': 'None'
 }
 
@@ -80,7 +81,7 @@ def run_hsdet(recording: Recording,
 
     if params['filter'] and params['freq_min'] is not None and params['freq_max'] is not None:
         recording = st.bandpass_filter(
-            recording, freq_min=params['freq_min'], freq_max=params['freq_max'])
+            recording, freq_min=params['freq_min'], freq_max=params['freq_max'], margin_ms=100)
 
     det = HSDetection(recording, params)
 
@@ -104,6 +105,11 @@ def run_herdingspikes(recording: BaseRecording,
     cutout_start = int(params['left_cutout_time'] * fps / 1000 + 0.5)
     cutout_end = int(params['right_cutout_time'] * fps / 1000 + 0.5)
     cutout_length = cutout_start + cutout_end + 1
+
+    if params['filter'] and params['freq_min'] is not None and params['freq_max'] is not None:
+        recording = st.bandpass_filter(
+            recording, freq_min=params['freq_min'], freq_max=params['freq_max'], margin_ms=100)
+        kwargs['filter'] = False
 
     segments = recording._recording_segments
     result = []

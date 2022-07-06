@@ -36,7 +36,7 @@ def test_spyext(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        os.system(f'py-spy record -o {str2Path("prof/hs.svg")} -r 100 -n '
+        os.system(f'py-spy record -o {str2Path("prof/hs.svg")} -r 10 -n '
                   f'-- python {__file__} run')
     else:
         test_spyext()
