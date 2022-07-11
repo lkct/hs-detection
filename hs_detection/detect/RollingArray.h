@@ -32,7 +32,7 @@ namespace HSDetection
         {
             arrayBuffer = new (memAlign) IntVolt[(IntCalc)(frameMask + 1) * numChannels];
         }
-        ~RollingArray() { delete[] arrayBuffer; }
+        ~RollingArray() { operator delete[](arrayBuffer, memAlign); }
 
         // copy constructor deleted to protect buffer
         RollingArray(const RollingArray &) = delete;

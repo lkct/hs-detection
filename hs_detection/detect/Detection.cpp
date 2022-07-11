@@ -61,8 +61,8 @@ namespace HSDetection
         delete[] spikeArea;
         delete[] hasAHP;
 
-        delete[] scale;
-        delete[] offset;
+        operator delete[](scale, align_val_t(channelAlign * sizeof(IntVolt)));
+        operator delete[](offset, align_val_t(channelAlign * sizeof(IntVolt)));
     }
 
     void Detection::step(FloatRaw *traceBuffer, IntFrame chunkStart, IntFrame chunkLen)
