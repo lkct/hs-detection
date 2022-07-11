@@ -1,3 +1,4 @@
+#include <set>
 #include <algorithm>
 #include <utility>
 
@@ -22,20 +23,18 @@ namespace HSDetection
         IntVolt maxAmp = maxSpike.amplitude;
 
         { // filter outer neighbors
-            vector<Spike> outerSpikes;
+            auto cmp = [](const Spike &lhs, const Spike &rhs)
+            { return lhs.frame < rhs.frame || (lhs.frame == rhs.frame && lhs.channel < rhs.channel); };
+            set<Spike, decltype(cmp)> outerSpikes(cmp); // log-time find with any insert order
 
-            copy_if(pQueue->begin(), pQueue->end(), back_inserter(outerSpikes),
+            copy_if(pQueue->begin(), pQueue->end(), inserter(outerSpikes, outerSpikes.begin()),
                     [this, pQueue, frameBound, maxChannel](const Spike &spike)
                     { return spike.frame <= frameBound &&
                              pLayout->areOuterNeighbors(spike.channel, maxChannel) &&
                              shouldFilterOuter(pQueue, spike); });
 
             pQueue->remove_if([&outerSpikes](const Spike &spike)
-                              { return binary_search( // outerSpikes is sorted by nature of queue
-                                    outerSpikes.begin(), outerSpikes.end(), spike,
-                                    [](const Spike &lhs, const Spike &rhs)
-                                    { return lhs.frame < rhs.frame ||
-                                             (lhs.frame == rhs.frame && lhs.channel < rhs.channel); }); });
+                              { return outerSpikes.find(spike) != outerSpikes.end(); });
         }
 
         pQueue->remove_if([this, frameBound, maxChannel, maxAmp](const Spike &spike)
