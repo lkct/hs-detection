@@ -24,15 +24,16 @@ namespace HSDetection
 
         static constexpr IntCalc thrQuant = 256; // 8bit precision
 
-        static constexpr size_t channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
+        static constexpr IntChannel channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
 
-        static constexpr IntChannel alignChannel(IntChannel x) { return (x + (channelAlign - 1)) & (-channelAlign); }
+        static constexpr IntChannel alignChannel(IntChannel x) { return (x + (channelAlign - 1)) / channelAlign; }
 
         // input data
-        TraceWrapper traceRaw;    // input trace
-        IntChannel numChannels;   // number of probe channels
-        IntFrame chunkSize;       // size of each chunk, only the last chunk can be of a different (smaller) size
-        IntFrame chunkLeftMargin; // margin on the left of each chunk
+        TraceWrapper traceRaw;      // input trace
+        IntChannel numChannels;     // number of probe channels
+        IntChannel alignedChannels; // number of slices of aligned channels
+        IntFrame chunkSize;         // size of each chunk, only the last chunk can be of a different (smaller) size
+        IntFrame chunkLeftMargin;   // margin on the left of each chunk
 
         // rescaling
         bool rescale;       // whether to scale the input

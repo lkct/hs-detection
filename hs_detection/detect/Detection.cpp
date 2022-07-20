@@ -17,15 +17,15 @@ namespace HSDetection
                          bool decayFiltering, FloatRatio decayRatio, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutEnd)
         : traceRaw(chunkLeftMargin, numChannels, chunkSize),
-          numChannels(numChannels), chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin),
-          rescale(rescale),
-          scale(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignChannel(numChannels)]),
-          offset(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignChannel(numChannels)]),
-          trace(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
+          numChannels(numChannels), alignedChannels(alignChannel(numChannels)),
+          chunkSize(chunkSize), chunkLeftMargin(chunkLeftMargin), rescale(rescale),
+          scale(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignedChannels * channelAlign]),
+          offset(new (align_val_t(channelAlign * sizeof(IntVolt))) FloatRaw[alignedChannels * channelAlign]),
+          trace(chunkSize + chunkLeftMargin, alignedChannels * channelAlign),
           medianReference(medianReference), averageReference(averageReference),
           commonRef(chunkSize + chunkLeftMargin, 1),
-          runningBaseline(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
-          runningDeviation(chunkSize + chunkLeftMargin, alignChannel(numChannels)),
+          runningBaseline(chunkSize + chunkLeftMargin, alignedChannels * channelAlign),
+          runningDeviation(chunkSize + chunkLeftMargin, alignedChannels * channelAlign),
           spikeTime(new IntFrame[numChannels]), spikeAmp(new IntVolt[numChannels]),
           spikeArea(new IntCalc[numChannels]), hasAHP(new bool[numChannels]),
           spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold * thrQuant),
@@ -35,17 +35,16 @@ namespace HSDetection
           decayFilter(decayFiltering), decayRatio(decayRatio), localize(localize),
           saveShape(saveShape), filename(filename), cutoutStart(cutoutStart), cutoutEnd(cutoutEnd)
     {
-        fill_n(this->scale, alignChannel(numChannels), (FloatRaw)1);
-        fill_n(this->offset, alignChannel(numChannels), (FloatRaw)0);
-
+        fill_n(this->scale, alignedChannels * channelAlign, (FloatRaw)1);
+        fill_n(this->offset, alignedChannels * channelAlign, (FloatRaw)0);
         if (rescale)
         {
             copy_n(scale, numChannels, this->scale);
             copy_n(offset, numChannels, this->offset);
         }
 
-        fill_n(runningBaseline[-1], numChannels, initBase);
-        fill_n(runningDeviation[-1], numChannels, initDev);
+        fill_n(runningBaseline[-1], alignedChannels * channelAlign, initBase);
+        fill_n(runningDeviation[-1], alignedChannels * channelAlign, initDev);
 
         fill_n(spikeTime, numChannels, (IntFrame)-1);
 
@@ -109,9 +108,8 @@ namespace HSDetection
         {
             const FloatRaw *input = traceRaw[t];
             IntVolt *trace = this->trace[t];
-            IntChannel alignedChannels = alignChannel(numChannels);
 
-            for (IntChannel i = 0; i < alignedChannels; i++)
+            for (IntChannel i = 0; i < alignedChannels * channelAlign; i++)
             {
                 trace[i] = input[i] * scale[i] + offset[i];
             }
@@ -124,9 +122,8 @@ namespace HSDetection
         {
             const FloatRaw *input = traceRaw[t];
             IntVolt *trace = this->trace[t];
-            IntChannel alignedChannels = alignChannel(numChannels);
 
-            for (IntChannel i = 0; i < alignedChannels; i++)
+            for (IntChannel i = 0; i < alignedChannels * channelAlign; i++)
             {
                 trace[i] = input[i];
             }
@@ -171,9 +168,8 @@ namespace HSDetection
             const IntVolt *devPrev = runningDeviation[t - 1];
             IntVolt *baselines = runningBaseline[t];
             IntVolt *deviations = runningDeviation[t];
-            IntChannel alignedChannels = alignChannel(numChannels);
 
-            for (IntChannel i = 0; i < alignedChannels; i++)
+            for (IntChannel i = 0; i < alignedChannels * channelAlign; i++)
             {
                 IntVolt volt = trace[i] - ref - basePrev[i];
 
