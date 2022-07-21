@@ -39,7 +39,7 @@ DEFAULT_PARAMS: Params = {
     'rescale': True,
     'rescale_value': -1280.0,
 
-    'common_reference': 'average',
+    'common_reference': 'median',
 
     'spike_duration': 1.0,
     'amp_avg_duration': 0.4,
