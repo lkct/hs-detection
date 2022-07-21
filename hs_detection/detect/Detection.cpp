@@ -89,6 +89,8 @@ namespace HSDetection
         runningEstimation(chunkStart, chunkLen);
 
         detectSpikes(chunkStart, chunkLen);
+
+        pQueue->process();
     }
 
     IntResult Detection::finish()
@@ -191,11 +193,6 @@ namespace HSDetection
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            while (pQueue->checkDelay(t - spikeDur))
-            {
-                pQueue->process();
-            }
-
             const IntVolt *trace = this->trace[t];
             IntVolt ref = commonRef(t, 0);
             const IntVolt *baselines = runningBaseline[t];
@@ -260,7 +257,7 @@ namespace HSDetection
                 if (spikeArea[i] > minAvg * ampAvgDur && // reach min area
                     (hasAHP[i] || voltThr < maxAHP))     // AHP exist
                 {
-                    pQueue->push_back(Spike(t - spikeDur, i, spikeAmp[i]));
+                    pQueue->addSpike(Spike(t - spikeDur, i, spikeAmp[i]));
                 }
 
                 spikeTime[i] = -1; // reset counter even if not spike

@@ -17,6 +17,9 @@ namespace HSDetection
     class SpikeQueue
     {
     private:
+        Spike *spikes;      // buffer for detected spikes
+        IntResult spikeCnt; // count of detected spikes
+
         std::list<Spike> queue; // list has constant-time erase and also bi-directional iter
 
         std::vector<QueueProcessor *> queProcs; // content created and released here
@@ -25,6 +28,9 @@ namespace HSDetection
         std::vector<Spike> *pRresult; // passed in, should not release here
 
         IntFrame procDelay; // delayed frames from push to process
+
+        void procFront();
+        // cannot inline procFront because no definition of Processor here
 
     public:
         SpikeQueue(Detection *pDet); // passing the whole param set altogether
@@ -35,10 +41,13 @@ namespace HSDetection
         // copy assignment deleted to protect container content
         SpikeQueue &operator=(const SpikeQueue &) = delete;
 
-        bool checkDelay(IntFrame curFrame) { return !queue.empty() && queue.front().frame < curFrame - procDelay; }
+        void addSpike(Spike &&spike)
+        {
+            IntResult spkIdx = spikeCnt++;
+            spikes[spkIdx] = std::move(spike);
+        }
         void process();
         void finalize();
-        // cannot inline process because no definition of Processor here
 
         // wrappers of container interface
 
