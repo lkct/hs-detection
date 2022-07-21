@@ -23,7 +23,7 @@ namespace HSDetection
 {
     SpikeQueue::SpikeQueue(Detection *pDet)
         : queue(), queProcs(), spkProcs(), pRresult(&pDet->result),
-          procDelay(max(pDet->cutoutEnd, pDet->riseDur + pDet->spikeDur) + pDet->jitterTol + 1)
+          procDelay(max(pDet->cutoutEnd - pDet->spikeDur, pDet->riseDur) + pDet->jitterTol + 1)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;

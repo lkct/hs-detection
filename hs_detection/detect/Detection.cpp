@@ -191,7 +191,7 @@ namespace HSDetection
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            while (pQueue->checkDelay(t))
+            while (pQueue->checkDelay(t - spikeDur))
             {
                 pQueue->process();
             }
