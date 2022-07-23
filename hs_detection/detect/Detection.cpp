@@ -86,9 +86,7 @@ namespace HSDetection
             commonAverage(chunkStart, chunkLen);
         }
 
-        runningEstimation(chunkStart, chunkLen);
-
-        detectSpikes(chunkStart, chunkLen);
+        estimateAndDetect(chunkStart, chunkLen);
 
         pQueue->process();
     }
@@ -160,7 +158,7 @@ namespace HSDetection
         }
     }
 
-    void Detection::runningEstimation(IntFrame chunkStart, IntFrame chunkLen)
+    void Detection::estimateAndDetect(IntFrame chunkStart, IntFrame chunkLen)
     {
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
@@ -186,17 +184,6 @@ namespace HSDetection
                 IntVolt dev = devPrev[i] + dltDev;
                 deviations[i] = (dev < minDev) ? minDev : dev; // clamp deviations at minDev
             }
-        }
-    }
-
-    void Detection::detectSpikes(IntFrame chunkStart, IntFrame chunkLen)
-    {
-        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
-        {
-            const IntVolt *trace = this->trace[t];
-            IntVolt ref = commonRef(t, 0);
-            const IntVolt *baselines = runningBaseline[t];
-            const IntVolt *deviations = runningDeviation[t];
 
             for (IntChannel i = 0; i < numChannels; i++)
             {
@@ -262,10 +249,10 @@ namespace HSDetection
 
                 spikeTime[i] = -1; // reset counter even if not spike
 
-            } // for i
+            } // second for i
 
         } // for t
 
-    } // Detection::detectSpikes
+    } // Detection::estimateAndDetect
 
 } // namespace HSDetection
