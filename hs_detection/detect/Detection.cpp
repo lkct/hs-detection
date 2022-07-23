@@ -88,6 +88,12 @@ namespace HSDetection
 
     void Detection::castAndCommonref(IntFrame chunkStart, IntFrame chunkLen)
     {
+        if (rescale && !medianReference && averageReference)
+        {
+            scaleAndAverage(chunkStart, chunkLen);
+            return;
+        }
+
         if (rescale)
         {
             for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
@@ -121,6 +127,16 @@ namespace HSDetection
             {
                 commonAverage(commonRef[t], trace[t]);
             }
+        }
+    }
+
+    void Detection::scaleAndAverage(IntFrame chunkStart, IntFrame chunkLen)
+    {
+        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+        {
+            scaleCast(trace[t], traceRaw[t]);
+
+            commonAverage(commonRef[t], trace[t]);
         }
     }
 

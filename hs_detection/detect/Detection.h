@@ -91,6 +91,7 @@ namespace HSDetection
         inline void commonMedian(IntVolt *ref, const IntVolt *trace,
                                  IntVolt *buffer, IntChannel mid);
         inline void commonAverage(IntVolt *ref, const IntVolt *trace);
+        void scaleAndAverage(IntFrame chunkStart, IntFrame chunkLen);
         void castAndCommonref(IntFrame chunkStart, IntFrame chunkLen);
         void estimateAndDetect(IntFrame chunkStart, IntFrame chunkLen);
 
