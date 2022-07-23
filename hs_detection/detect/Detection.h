@@ -86,10 +86,12 @@ namespace HSDetection
         IntFrame cutoutEnd;   // the end of cutout
 
     private:
-        void traceScaleCast(IntFrame chunkStart, IntFrame chunkLen);
-        void traceCast(IntFrame chunkStart, IntFrame chunkLen);
-        void commonMedian(IntFrame chunkStart, IntFrame chunkLen);
-        void commonAverage(IntFrame chunkStart, IntFrame chunkLen);
+        inline void scaleCast(IntVolt *trace, const FloatRaw *input);
+        inline void noscaleCast(IntVolt *trace, const FloatRaw *input);
+        inline void commonMedian(IntVolt *ref, const IntVolt *trace,
+                                 IntVolt *buffer, IntChannel mid);
+        inline void commonAverage(IntVolt *ref, const IntVolt *trace);
+        void castAndCommonref(IntFrame chunkStart, IntFrame chunkLen);
         void estimateAndDetect(IntFrame chunkStart, IntFrame chunkLen);
 
     public:

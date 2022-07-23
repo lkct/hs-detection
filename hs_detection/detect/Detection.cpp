@@ -68,23 +68,7 @@ namespace HSDetection
     {
         traceRaw.updateChunk(traceBuffer);
 
-        if (rescale)
-        {
-            traceScaleCast(chunkStart, chunkLen);
-        }
-        else
-        {
-            traceCast(chunkStart, chunkLen);
-        }
-
-        if (medianReference)
-        {
-            commonMedian(chunkStart, chunkLen);
-        }
-        else if (averageReference)
-        {
-            commonAverage(chunkStart, chunkLen);
-        }
+        castAndCommonref(chunkStart, chunkLen);
 
         estimateAndDetect(chunkStart, chunkLen);
 
@@ -102,60 +86,73 @@ namespace HSDetection
         return result.data();
     }
 
-    void Detection::traceScaleCast(IntFrame chunkStart, IntFrame chunkLen)
+    void Detection::castAndCommonref(IntFrame chunkStart, IntFrame chunkLen)
     {
-        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+        if (rescale)
         {
-            const FloatRaw *input = traceRaw[t];
-            IntVolt *trace = this->trace[t];
-
-            for (IntChannel i = 0; i < alignedChannels * channelAlign; i++)
+            for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
             {
-                trace[i] = input[i] * scale[i] + offset[i];
+                scaleCast(trace[t], traceRaw[t]);
+            }
+        }
+        else
+        {
+            for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+            {
+                noscaleCast(trace[t], traceRaw[t]);
+            }
+        }
+
+        if (medianReference)
+        {
+            IntVolt *buffer = new IntVolt[numChannels]; // nth_element modifies container
+            IntChannel mid = numChannels / 2;
+
+            for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+            {
+                commonMedian(commonRef[t], trace[t], buffer, mid);
+            }
+
+            delete[] buffer;
+        }
+        else if (averageReference)
+        {
+            for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+            {
+                commonAverage(commonRef[t], trace[t]);
             }
         }
     }
 
-    void Detection::traceCast(IntFrame chunkStart, IntFrame chunkLen)
+    void Detection::scaleCast(IntVolt *trace, const FloatRaw *input)
     {
-        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+        for (IntChannel i = 0; i < alignedChannels * channelAlign; i++)
         {
-            const FloatRaw *input = traceRaw[t];
-            IntVolt *trace = this->trace[t];
-
-            for (IntChannel i = 0; i < alignedChannels * channelAlign; i++)
-            {
-                trace[i] = input[i];
-            }
+            trace[i] = input[i] * scale[i] + offset[i];
         }
     }
 
-    void Detection::commonMedian(IntFrame chunkStart, IntFrame chunkLen)
+    void Detection::noscaleCast(IntVolt *trace, const FloatRaw *input)
     {
-        IntVolt *frame = new IntVolt[numChannels]; // nth_element modifies container
-        IntChannel mid = numChannels / 2;
-
-        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+        for (IntChannel i = 0; i < alignedChannels * channelAlign; i++)
         {
-            copy_n(trace[t], numChannels, frame);
-
-            nth_element(frame, frame + mid, frame + numChannels);
-
-            commonRef(t, 0) = frame[mid];
+            trace[i] = input[i];
         }
-
-        delete[] frame;
     }
 
-    void Detection::commonAverage(IntFrame chunkStart, IntFrame chunkLen)
+    void Detection::commonMedian(IntVolt *ref, const IntVolt *trace, IntVolt *buffer, IntChannel mid)
     {
-        for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
-        {
-            commonRef(t, 0) = accumulate(trace[t], trace[t] + numChannels, (IntCalc)0,
-                                         [](IntCalc sum, IntVolt data)
-                                         { return sum + data; }) /
-                              numChannels;
-        }
+        copy_n(trace, numChannels, buffer);
+        nth_element(buffer, buffer + mid, buffer + numChannels);
+        *ref = buffer[mid];
+    }
+
+    void Detection::commonAverage(IntVolt *ref, const IntVolt *trace)
+    {
+        IntCalc sum = accumulate(trace, trace + numChannels, (IntCalc)0,
+                                 [](IntCalc sum, IntVolt data)
+                                 { return sum + data; });
+        *ref = sum / numChannels;
     }
 
     void Detection::estimateAndDetect(IntFrame chunkStart, IntFrame chunkLen)
