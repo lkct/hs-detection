@@ -196,97 +196,109 @@ namespace HSDetection
 
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
-            const IntVolt *trace = this->trace[t];
-            IntVolt ref = commonRef(t, 0);
-            const IntVolt *basePrev = runningBaseline[t - 1];
-            const IntVolt *devPrev = runningDeviation[t - 1];
-            IntVolt *baselines = runningBaseline[t];
-            IntVolt *deviations = runningDeviation[t];
+            estimation(runningBaseline[t], runningDeviation[t],
+                       trace[t], commonRef[t],
+                       runningBaseline[t - 1], runningDeviation[t - 1],
+                       thAlignedStart, thAlignedEnd);
 
-            for (IntChannel i = thAlignedStart * channelAlign; i < thAlignedEnd * channelAlign; i++)
+            detection(trace[t], commonRef[t],
+                      runningBaseline[t], runningDeviation[t],
+                      thAlignedStart * channelAlign, thActualEnd, t);
+        }
+    }
+
+    void Detection::estimation(IntVolt *baselines, IntVolt *deviations,
+                               const IntVolt *trace, const IntVolt *ref,
+                               const IntVolt *basePrev, const IntVolt *devPrev,
+                               IntChannel alignedStart, IntChannel alignedEnd)
+    {
+        for (IntChannel i = alignedStart * channelAlign; i < alignedEnd * channelAlign; i++)
+        {
+            IntVolt volt = trace[i] - *ref - basePrev[i];
+
+            IntVolt dltBase = 0;
+            dltBase = (devPrev[i] < volt) ? devPrev[i] / tauBase : dltBase;
+            dltBase = (volt < -devPrev[i]) ? -devPrev[i] / (tauBase * 2) : dltBase;
+            baselines[i] = basePrev[i] + dltBase;
+
+            IntVolt dltDev = 0;
+            dltDev = (devPrev[i] < volt && volt < 5 * devPrev[i]) ? devChange : dltDev;
+            dltDev = ((0 < volt && volt <= devPrev[i]) || 6 * devPrev[i] < volt) ? -devChange : dltDev;
+            IntVolt dev = devPrev[i] + dltDev;
+            deviations[i] = (dev < minDev) ? minDev : dev; // clamp deviations at minDev
+        }
+    }
+
+    void Detection::detection(const IntVolt *trace, const IntVolt *ref,
+                              const IntVolt *baselines, const IntVolt *deviations,
+                              IntChannel channelStart, IntChannel channelEnd, IntFrame t)
+    {
+        for (IntChannel i = channelStart; i < channelEnd; i++)
+        {
+            IntVolt volt = trace[i] - *ref - baselines[i]; // calc against updated baselines
+            IntVolt dev = deviations[i];
+
+            IntCalc voltThr = volt * thrQuant;
+            IntCalc thr = threshold * dev;
+            IntCalc minAvg = minAvgAmp * dev;
+            IntCalc maxAHP = maxAHPAmp * dev;
+
+            if (spikeTime[i] < 0) // not in spike
             {
-                IntVolt volt = trace[i] - ref - basePrev[i];
+                if (voltThr > thr) // threshold crossing
+                {
+                    spikeTime[i] = 0;
+                    spikeAmp[i] = volt;
+                    spikeArea[i] = voltThr;
+                    hasAHP[i] = false;
+                }
+                continue;
+            }
+            // else: during a spike
+            spikeTime[i]++;
+            // 1 <= spikeTime[i]
 
-                IntVolt dltBase = 0;
-                dltBase = (devPrev[i] < volt) ? devPrev[i] / tauBase : dltBase;
-                dltBase = (volt < -devPrev[i]) ? -devPrev[i] / (tauBase * 2) : dltBase;
-                baselines[i] = basePrev[i] + dltBase;
+            if (spikeTime[i] < ampAvgDur) // sum up area in ampAvgDur
+            {
+                spikeArea[i] += voltThr;
+                if (spikeAmp[i] < volt) // larger amp found
+                {
+                    spikeTime[i] = 0; // reset peak to current
+                    spikeAmp[i] = volt;
+                    // but accumulate area (already added)
+                    hasAHP[i] = false;
+                }
+                continue;
+            }
+            // else: ampAvgDur <= spikeTime[i]
 
-                IntVolt dltDev = 0;
-                dltDev = (devPrev[i] < volt && volt < 5 * devPrev[i]) ? devChange : dltDev;
-                dltDev = ((0 < volt && volt <= devPrev[i]) || 6 * devPrev[i] < volt) ? -devChange : dltDev;
-                IntVolt dev = devPrev[i] + dltDev;
-                deviations[i] = (dev < minDev) ? minDev : dev; // clamp deviations at minDev
+            if (spikeTime[i] < spikeDur)
+            {
+                if (voltThr < maxAHP) // AHP found
+                {
+                    hasAHP[i] = true;
+                }
+                else if (spikeAmp[i] < volt) // larger amp found
+                {
+                    spikeTime[i] = 0; // reset peak to current
+                    spikeAmp[i] = volt;
+                    spikeArea[i] += voltThr; // but accumulate area
+                    hasAHP[i] = false;
+                }
+                continue;
+            }
+            // else: spikeTime[i] == spikeDur, spike end
+
+            if (spikeArea[i] > minAvg * ampAvgDur && // reach min area
+                (hasAHP[i] || voltThr < maxAHP))     // AHP exist
+            {
+                pQueue->addSpike(Spike(t - spikeDur, i, spikeAmp[i]));
             }
 
-            for (IntChannel i = thAlignedStart * channelAlign; i < thActualEnd; i++)
-            {
-                IntVolt volt = trace[i] - ref - baselines[i]; // calc against updated baselines
-                IntVolt dev = deviations[i];
+            spikeTime[i] = -1; // reset counter even if not spike
 
-                IntCalc voltThr = volt * thrQuant;
-                IntCalc thr = threshold * dev;
-                IntCalc minAvg = minAvgAmp * dev;
-                IntCalc maxAHP = maxAHPAmp * dev;
+        } // for i
 
-                if (spikeTime[i] < 0) // not in spike
-                {
-                    if (voltThr > thr) // threshold crossing
-                    {
-                        spikeTime[i] = 0;
-                        spikeAmp[i] = volt;
-                        spikeArea[i] = voltThr;
-                        hasAHP[i] = false;
-                    }
-                    continue;
-                }
-                // else: during a spike
-                spikeTime[i]++;
-                // 1 <= spikeTime[i]
-
-                if (spikeTime[i] < ampAvgDur) // sum up area in ampAvgDur
-                {
-                    spikeArea[i] += voltThr;
-                    if (spikeAmp[i] < volt) // larger amp found
-                    {
-                        spikeTime[i] = 0; // reset peak to current
-                        spikeAmp[i] = volt;
-                        // but accumulate area (already added)
-                        hasAHP[i] = false;
-                    }
-                    continue;
-                }
-                // else: ampAvgDur <= spikeTime[i]
-
-                if (spikeTime[i] < spikeDur)
-                {
-                    if (voltThr < maxAHP) // AHP found
-                    {
-                        hasAHP[i] = true;
-                    }
-                    else if (spikeAmp[i] < volt) // larger amp found
-                    {
-                        spikeTime[i] = 0; // reset peak to current
-                        spikeAmp[i] = volt;
-                        spikeArea[i] += voltThr; // but accumulate area
-                        hasAHP[i] = false;
-                    }
-                    continue;
-                }
-                // else: spikeTime[i] == spikeDur, spike end
-
-                if (spikeArea[i] > minAvg * ampAvgDur && // reach min area
-                    (hasAHP[i] || voltThr < maxAHP))     // AHP exist
-                {
-                    pQueue->addSpike(Spike(t - spikeDur, i, spikeAmp[i]));
-                }
-
-                spikeTime[i] = -1; // reset counter even if not spike
-
-            } // second for i
-
-        } // for t
-
-    } // Detection::estimateAndDetect
+    } // Detection::detection
 
 } // namespace HSDetection

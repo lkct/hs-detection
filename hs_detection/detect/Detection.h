@@ -93,6 +93,13 @@ namespace HSDetection
         inline void commonAverage(IntVolt *ref, const IntVolt *trace);
         void scaleAndAverage(IntFrame chunkStart, IntFrame chunkLen);
         void castAndCommonref(IntFrame chunkStart, IntFrame chunkLen);
+        inline void estimation(IntVolt *baselines, IntVolt *deviations,
+                               const IntVolt *trace, const IntVolt *ref,
+                               const IntVolt *basePrev, const IntVolt *devPrev,
+                               IntChannel alignedStart, IntChannel alignedEnd);
+        inline void detection(const IntVolt *trace, const IntVolt *ref,
+                              const IntVolt *baselines, const IntVolt *deviations,
+                              IntChannel channelStart, IntChannel channelEnd, IntFrame t);
         void estimateAndDetect(IntFrame chunkStart, IntFrame chunkLen);
 
     public:
