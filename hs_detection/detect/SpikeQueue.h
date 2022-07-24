@@ -43,7 +43,9 @@ namespace HSDetection
 
         void addSpike(Spike &&spike)
         {
-            IntResult spkIdx = spikeCnt++;
+            IntResult spkIdx;
+#pragma omp atomic capture
+            spkIdx = spikeCnt++;
             spikes[spkIdx] = std::move(spike);
         }
         void process();

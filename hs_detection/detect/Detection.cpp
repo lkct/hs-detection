@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include <omp.h>
+
 #include "Detection.h"
 
 using namespace std;
@@ -68,9 +70,12 @@ namespace HSDetection
     {
         traceRaw.updateChunk(traceBuffer);
 
-        castAndCommonref(chunkStart, chunkLen);
-
-        estimateAndDetect(chunkStart, chunkLen);
+#pragma omp parallel
+        {
+            castAndCommonref(chunkStart, chunkLen);
+#pragma omp barrier
+            estimateAndDetect(chunkStart, chunkLen);
+        }
 
         pQueue->process();
     }
@@ -88,22 +93,29 @@ namespace HSDetection
 
     void Detection::castAndCommonref(IntFrame chunkStart, IntFrame chunkLen)
     {
+        int numThreads = omp_get_num_threads();
+        int threadNum = omp_get_thread_num();
+        // each thread have ceil(chunkLen / numThreads), last has fewer
+        IntFrame thChunkLen = (chunkLen + numThreads - 1) / numThreads;
+        IntFrame thChunkStart = chunkStart + threadNum * thChunkLen;
+        thChunkLen = min(thChunkLen, chunkStart + chunkLen - thChunkStart);
+
         if (rescale && !medianReference && averageReference)
         {
-            scaleAndAverage(chunkStart, chunkLen);
+            scaleAndAverage(thChunkStart, thChunkLen);
             return;
         }
 
         if (rescale)
         {
-            for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+            for (IntFrame t = thChunkStart; t < thChunkStart + thChunkLen; t++)
             {
                 scaleCast(trace[t], traceRaw[t]);
             }
         }
         else
         {
-            for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+            for (IntFrame t = thChunkStart; t < thChunkStart + thChunkLen; t++)
             {
                 noscaleCast(trace[t], traceRaw[t]);
             }
@@ -114,7 +126,7 @@ namespace HSDetection
             IntVolt *buffer = new IntVolt[numChannels]; // nth_element modifies container
             IntChannel mid = numChannels / 2;
 
-            for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+            for (IntFrame t = thChunkStart; t < thChunkStart + thChunkLen; t++)
             {
                 commonMedian(commonRef[t], trace[t], buffer, mid);
             }
@@ -123,7 +135,7 @@ namespace HSDetection
         }
         else if (averageReference)
         {
-            for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
+            for (IntFrame t = thChunkStart; t < thChunkStart + thChunkLen; t++)
             {
                 commonAverage(commonRef[t], trace[t]);
             }
@@ -173,6 +185,15 @@ namespace HSDetection
 
     void Detection::estimateAndDetect(IntFrame chunkStart, IntFrame chunkLen)
     {
+        int numThreads = omp_get_num_threads();
+        int threadNum = omp_get_thread_num();
+        // each thread have ceil(alignedChannels / numThreads), last has fewer
+        IntChannel thChannels = (alignedChannels + numThreads - 1) / numThreads;
+        IntChannel thAlignedStart = threadNum * thChannels;
+        IntChannel thAlignedEnd = (threadNum + 1) * thChannels;
+        thAlignedEnd = min(thAlignedEnd, alignedChannels);
+        IntChannel thActualEnd = min(thAlignedEnd * channelAlign, numChannels);
+
         for (IntFrame t = chunkStart; t < chunkStart + chunkLen; t++)
         {
             const IntVolt *trace = this->trace[t];
@@ -182,7 +203,7 @@ namespace HSDetection
             IntVolt *baselines = runningBaseline[t];
             IntVolt *deviations = runningDeviation[t];
 
-            for (IntChannel i = 0; i < alignedChannels * channelAlign; i++)
+            for (IntChannel i = thAlignedStart * channelAlign; i < thAlignedEnd * channelAlign; i++)
             {
                 IntVolt volt = trace[i] - ref - basePrev[i];
 
@@ -198,7 +219,7 @@ namespace HSDetection
                 deviations[i] = (dev < minDev) ? minDev : dev; // clamp deviations at minDev
             }
 
-            for (IntChannel i = 0; i < numChannels; i++)
+            for (IntChannel i = thAlignedStart * channelAlign; i < thActualEnd; i++)
             {
                 IntVolt volt = trace[i] - ref - baselines[i]; // calc against updated baselines
                 IntVolt dev = deviations[i];
