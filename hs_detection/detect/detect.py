@@ -4,7 +4,7 @@
 
 import warnings
 from pathlib import Path
-from typing import Mapping, Optional, Sequence
+from typing import Optional
 
 import cython
 import numpy as np
@@ -238,7 +238,7 @@ class HSDetection(object):
 
     @cython.ccall
     @cython.returns(list)
-    def detect(self) -> Sequence[Mapping[str, RealArray]]:
+    def detect(self) -> list[dict[str, RealArray]]:
         return [self.detect_seg(seg) for seg in range(self.num_segments)]
 
     @cython.cfunc
@@ -249,7 +249,7 @@ class HSDetection(object):
                    amplitude=np.ndarray, location=np.ndarray,
                    spikes=np.ndarray, result=dict)
     @cython.returns(dict)
-    def detect_seg(self, segment_index: int) -> Mapping[str, RealArray]:
+    def detect_seg(self, segment_index: int) -> dict[str, RealArray]:
         shape_file = None if self.shape_file is None \
             else self.shape_file.with_stem(f'{self.shape_file.stem}-{segment_index}')
 
