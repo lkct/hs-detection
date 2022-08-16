@@ -4,7 +4,7 @@ import sys
 from spikeinterface.extractors import MdaRecordingExtractor
 
 from data_utils import download_large, str2Path
-from run_hs2 import run_hsdet
+from run_detection import run_hsdet
 
 
 def test_spyext(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -> None:

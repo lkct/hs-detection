@@ -2,10 +2,9 @@ import sys
 import timeit
 
 from spikeinterface.extractors import MdaRecordingExtractor
-from spikeinterface.sortingcomponents.peak_detection import detect_peaks
 
 from data_utils import download_large, str2Path
-from run_hs2 import run_herdingspikes, run_hsdet
+from run_detection import run_hs2, run_hsdet, run_peakdet
 
 
 def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda') -> None:
@@ -35,21 +34,12 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
-        t_sihs = timeit1(lambda: run_herdingspikes(
+        t_sihs = timeit1(lambda: run_hs2(
             recording, filter=False, output_folder=sihs_path))
         t_hsdet = timeit1(lambda: run_hsdet(
             recording, filter=False, output_folder=hsdet_path))
-
-        t_peak = timeit1(lambda: detect_peaks(
-            recording, method='by_channel',
-            peak_sign='neg', detect_threshold=5, n_shifts=2,
-            chunk_size=10000, verbose=1, progress_bar=False))
-        t_peakloc = timeit1(lambda: detect_peaks(
-            recording, method='locally_exclusive',
-            peak_sign='neg', detect_threshold=5, n_shifts=2,
-            chunk_size=10000, verbose=1, progress_bar=False,
-            localization_dict=dict(method='center_of_mass', local_radius_um=150,
-                                   ms_before=0.1, ms_after=0.3)))
+        t_peak = timeit1(lambda: run_peakdet(
+            recording, ))
     except Exception as e:
         sys.stdout, sys.stderr = stdout, stderr
         raise e
@@ -59,7 +49,6 @@ def test_performance(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.md
     print(t_sihs)
     print(t_hsdet)
     print(t_peak)
-    print(t_peakloc)
 
 
 if __name__ == '__main__':

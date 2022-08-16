@@ -4,7 +4,7 @@ import numpy as np
 from spikeinterface.extractors import MEArecRecordingExtractor
 
 from data_utils import download_small, str2Path
-from run_hs2 import run_herdingspikes, run_hsdet
+from run_detection import run_hs2, run_hsdet
 
 
 def test_correctness(data_fn: str = 'mearec_test_10s.h5', expected: int = -1, **kwargs) -> None:
@@ -42,7 +42,7 @@ def test_correctness(data_fn: str = 'mearec_test_10s.h5', expected: int = -1, **
     stdout, stderr = sys.stdout, sys.stderr
     sys.stdout = sys.stderr = open('/dev/null', 'w')
     try:
-        sihs = run_herdingspikes(recording, output_folder=sihs_path, **kwargs)
+        sihs = run_hs2(recording, output_folder=sihs_path, **kwargs)
         hsdet = run_hsdet(recording, output_folder=hsdet_path, **kwargs)
     except Exception as e:
         sys.stdout, sys.stderr = stdout, stderr
