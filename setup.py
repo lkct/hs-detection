@@ -31,6 +31,7 @@ except ImportError:
 
 
 PROFILE = 0
+NATIVE_OPTIM = True
 
 
 def get_version() -> str:
@@ -67,8 +68,9 @@ with open('README.md', 'r', encoding='utf-8') as f:
 sources = glob.glob('hs_detection/detect/**/[A-Z]*.cpp', recursive=True)
 sources += [os.path.join('hs_detection/detect', fn) for fn in ext_src]
 
-extra_compile_args = ['-std=c++17', '-O3']
-link_extra_args = []
+extra_compile_args = ['-std=c++17', '-O3', '-fopenmp'] + \
+    ['-march=native', '-mtune=native'] * NATIVE_OPTIM
+link_extra_args = ['-fopenmp']
 # OS X support
 if platform.system() == 'Darwin':
     extra_compile_args += ['-mmacosx-version-min=10.14', '-F.']
@@ -79,7 +81,8 @@ detect_ext = cythonize(
     Extension(name='hs_detection.detect.detect',
               sources=sources,
               include_dirs=[numpy_include],
-              define_macros=[('CYTHON_TRACE_NOGIL', '1' if PROFILE >= 2 else '0')],
+              define_macros=[
+                  ('CYTHON_TRACE_NOGIL', '1' if PROFILE >= 2 else '0')],
               extra_compile_args=extra_compile_args,
               extra_link_args=link_extra_args,
               language='c++'),
