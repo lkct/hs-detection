@@ -22,8 +22,9 @@ using namespace std;
 namespace HSDetection
 {
     SpikeQueue::SpikeQueue(Detection *pDet)
-        : queue(), queProcs(), spkProcs(), pRresult(&pDet->result),
-          procDelay(max(pDet->cutoutEnd, pDet->riseDur + pDet->spikeDur) + pDet->jitterTol + 1)
+        : spikes((Spike *)new char[pDet->chunkSize * pDet->numChannels * sizeof(Spike)]), spikeCnt(0),
+          queue(), queProcs(), spkProcs(), pRresult(&pDet->result),
+          procDelay(max(pDet->cutoutEnd - pDet->spikeDur, pDet->riseDur) + pDet->jitterTol + 1)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;
@@ -64,9 +65,11 @@ namespace HSDetection
         for_each(spkProcs.begin(), spkProcs.end(),
                  [](SpikeProcessor *pSpkProc)
                  { delete pSpkProc; });
+
+        delete[](char *) spikes;
     }
 
-    void SpikeQueue::process()
+    void SpikeQueue::procFront()
     {
         for_each(queProcs.begin(), queProcs.end(),
                  [this](QueueProcessor *pQueProc)
@@ -76,11 +79,30 @@ namespace HSDetection
         queue.erase(queue.begin());
     }
 
+    void SpikeQueue::process()
+    {
+        sort(spikes, spikes + spikeCnt,
+             [](const Spike &lhs, const Spike &rhs)
+             { return lhs.frame < rhs.frame || (lhs.frame == rhs.frame && lhs.channel < rhs.channel); });
+
+        for (IntResult i = 0; i < spikeCnt; i++)
+        {
+            while (!queue.empty() && queue.front().frame < spikes[i].frame - procDelay)
+            {
+                procFront();
+            }
+
+            queue.push_back(move(spikes[i]));
+        }
+
+        spikeCnt = 0; // reset for next chunk
+    }
+
     void SpikeQueue::finalize()
     {
         while (!queue.empty())
         {
-            process();
+            procFront();
         }
     }
 

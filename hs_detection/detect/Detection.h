@@ -24,15 +24,16 @@ namespace HSDetection
 
         static constexpr IntCalc thrQuant = 256; // 8bit precision
 
-        static constexpr size_t channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
+        static constexpr IntChannel channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
 
-        static constexpr IntChannel alignChannel(IntChannel x) { return (x + (channelAlign - 1)) & (-channelAlign); }
+        static constexpr IntChannel alignChannel(IntChannel x) { return (x + (channelAlign - 1)) / channelAlign; }
 
         // input data
-        TraceWrapper traceRaw;    // input trace
-        IntChannel numChannels;   // number of probe channels
-        IntFrame chunkSize;       // size of each chunk, only the last chunk can be of a different (smaller) size
-        IntFrame chunkLeftMargin; // margin on the left of each chunk
+        TraceWrapper traceRaw;      // input trace
+        IntChannel numChannels;     // number of probe channels
+        IntChannel alignedChannels; // number of slices of aligned channels
+        IntFrame chunkSize;         // size of each chunk, only the last chunk can be of a different (smaller) size
+        IntFrame chunkLeftMargin;   // margin on the left of each chunk
 
         // rescaling
         bool rescale;       // whether to scale the input
@@ -85,12 +86,21 @@ namespace HSDetection
         IntFrame cutoutEnd;   // the end of cutout
 
     private:
-        void traceScaleCast(IntFrame chunkStart, IntFrame chunkLen);
-        void traceCast(IntFrame chunkStart, IntFrame chunkLen);
-        void commonMedian(IntFrame chunkStart, IntFrame chunkLen);
-        void commonAverage(IntFrame chunkStart, IntFrame chunkLen);
-        void runningEstimation(IntFrame chunkStart, IntFrame chunkLen);
-        void detectSpikes(IntFrame chunkStart, IntFrame chunkLen);
+        inline void scaleCast(IntVolt *trace, const FloatRaw *input);
+        inline void noscaleCast(IntVolt *trace, const FloatRaw *input);
+        inline void commonMedian(IntVolt *ref, const IntVolt *trace,
+                                 IntVolt *buffer, IntChannel mid);
+        inline void commonAverage(IntVolt *ref, const IntVolt *trace);
+        void scaleAndAverage(IntFrame chunkStart, IntFrame chunkLen);
+        void castAndCommonref(IntFrame chunkStart, IntFrame chunkLen);
+        inline void estimation(IntVolt *baselines, IntVolt *deviations,
+                               const IntVolt *trace, const IntVolt *ref,
+                               const IntVolt *basePrev, const IntVolt *devPrev,
+                               IntChannel alignedStart, IntChannel alignedEnd);
+        inline void detection(const IntVolt *trace, const IntVolt *ref,
+                              const IntVolt *baselines, const IntVolt *deviations,
+                              IntChannel channelStart, IntChannel channelEnd, IntFrame t);
+        void estimateAndDetect(IntFrame chunkStart, IntFrame chunkLen);
 
     public:
         Detection(IntChannel numChannels, IntFrame chunkSize, IntFrame chunkLeftMargin,

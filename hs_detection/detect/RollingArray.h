@@ -13,7 +13,7 @@ namespace HSDetection
         IntFrame frameMask; // rolling length will be 2^n and mask is 2^n-1 for bit ops
         IntChannel numChannels;
 
-        static constexpr std::align_val_t memAlign = std::align_val_t(4096); // align to 4K anyway
+        static constexpr std::align_val_t memAlign = std::align_val_t(512); // align to 4K/8 to avoid 4K alias
 
         static constexpr IntFrame getMask(IntFrame x) // get minimum 0...01...1 >= x
         {
