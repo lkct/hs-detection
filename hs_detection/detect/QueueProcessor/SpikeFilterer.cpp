@@ -6,8 +6,8 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeFilterer::SpikeFilterer(const ProbeLayout *pLayout, IntFrame jitterTol)
-        : pLayout(pLayout), jitterTol(jitterTol) {}
+    SpikeFilterer::SpikeFilterer(const ProbeLayout *pLayout, IntFrame temporalJitter)
+        : pLayout(pLayout), temporalJitter(temporalJitter) {}
 
     SpikeFilterer::~SpikeFilterer() {}
 
@@ -16,7 +16,7 @@ namespace HSDetection
         Spike maxSpike = move(*pQueue->begin());
         pQueue->erase(pQueue->begin());
 
-        IntFrame frameBound = maxSpike.frame + jitterTol;
+        IntFrame frameBound = maxSpike.frame + temporalJitter;
         IntChannel maxChannel = maxSpike.channel;
         IntVolt maxAmp = maxSpike.amplitude;
 

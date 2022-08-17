@@ -8,9 +8,9 @@ namespace HSDetection
 {
     SpikeLocalizer::SpikeLocalizer(const ProbeLayout *pLayout, const RollingArray *pTrace,
                                    const RollingArray *pRef, const RollingArray *pBaseline,
-                                   IntFrame jitterTol, IntFrame riseDur)
+                                   IntFrame temporalJitter, IntFrame riseDur)
         : pLayout(pLayout), pTrace(pTrace), pRef(pRef), pBaseline(pBaseline),
-          jitterTol(jitterTol), riseDur(riseDur) {}
+          temporalJitter(temporalJitter), riseDur(riseDur) {}
 
     SpikeLocalizer::~SpikeLocalizer() {}
 
@@ -47,7 +47,7 @@ namespace HSDetection
         IntVolt baseline = (*pBaseline)[frame - riseDur][channel]; // baseline at the start of event
 
         IntCalc sum = 0;
-        for (IntFrame t = frame - jitterTol; t <= frame + jitterTol; t++)
+        for (IntFrame t = frame - temporalJitter; t <= frame + temporalJitter; t++)
         {
             IntVolt volt = (*pTrace)(t, channel) - baseline - (*pRef)(t, 0);
             if (volt > 0)

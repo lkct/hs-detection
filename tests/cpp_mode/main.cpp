@@ -413,7 +413,7 @@ static constexpr unsigned char channelPositions[] = {
     0x00, 0x00, 0xC0, 0x41, 0x00, 0xC0, 0xE9, 0x44, 0x00, 0x00, 0xC0, 0x41, 0x00, 0xC0, 0xEE, 0x44};
 static constexpr float neighborRadius = 90.001;
 static constexpr float innerRadius = 70.001;
-static constexpr int jitterTol = 6;
+static constexpr int temporalJitter = 6;
 static constexpr int riseDur = 8;
 static constexpr bool decayFiltering = false;
 static constexpr float decayRatio = 1.0;
@@ -498,7 +498,7 @@ int main(int argc, const char **argv)
                                         spikeDur, ampAvgDur,
                                         threshold, minAvgAmp, maxAHPAmp,
                                         (float *)channelPositions, neighborRadius, innerRadius,
-                                        jitterTol, riseDur,
+                                        temporalJitter, riseDur,
                                         decayFiltering, decayRatio, localize,
                                         saveShape, filename, cutoutStart, cutoutEnd);
 

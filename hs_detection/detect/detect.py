@@ -56,7 +56,7 @@ class HSDetection(object):
     neighbor_radius: float = cython.declare(single)  # type: ignore
     inner_radius: float = cython.declare(single)  # type: ignore
 
-    noise_duration: int = cython.declare(int32_t)  # type: ignore
+    temporal_jitter: int = cython.declare(int32_t)  # type: ignore
     rise_duration: int = cython.declare(int32_t)  # type: ignore
 
     decay_filtering: bool = cython.declare(bool_t)  # type: ignore
@@ -136,7 +136,7 @@ class HSDetection(object):
         self.inner_radius += RADIUS_EPS
 
         duration_float = params['peak_jitter']
-        self.noise_duration = int(duration_float * fps / 1000 + 0.5)
+        self.temporal_jitter = int(duration_float * fps / 1000 + 0.5)
         duration_float = params['rise_duration']
         self.rise_duration = int(duration_float * fps / 1000 + 0.5)
 
@@ -162,7 +162,7 @@ class HSDetection(object):
         self.cutout_end = int(duration_float * fps / 1000 + 0.5)
         self.cutout_length = self.cutout_start + 1 + self.cutout_end
 
-        self.left_margin = self.noise_duration + \
+        self.left_margin = self.temporal_jitter + \
             max(self.cutout_length, self.rise_duration + 1 + self.spike_duration)
 
         self.verbose = params['verbose']
@@ -176,11 +176,11 @@ class HSDetection(object):
         assert self.neighbor_radius >= 0, f'Expect neighbor radius >=0, got {self.neighbor_radius}'
         assert self.inner_radius >= 0, f'Expect inner neighbor radius >=0, got {self.neighbor_radius}'
         assert 0 <= self.decay_ratio <= 1, f'Expect decay filtering ratio >=0,<=1, got {self.decay_ratio}'
-        assert self.noise_duration >= 0, f'Expect temporal noise >=0, got {self.noise_duration}'
-        assert self.spike_duration >= self.noise_duration, f'Expect spike duration >=noise, got {self.spike_duration} <{self.noise_duration}'
-        assert self.rise_duration >= self.noise_duration, f'Expect rising duration >=noise, got {self.rise_duration} <{self.noise_duration}'
-        assert self.cutout_start >= self.noise_duration, f'Expect cutout start >=noise, got {self.cutout_start} <{self.noise_duration}'
-        assert self.cutout_end >= self.noise_duration, f'Expect cutout end >=noise, got {self.cutout_end} <{self.noise_duration}'
+        assert self.temporal_jitter >= 0, f'Expect temporal jitter >=0, got {self.temporal_jitter}'
+        assert self.spike_duration >= self.temporal_jitter, f'Expect spike duration >=jitter={self.temporal_jitter}, got {self.spike_duration}'
+        assert self.rise_duration >= self.temporal_jitter, f'Expect rising duration >=jitter={self.temporal_jitter}, got {self.rise_duration}'
+        assert self.cutout_start >= self.temporal_jitter, f'Expect cutout start >=jitter={self.temporal_jitter}, got {self.cutout_start}'
+        assert self.cutout_end >= self.temporal_jitter, f'Expect cutout end >=jitter={self.temporal_jitter}, got {self.cutout_end}'
 
     @cython.cfunc
     @cython.locals(chunks_per_seg=int32_t, chunk_size=int32_t, seed=object,
@@ -270,7 +270,7 @@ class HSDetection(object):
             cython.cast(p_single, self.positions.data),
             self.neighbor_radius,
             self.inner_radius,
-            self.noise_duration,
+            self.temporal_jitter,
             self.rise_duration,
             self.decay_filtering,
             self.decay_ratio,

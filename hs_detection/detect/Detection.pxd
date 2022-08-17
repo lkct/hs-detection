@@ -35,7 +35,7 @@ cdef extern from "Detection.h" namespace "HSDetection":
                   const float *channelPositions,
                   float neighborRadius,
                   float innerRadius,
-                  int32_t jitterTol,
+                  int32_t temporalJitter,
                   int32_t riseDur,
                   bool decayFiltering,
                   float decayRatio,

@@ -11,10 +11,10 @@ namespace HSDetection
     private:
         const ProbeLayout *pLayout; // passed in, should not release here
 
-        IntFrame jitterTol;
+        IntFrame temporalJitter;
 
     public:
-        MaxSpikeFinder(const ProbeLayout *pLayout, IntFrame jitterTol);
+        MaxSpikeFinder(const ProbeLayout *pLayout, IntFrame temporalJitter);
         ~MaxSpikeFinder();
 
         void operator()(SpikeQueue *pQueue);

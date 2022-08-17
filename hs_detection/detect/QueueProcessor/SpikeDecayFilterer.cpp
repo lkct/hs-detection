@@ -8,8 +8,8 @@ using namespace std;
 
 namespace HSDetection
 {
-    SpikeDecayFilterer::SpikeDecayFilterer(const ProbeLayout *pLayout, IntFrame jitterTol, FloatRatio decayRatio)
-        : pLayout(pLayout), jitterTol(jitterTol), decayRatio(decayRatio) {}
+    SpikeDecayFilterer::SpikeDecayFilterer(const ProbeLayout *pLayout, IntFrame temporalJitter, FloatRatio decayRatio)
+        : pLayout(pLayout), temporalJitter(temporalJitter), decayRatio(decayRatio) {}
 
     SpikeDecayFilterer::~SpikeDecayFilterer() {}
 
@@ -18,7 +18,7 @@ namespace HSDetection
         Spike maxSpike = move(*pQueue->begin());
         pQueue->erase(pQueue->begin());
 
-        IntFrame frameBound = maxSpike.frame + jitterTol;
+        IntFrame frameBound = maxSpike.frame + temporalJitter;
         IntChannel maxChannel = maxSpike.channel;
         IntVolt maxAmp = maxSpike.amplitude;
 
@@ -64,7 +64,7 @@ namespace HSDetection
                 }
 
                 bool isDecay = outerSpike.amplitude < itSpikeOnInner->amplitude * decayRatio && // outer decayed
-                               itSpikeOnInner->frame - jitterTol <= outerSpike.frame;           // and outer time correct
+                               itSpikeOnInner->frame - temporalJitter <= outerSpike.frame;      // and outer time correct
 
                 if (pLayout->areInnerNeighbors(innerOfOuter, maxChannel))
                 {
