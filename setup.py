@@ -120,6 +120,7 @@ setup(
             'requests',
             'tqdm',
             'gprof2dot',
+            'flameprof',
             'line_profiler',
             'py-spy'
         ]

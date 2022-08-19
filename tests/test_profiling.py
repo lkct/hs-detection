@@ -54,6 +54,9 @@ def test_profiling(data_fn: str = 'sub-MEAREC-250neuron-Neuropixels_ecephys.mda'
               f'-n 0.1 -e 0.01 -f pstats {str(prof_path.with_suffix(".prof"))} | '
               f'dot -T png -o {str(prof_path.with_suffix(".png"))}')
 
+    os.system(f'flameprof {str(prof_path.with_suffix(".prof"))} '
+              f'-o {str(prof_path.with_suffix(".svg"))}')
+
 
 if __name__ == '__main__':
     test_profiling()
