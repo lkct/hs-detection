@@ -24,7 +24,7 @@ namespace HSDetection
 
         static constexpr IntCalc thrQuant = 256; // 8bit precision
 
-        static constexpr IntChannel channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
+        static constexpr IntChannel channelAlign = 64 / sizeof(IntVolt); // align IntVolt to 64B (assume wider FloatRaw)
 
         static constexpr IntChannel alignChannel(IntChannel x) { return (x + (channelAlign - 1)) / channelAlign; }
 
