@@ -15,7 +15,7 @@ namespace HSDetection
         const RollingArray *pRef;      // passed in, should not release here
         const RollingArray *pBaseline; // passed in, should not release here
 
-        IntFrame jitterTol;
+        IntFrame temporalJitter;
         IntFrame riseDur;
 
         static constexpr FloatGeom eps = 1e-12;
@@ -26,7 +26,7 @@ namespace HSDetection
     public:
         SpikeLocalizer(const ProbeLayout *pLayout, const RollingArray *pTrace,
                        const RollingArray *pRef, const RollingArray *pBaseline,
-                       IntFrame jitterTol, IntFrame riseDur);
+                       IntFrame temporalJitter, IntFrame riseDur);
         ~SpikeLocalizer();
 
         using SpikeProcessor::operator(); // allow call on iterator

@@ -24,7 +24,7 @@ namespace HSDetection
 
         static constexpr IntCalc thrQuant = 256; // 8bit precision
 
-        static constexpr IntChannel channelAlign = 32; // align IntVolt=16bit to 64B (assume FloatRaw is wider)
+        static constexpr IntChannel channelAlign = 64 / sizeof(IntVolt); // align IntVolt to 64B (assume wider FloatRaw)
 
         static constexpr IntChannel alignChannel(IntChannel x) { return (x + (channelAlign - 1)) / channelAlign; }
 
@@ -69,8 +69,8 @@ namespace HSDetection
 
         std::vector<Spike> result; // detection result, use vector to expand as needed
 
-        IntFrame jitterTol; // tolerance of jitter in electrical signal
-        IntFrame riseDur;   // duration that a spike rises to peak
+        IntFrame temporalJitter; // temporal jitter of the time of peak in electrical signal
+        IntFrame riseDur;        // duration that a spike rises to peak
 
         // decay filtering
         bool decayFilter;      // whether to use decay filtering instead of normal one
@@ -109,7 +109,7 @@ namespace HSDetection
                   IntFrame spikeDur, IntFrame ampAvgDur,
                   FloatRatio threshold, FloatRatio minAvgAmp, FloatRatio maxAHPAmp,
                   const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
-                  IntFrame jitterTol, IntFrame riseDur,
+                  IntFrame temporalJitter, IntFrame riseDur,
                   bool decayFiltering, FloatRatio decayRatio, bool localize,
                   bool saveShape, std::string filename, IntFrame cutoutStart, IntFrame cutoutEnd);
         ~Detection();

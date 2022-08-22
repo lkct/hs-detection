@@ -15,7 +15,7 @@ namespace HSDetection
                          IntFrame spikeDur, IntFrame ampAvgDur,
                          FloatRatio threshold, FloatRatio minAvgAmp, FloatRatio maxAHPAmp,
                          const FloatGeom *channelPositions, FloatGeom neighborRadius, FloatGeom innerRadius,
-                         IntFrame jitterTol, IntFrame riseDur,
+                         IntFrame temporalJitter, IntFrame riseDur,
                          bool decayFiltering, FloatRatio decayRatio, bool localize,
                          bool saveShape, string filename, IntFrame cutoutStart, IntFrame cutoutEnd)
         : traceRaw(chunkLeftMargin, numChannels, chunkSize),
@@ -33,7 +33,7 @@ namespace HSDetection
           spikeDur(spikeDur), ampAvgDur(ampAvgDur), threshold(threshold * thrQuant),
           minAvgAmp(minAvgAmp * thrQuant), maxAHPAmp(maxAHPAmp * thrQuant),
           probeLayout(numChannels, channelPositions, neighborRadius, innerRadius),
-          result(), jitterTol(jitterTol), riseDur(riseDur),
+          result(), temporalJitter(temporalJitter), riseDur(riseDur),
           decayFilter(decayFiltering), decayRatio(decayRatio), localize(localize),
           saveShape(saveShape), filename(filename), cutoutStart(cutoutStart), cutoutEnd(cutoutEnd)
     {

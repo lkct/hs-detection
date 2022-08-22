@@ -24,28 +24,28 @@ namespace HSDetection
     SpikeQueue::SpikeQueue(Detection *pDet)
         : spikes((Spike *)new char[pDet->chunkSize * pDet->numChannels * sizeof(Spike)]), spikeCnt(0),
           queue(), queProcs(), spkProcs(), pRresult(&pDet->result),
-          procDelay(max(pDet->cutoutEnd - pDet->spikeDur, pDet->riseDur) + pDet->jitterTol + 1)
+          procDelay(max(pDet->cutoutEnd - pDet->spikeDur, pDet->riseDur) + pDet->temporalJitter + 1)
     {
         SpikeProcessor *pSpkProc;
         QueueProcessor *pQueProc;
 
-        pQueProc = new MaxSpikeFinder(&pDet->probeLayout, pDet->jitterTol);
+        pQueProc = new MaxSpikeFinder(&pDet->probeLayout, pDet->temporalJitter);
         queProcs.push_back(pQueProc);
 
         if (pDet->decayFilter)
         {
-            pQueProc = new SpikeDecayFilterer(&pDet->probeLayout, pDet->jitterTol, pDet->decayRatio);
+            pQueProc = new SpikeDecayFilterer(&pDet->probeLayout, pDet->temporalJitter, pDet->decayRatio);
         }
         else
         {
-            pQueProc = new SpikeFilterer(&pDet->probeLayout, pDet->jitterTol);
+            pQueProc = new SpikeFilterer(&pDet->probeLayout, pDet->temporalJitter);
         }
         queProcs.push_back(pQueProc);
 
         if (pDet->localize)
         {
             pSpkProc = new SpikeLocalizer(&pDet->probeLayout, &pDet->trace, &pDet->commonRef, &pDet->runningBaseline,
-                                          pDet->jitterTol, pDet->riseDur);
+                                          pDet->temporalJitter, pDet->riseDur);
             pushFirstElemProc(pSpkProc);
         }
 

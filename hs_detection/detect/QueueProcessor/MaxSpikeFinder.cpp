@@ -6,14 +6,14 @@ using namespace std;
 
 namespace HSDetection
 {
-    MaxSpikeFinder::MaxSpikeFinder(const ProbeLayout *pLayout, IntFrame jitterTol)
-        : pLayout(pLayout), jitterTol(jitterTol) {}
+    MaxSpikeFinder::MaxSpikeFinder(const ProbeLayout *pLayout, IntFrame temporalJitter)
+        : pLayout(pLayout), temporalJitter(temporalJitter) {}
 
     MaxSpikeFinder::~MaxSpikeFinder() {}
 
     void MaxSpikeFinder::operator()(SpikeQueue *pQueue)
     {
-        IntFrame frameBound = pQueue->begin()->frame + jitterTol;
+        IntFrame frameBound = pQueue->begin()->frame + temporalJitter;
         IntChannel centerChannel = pQueue->begin()->channel;
 
         SpikeQueue::iterator itMax = max_element(

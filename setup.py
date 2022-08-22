@@ -116,10 +116,11 @@ setup(
     ],
     extras_require={
         'tests': [
-            'spikeinterface>=0.94',
+            'spikeinterface>=0.94',  # TODO: needs to include hs-detection
             'requests',
             'tqdm',
             'gprof2dot',
+            'flameprof',
             'line_profiler',
             'py-spy'
         ]
