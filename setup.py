@@ -30,8 +30,9 @@ except ImportError:
     print('Not using Cython')
 
 
-PROFILE = 0
-NATIVE_OPTIM = True
+PROFILE = 0  # disabled in release, only use in dev
+NATIVE_OPTIM = True  # enabled for better speed
+FORCE_CYTHONIZE = True  # force rebuild in release, no need to in dev
 
 
 def get_version() -> str:
@@ -86,7 +87,10 @@ detect_ext = cythonize(
               extra_compile_args=extra_compile_args,
               extra_link_args=link_extra_args,
               language='c++'),
-    compiler_directives={'language_level': '3', 'profile': PROFILE >= 1, 'linetrace': PROFILE >= 2})
+    compiler_directives={'language_level': '3',
+                         'profile': PROFILE >= 1,
+                         'linetrace': PROFILE >= 2},
+    force=FORCE_CYTHONIZE)
 
 
 setup(
@@ -105,18 +109,19 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Cython',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3 :: Only'
     ],
     keywords='spikes sorting electrophysiology detection',
-    python_requires='>=3.9',
+    python_requires='>=3.8',
     install_requires=[
         'numpy>=1.21,<1.22'
     ],
     extras_require={
         'tests': [
-            'spikeinterface>=0.94',  # TODO: needs to include hs-detection
+            'spikeinterface>=0.95',  # TODO: needs to include hs-detection
             'requests',
             'tqdm',
             'gprof2dot',
@@ -142,7 +147,7 @@ setup(
     ext_modules=detect_ext,
     zip_safe=False,
     project_urls={
-        'Source': 'https://github.com/lkct/hs2-detection'
+        'Source': 'https://github.com/lkct/hs-detection'
     }
 )
 
