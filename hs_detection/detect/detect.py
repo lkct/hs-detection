@@ -349,8 +349,8 @@ class HSDetection(object):
                                         'channel_ind': channel_ind,
                                         'amplitude': amplitude}
         if self.localize:
-            result |= {'location': location}
+            result['location'] = location
         if self.save_shape:
-            result |= {'spike_shape': spikes}
+            result['spike_shape'] = spikes
 
         return result
