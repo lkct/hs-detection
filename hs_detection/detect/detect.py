@@ -26,7 +26,30 @@ RADIUS_EPS: float = cython.declare(single, 1e-3)  # type: ignore  # 1nm
 
 @cython.cclass
 class HSDetection(object):
-    """TODO:
+    """The spike detection algorithm in Herding Spikes. This class provides an \
+    interface connecting SpikeInterface and the C++ implementation of the \
+    algorithm.
+
+    Reference:
+    1. J.-O. Muthmann, H. Amin, E. Sernagor, A. Maccione, D. Panas, L. Berdondini, \
+    U. S. Bhalla, M. H. Hennig. "Spike Detection for Large Neural Populations Using \
+    High Density Multielectrode Arrays". In: *Frontiers in Neuroinformatics* 9 (2015).
+    2. https://github.com/mhhennig/HS2
+
+    Args:
+        `recording` (`BaseRecording`): A recording from SpikeInterface.
+        `params` (`dict`): A dictionary of algorithmic parameters. All keys \
+            must be present (use `HSDetection.DEFAULT_PARAMS` as a start), but \
+            additional keys are accepted and ignored.
+
+    Returns (of `HSDetection.detect()`):
+        `list[dict[str, np.ndarray]]`: A list of dictionary containing the \
+                detection results for each recording segment.
+        - sample_ind: (n,) array of sample/frame indices of detected spikes
+        - channel_ind: (n,) array of channel indices
+        - amplitude: (n,) array of amplitudes
+        - location (optional): (n,2) array of spike locations if localization on
+        - spike_shape (optional): (n,l) array of spike shape if shape saved
     """
 
     DEFAULT_PARAMS: Params = _DEFAULT_PARAMS
