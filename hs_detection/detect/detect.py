@@ -327,7 +327,7 @@ class HSDetection(object):
 
         sample_ind = np.empty(det_len, dtype=np.int32)
         channel_ind = np.empty(det_len, dtype=np.int32)
-        amplitude = np.empty(det_len, dtype=np.int32)
+        amplitude = np.empty(det_len, dtype=np.int16)
         location = np.empty((det_len, 2), dtype=np.single)
         for i in range(det_len):
             sample_ind[i] = det_result[i].frame
