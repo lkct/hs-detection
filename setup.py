@@ -99,7 +99,7 @@ setup(
     description='Spike detection from HS2, used for integration in SpikeInterface',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/lkct/hs2-detection',
+    url='https://github.com/lkct/hs-detection',
     author='Rickey K. Liang @ Matthias Hennig Lab, University of Edinburgh',
     author_email='liangkct@yahoo.com',
     license='GPLv3',
