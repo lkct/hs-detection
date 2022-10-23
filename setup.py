@@ -68,6 +68,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 # all cpp should start with capital, except for cython generated
 sources = glob.glob('hs_detection/detect/**/[A-Z]*.cpp', recursive=True)
 sources += [os.path.join('hs_detection/detect', fn) for fn in ext_src]
+sources.sort()  # otherwise generatred cpp change
 
 extra_compile_args = ['-std=c++17', '-O3', '-fopenmp'] + \
     ['-march=native', '-mtune=native'] * NATIVE_OPTIM
