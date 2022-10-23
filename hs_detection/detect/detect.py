@@ -251,7 +251,7 @@ class HSDetection(object):
             segment_index=segment_index, start_frame=start_frame, end_frame=end_frame)
 
         traces_float: NDArray[np.single] = traces.astype(
-            np.single, copy=False).reshape(-1)
+            np.single, copy=False).reshape(-1)  # type: ignore # force cast to single
 
         if pad_left or pad_right:
             traces_float = np.pad(traces_float, (pad_left, pad_right),
