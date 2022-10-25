@@ -18,16 +18,12 @@ except:
     print('WARNING no NumPy found, not for build')
 
 try:
-    # if have cython, use augmented py
+    # same as above
     from Cython.Build import cythonize
-    ext_src = ['detect.py']
-    print('Using Cython')
 except ImportError:
-    # no cython, use compiled cpp
     def cythonize(module_list, **kwargs):
         return list(module_list) if isinstance(module_list, Iterable) else [module_list]
-    ext_src = ['detect.cpp']
-    print('Not using Cython')
+    print('WARNING no Cython found, not for build')
 
 
 PROFILE = 0  # disabled in release, only use in dev
@@ -64,6 +60,8 @@ def get_version() -> str:
 with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
+
+ext_src = ['detect.py']
 
 # all cpp should start with capital, except for cython generated
 sources = glob.glob('hs_detection/detect/**/[A-Z]*.cpp', recursive=True)
@@ -117,7 +115,8 @@ setup(
     keywords='spikes sorting electrophysiology detection',
     python_requires='>=3.8',
     install_requires=[
-        'numpy>=1.21,<1.22'
+        'cython',
+        'numpy'
     ],
     extras_require={
         'tests': [
@@ -134,14 +133,14 @@ setup(
     package_data={
         'hs_detection': [
             '.commit_version',
-            '../README.md',
             'detect/**'
         ]
     },
     exclude_package_data={
         'hs_detection': [
+            # 'detect/detect.cpp',  # can only be exlcuded from MANIFEST.in
             'detect/*.so',
-            '**/__pycache__'
+            '**/__pycache__/*'
         ]
     },
     ext_modules=detect_ext,

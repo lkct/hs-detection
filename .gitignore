@@ -1,6 +1,9 @@
 # vscode workspace
 .vscode
 
+# cython generated
+hs_detection/detect/detect.cpp
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
