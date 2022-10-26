@@ -3,7 +3,7 @@
 # rebuild c++ code only
 python setup.py build_ext -i -f
 
-# recuild cython, -a for annotated report, -Wextra for all warnings
+# regenerate cython cpp, -a for annotated report, -Wextra for all warnings
 cython -a -3 --cplus -Wextra detect.py
 
 # inspect asm code of main detection loops

@@ -14,18 +14,12 @@ This package is to be invoked from [SpikeInterface](https://github.com/SpikeInte
 
 The parallelization is controlled by env var `OMP_NUM_THREADS`. Set to 1 for single core running. 2x speedup achieved by 4~6 (depending on platform).
 
+Please note that a C++ compiler (requires C++17 compatibility) should be properly configured to build the C++ extension for Python.
+
 #### Via `pip`
 
 ```shell
 pip install hs-detection
-```
-
-The NumPy requirement is hardcoded to v1.21.x for consistency in Cython interface. To override (might be risky), use the following to rebuild the Cython code:
-
-```shell
-pip install cython
-pip install numpy==YOUR_VERSION
-pip install --no-deps hs-detection
 ```
 
 #### From source
@@ -37,8 +31,6 @@ cd hs-detection
 pip install -e .  # for develop
 cd ..
 ```
-
-Please note that a C++ compiler (requires C++17 compatibility) should be properly configured to build the C++ extension for Python.
 
 ## Versions
 
