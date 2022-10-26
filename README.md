@@ -28,7 +28,7 @@ pip install hs-detection
 git clone https://github.com/lkct/hs-detection.git
 cd hs-detection
 # pip install .  # for install
-pip install -e .  # for develop
+pip install -e . --config-settings editable_mode=compat  # for develop, config needed for static analyzers
 cd ..
 ```
 
